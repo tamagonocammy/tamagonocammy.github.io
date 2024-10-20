@@ -1,10 +1,11 @@
 // latte / frappe / macchiato / mocha
-const palette = macchiato;
+const palette = mocha;
 
 const default_config = {
   overrideStorage: true,
+  "localIcons": true,
   temperature: {
-    location: "London",
+    location: "Bogota",
     scale: "C",
   },
   clock: {
@@ -16,23 +17,23 @@ const default_config = {
   openLastVisitedTab: true,
   tabs: [
     {
-      name: "myself",
+      name: "Mì l i",
       background_url: "src/img/banners/cbg-9.gif",
       categories: [
         {
-          name: "bookmarks",
+          name: "main",
           links: [
             {
-              name: "raindrop",
-              url: "https://app.raindrop.io",
-              icon: "droplet-bolt",
-              icon_color: palette.green,
+              name: "google",
+              url: "https://google.com",
+              icon: "brand-google",
+              icon_color: palette.text,
             },
             {
-              name: "musicForProgramming();",
-              url: "https://musicforprogramming.net",
-              icon: "binary-tree",
-              icon_color: palette.peach,
+              name: "bluesky",
+              url: "https://bsky.app",
+              icon: "brand-bluesky",
+              icon_color: palette.sky,
             },
           ],
         },
@@ -69,34 +70,28 @@ const default_config = {
           name: "media",
           links: [
             {
-              name: "уп",
-              url: "https://www.pravda.com.ua",
-              icon: "news",
-              icon_color: palette.green,
-            },
-            {
-              name: "mil.in.ua",
-              url: "https://mil.in.ua",
-              icon: "badge-filled",
-              icon_color: palette.peach,
-            },
-            {
-              name: "куток",
-              url: "https://kutok.io",
-              icon: "border-radius",
+              name: "netflix",
+              url: "https://netflix.com",
+              icon: "brand-netflix",
               icon_color: palette.red,
             },
             {
-              name: "ґрунт",
-              url: "https://grnt.media",
-              icon: "eye-bolt",
-              icon_color: palette.blue,
+              name: "apple music",
+              url: "https://music.apple.com/",
+              icon: "brand-apple",
+              icon_color: palette.peach,
             },
             {
-              name: "village",
-              url: "https://www.village.com.ua",
-              icon: "home-2",
-              icon_color: palette.mauve,
+              name: "soundcloud",
+              url: "https://soundcloud.com/",
+              icon: "brand-soundcloud",
+              icon_color: palette.maroon,
+            },
+            {
+              name: "holodex",
+              url: "https://holodex.net/",
+              icon: "player-play",
+              icon_color: palette.blue,
             },
           ],
         },
@@ -116,15 +111,15 @@ const default_config = {
               icon_color: palette.green,
             },
             {
-              name: "neptune",
-              url: "https://ui.neptune.ai",
-              icon: "circle-triangle",
+              name: "claude",
+              url: "https://claude.ai",
+              icon: "robot-face",
               icon_color: palette.peach,
             },
             {
-              name: "wakatime",
-              url: "https://wakatime.com",
-              icon: "24-hours",
+              name: "catppuccin",
+              url: "https://catppuccin.com/",
+              icon: "palette",
               icon_color: palette.red,
             },
           ],
@@ -162,10 +157,10 @@ const default_config = {
           name: "blogs",
           links: [
             {
-              name: "dou",
-              url: "https://dou.ua",
-              icon: "brand-prisma",
-              icon_color: palette.green,
+              name: "vidaextra",
+              url: "https://www.vidaextra.com/",
+              icon: "versions",
+              icon_color: palette.teal,
             },
             {
               name: "hackernews",
@@ -174,10 +169,10 @@ const default_config = {
               icon_color: palette.peach,
             },
             {
-              name: "uber research",
-              url: "https://eng.uber.com/category/articles",
-              icon: "brand-uber",
-              icon_color: palette.red,
+              name: "xataka",
+              url: "https://www.xataka.com/",
+              icon: "binary-tree",
+              icon_color: palette.green,
             },
             {
               name: "google research",
@@ -190,22 +185,22 @@ const default_config = {
       ],
     },
     {
-      name: "chi ll",
+      name: "chill",
       background_url: "src/img/banners/cbg-10.gif",
       categories: [
         {
           name: "social medias",
           links: [
             {
-              name: "telegram",
-              url: "https://web.telegram.org",
-              icon: "brand-telegram",
-              icon_color: palette.green,
+              name: "twitter",
+              url: "https://twitter.com",
+              icon: "brand-twitter",
+              icon_color: palette.teal,
             },
             {
-              name: "facebook",
-              url: "https://www.facebook.com",
-              icon: "brand-facebook",
+              name: "instagram",
+              url: "https://www.instagram.com",
+              icon: "brand-instagram",
               icon_color: palette.peach,
             },
             {
@@ -237,12 +232,6 @@ const default_config = {
               icon: "brand-fortnite",
               icon_color: palette.red,
             },
-            {
-              name: "nintendo",
-              url: "https://store.nintendo.co.uk",
-              icon: "device-nintendo",
-              icon_color: palette.blue,
-            },
           ],
         },
         {
@@ -265,12 +254,6 @@ const default_config = {
               url: "https://www.patreon.com",
               icon: "brand-patreon",
               icon_color: palette.red,
-            },
-            {
-              name: "kyivstar",
-              url: "https://tv.kyivstar.ua",
-              icon: "star-filled",
-              icon_color: palette.blue,
             },
           ],
         },
