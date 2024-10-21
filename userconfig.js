@@ -184,7 +184,7 @@ const default_config = {
       ],
     },
     {
-      name: "chill",
+      name: "c h i l l",
       background_url: "src/img/banners/cbg-10.gif",
       categories: [
         {
