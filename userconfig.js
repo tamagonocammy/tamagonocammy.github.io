@@ -3,7 +3,6 @@ const palette = mocha;
 
 const default_config = {
   overrideStorage: true,
-  "localIcons": true,
   temperature: {
     location: "Bogota",
     scale: "C",
@@ -13,7 +12,7 @@ const default_config = {
     iconColor: palette.maroon,
   },
   disabled: [],
-  fastlink: "https://app.raindrop.io",
+  fastlink: "https://search.brave.com",
   openLastVisitedTab: true,
   tabs: [
     {
