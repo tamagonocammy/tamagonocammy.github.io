@@ -215,7 +215,7 @@ const default_config = {
           links: [
             {
               name: "IGN",
-              url: "https://www.ign.com/account/playlist/library",
+              url: "https://www.ign.com/news",
               icon: "device-gamepad",
               icon_color: palette.green,
             },
