@@ -185,7 +185,7 @@ const default_config = {
     },
     {
       name: "c h i l l",
-      background_url: "src/img/banners/bg-2.gif",
+      background_url: "src/img/banners/cbg-7.gif",
       categories: [
         {
           name: "social medias",

@@ -186,6 +186,59 @@ class Statusbar extends Component {
       .fastlink-icon {
         width: 70%;
       }
+      .search-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(10px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;  // Increased z-index
+        pointer-events: none;  // Only capture events when active
+    }
+
+        .search-overlay.active {
+            display: flex;
+        }
+
+        .search-modal {
+            position: relative;
+            width: 600px;
+            padding: 20px;
+            background: ${CONFIG.palette.base};
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 45px 16px 16px;
+            background: ${CONFIG.palette.mantle};
+            color: ${CONFIG.palette.text};
+            border: 2px solid ${CONFIG.palette.surface0};
+            border-radius: 12px;
+            font-family: 'Fira Sans', sans-serif;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: ${CONFIG.palette.green};
+            background: ${CONFIG.palette.surface0};
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: ${CONFIG.palette.overlay0};
+            font-size: 20px;
+        }
     `;
   }
 
@@ -193,8 +246,8 @@ class Statusbar extends Component {
     return `
         <div id="tabs">
             <cols>
-                <button class="+ fastlink">
-                  <img class="fastlink-icon" src="src/img/favicon.png"/>
+                <button class="+ fastlink" id="search-trigger">
+                    <img class="fastlink-icon" src="src/img/favicon.png"/>
                 </button>
                 <ul class="- indicator"></ul>
                 <div class="+ widgets col-end">
@@ -202,25 +255,73 @@ class Statusbar extends Component {
                     <weather-forecast class="+ widget weather"></weather-forecast>
                 </div>
             </cols>
+        </div>
+        
+        <!-- Search overlay outside the tabs div -->
+        <div class="search-overlay">
+            <div class="search-modal">
+                <input type="text" class="search-input" placeholder="Search Brave..."/>
+                <i class="ti ti-search search-icon"></i>
+            </div>
         </div>`;
-  }
+}
 
   setEvents() {
+    // Your existing tab handlers
     this.refs.tabs.forEach((tab) => (tab.onclick = ({ target }) => this.handleTabChange(target)));
 
     document.onkeydown = (e) => this.handleKeyPress(e);
     document.onwheel = (e) => this.handleWheelScroll(e);
-    this.refs.fastlink.onclick = () => {
-      console.log(CONFIG.fastlink);
-      if (CONFIG.config.fastlink) {
-        window.location.href = CONFIG.config.fastlink;
-      }
+
+    // Replace the fastlink click handler with our new search overlay logic
+    const searchTrigger = this.shadow.querySelector('#search-trigger');
+    const searchOverlay = this.shadow.querySelector('.search-overlay');
+    const searchInput = this.shadow.querySelector('.search-input');
+
+    // Open search overlay when icon is clicked
+    searchTrigger.onclick = () => {
+        searchOverlay.classList.add('active');
+        searchInput.focus();
     };
 
+    // Close overlay when clicking outside
+    searchOverlay.addEventListener('click', (e) => {
+        if (e.target === searchOverlay) {
+            searchOverlay.classList.remove('active');
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchOverlay.classList.contains('active')) {
+            searchOverlay.classList.remove('active');
+        }
+    });
+
+    // Handle search
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `https://search.brave.com/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+    });
+
+    // Optional: Keyboard shortcut to open search (press '/')
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !searchOverlay.classList.contains('active')) {
+            e.preventDefault();
+            searchOverlay.classList.add('active');
+            searchInput.focus();
+        }
+    });
+
+    // Keep your last visited tab logic
     if (CONFIG.openLastVisitedTab) {
-      window.onbeforeunload = () => this.saveCurrentTab();
+        window.onbeforeunload = () => this.saveCurrentTab();
     }
-  }
+}
 
   saveCurrentTab() {
     localStorage.lastVisitedTab = this.currentTabIndex;
