@@ -204,7 +204,7 @@ const default_config = {
             },
             {
               name: "reddit",
-              url: "https://www.reddit.com/r/unixporn",
+              url: "https://www.reddit.com/",
               icon: "brand-reddit",
               icon_color: palette.red,
             },
