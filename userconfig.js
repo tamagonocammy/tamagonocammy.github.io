@@ -34,6 +34,18 @@ const default_config = {
               icon: "brand-bluesky",
               icon_color: palette.sky,
             },
+            {
+              name: "icloud",
+              url: "https://www.icloud.com/",
+              icon: "cloud",
+              icon_color: palette.blue,
+            },
+            {
+              name: "perplexity",
+              url: "https://www.perplexity.ai/",
+              icon: "search",
+              icon_color: palette.lavender,
+            },
           ],
         },
         {
