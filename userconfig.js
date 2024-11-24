@@ -41,9 +41,9 @@ const default_config = {
               icon_color: palette.blue,
             },
             {
-              name: "perplexity",
-              url: "https://www.perplexity.ai/",
-              icon: "search",
+              name: "reykunyu",
+              url: "https://reykunyu.lu/",
+              icon: "dictionary",
               icon_color: palette.lavender,
             },
           ],
