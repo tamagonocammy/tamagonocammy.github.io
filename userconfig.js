@@ -43,7 +43,7 @@ const default_config = {
             {
               name: "reykunyu",
               url: "https://reykunyu.lu/",
-              icon: "language",
+              icon: "book-2",
               icon_color: palette.lavender,
             },
           ],
