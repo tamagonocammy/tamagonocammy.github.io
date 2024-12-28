@@ -16,7 +16,7 @@ class Clock extends Component {
     return `
         .clock-time {
             white-space: nowrap;
-            font: 300 9pt 'Fira Sans', sans-serif;
+            font: 300 9pt 'Roboto', sans-serif;
             color: ${CONFIG.palette.text};
             letter-spacing: .5px;
         }
