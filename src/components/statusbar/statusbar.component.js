@@ -260,7 +260,7 @@ class Statusbar extends Component {
         <!-- Search overlay outside the tabs div -->
         <div class="search-overlay">
             <div class="search-modal">
-                <input type="text" class="search-input" placeholder="Search Brave..."/>
+                <input type="text" class="search-input" placeholder="Search DuckDuckGo..."/>
                 <i class="ti ti-search search-icon"></i>
             </div>
         </div>`;
@@ -299,14 +299,14 @@ class Statusbar extends Component {
     });
 
     // Handle search
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const query = searchInput.value.trim();
-            if (query) {
-                window.location.href = `https://search.brave.com/search?q=${encodeURIComponent(query)}`;
+      searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query) {
+                    window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+                }
             }
-        }
-    });
+        });
 
     // Optional: Keyboard shortcut to open search (press '/')
     document.addEventListener('keydown', (e) => {
