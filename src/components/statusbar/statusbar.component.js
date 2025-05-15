@@ -260,7 +260,7 @@ class Statusbar extends Component {
         <!-- Search overlay outside the tabs div -->
         <div class="search-overlay">
             <div class="search-modal">
-                <input type="text" class="search-input" placeholder="Search DuckDuckGo..."/>
+                <input type="text" class="search-input" placeholder="Search Google..."/>
                 <i class="ti ti-search search-icon"></i>
             </div>
         </div>`;
@@ -303,7 +303,7 @@ class Statusbar extends Component {
             if (e.key === 'Enter') {
                 const query = searchInput.value.trim();
                 if (query) {
-                    window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+                    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
                 }
             }
         });
