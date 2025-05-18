@@ -23,10 +23,10 @@ const default_config = {
           name: "main",
           links: [
             {
-              name: "google",
-              url: "https://google.com",
-              icon: "brand-google",
-              icon_color: palette.text,
+              name: "chatgpt",
+              url: "https://chat.openai.com",
+              icon: "brand-openai",
+              icon_color: palette.green,
             },
             {
               name: "bluesky",
@@ -35,10 +35,10 @@ const default_config = {
               icon_color: palette.sky,
             },
             {
-              name: "icloud",
-              url: "https://www.icloud.com/",
-              icon: "cloud",
-              icon_color: palette.blue,
+              name: "maps",
+              url: "https://maps.google.com",
+              icon: "map-2",
+              icon_color: palette.red,
             },
             {
               name: "reykunyu",
@@ -64,16 +64,16 @@ const default_config = {
               icon_color: palette.peach,
             },
             {
-              name: "sheets",
-              url: "https://docs.google.com/spreadsheets",
-              icon: "table",
-              icon_color: palette.red,
-            },
-            {
               name: "drive",
               url: "https://drive.google.com/drive/home",
               icon: "brand-google-drive",
               icon_color: palette.blue,
+            },
+            {
+              name: "docs",
+              url: "https://docs.google.com",
+              icon: "file-text",
+              icon_color: palette.teal,
             },
           ],
         },
@@ -99,10 +99,10 @@ const default_config = {
               icon_color: palette.maroon,
             },
             {
-              name: "holodex",
-              url: "https://holodex.net/",
-              icon: "player-play",
-              icon_color: palette.blue,
+              name: "prime video",
+              url: "https://www.primevideo.com",
+              icon: "brand-amazon",
+              icon_color: palette.teal,
             },
           ],
         },
@@ -133,6 +133,12 @@ const default_config = {
               icon: "palette",
               icon_color: palette.red,
             },
+            {
+              name: "stackoverflow",
+              url: "https://stackoverflow.com",
+              icon: "brand-stackoverflow",
+              icon_color: palette.blue,
+            },
           ],
         },
         {
@@ -157,10 +163,10 @@ const default_config = {
               icon_color: palette.red,
             },
             {
-              name: "stackoverflow",
-              url: "https://stackoverflow.com",
-              icon: "brand-stackoverflow",
-              icon_color: palette.blue,
+              name: "monkeytype",
+              url: "https://monkeytype.com",
+              icon: "keyboard",
+              icon_color: palette.yellow,
             },
           ],
         },
@@ -168,8 +174,8 @@ const default_config = {
           name: "blogs",
           links: [
             {
-              name: "vidaextra",
-              url: "https://www.vidaextra.com/",
+              name: "genbeta",
+              url: "https://www.genbeta.com//",
               icon: "versions",
               icon_color: palette.teal,
             },
@@ -220,6 +226,12 @@ const default_config = {
               icon: "brand-reddit",
               icon_color: palette.red,
             },
+            {
+              name: "discord",
+              url: "https://discord.com/app",
+              icon: "brand-discord",
+              icon_color: palette.lavender,
+            },
           ],
         },
         {
@@ -243,6 +255,12 @@ const default_config = {
               icon: "brand-fortnite",
               icon_color: palette.red,
             },
+            {
+              name: "gog",
+              url: "https://www.gog.com",
+              icon: "device-gamepad-2",
+              icon_color: palette.mauve,
+            },
           ],
         },
         {
@@ -265,6 +283,18 @@ const default_config = {
               url: "https://www.patreon.com",
               icon: "brand-patreon",
               icon_color: palette.red,
+            },
+            {
+              name: "twitch",
+              url: "https://www.twitch.tv",
+              icon: "brand-twitch",
+              icon_color: palette.mauve,
+            },
+            {
+              name: "crunchyroll",
+              url: "https://www.crunchyroll.com",
+              icon: "eye",
+              icon_color: palette.peach,
             },
           ],
         },
