@@ -10,3 +10,4 @@
 *.kate-swp
 
 .claudesync/
+src/img/.DS_Store
