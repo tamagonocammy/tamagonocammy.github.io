@@ -20,7 +20,7 @@ const default_config = {
       background_url: "src/img/banners/bg-3.gif",
       categories: [
         {
-          name: "main",
+          name: "principal",
           links: [
             {
               name: "chatgpt",
@@ -49,7 +49,7 @@ const default_config = {
           ],
         },
         {
-          name: "workspace",
+          name: "trabajo",
           links: [
             {
               name: "gmail",
@@ -78,7 +78,7 @@ const default_config = {
           ],
         },
         {
-          name: "media",
+          name: "medios",
           links: [
             {
               name: "netflix",
@@ -113,7 +113,7 @@ const default_config = {
       background_url: "src/img/banners/cbg-7.gif",
       categories: [
         {
-          name: "resources",
+          name: "recursos",
           links: [
             {
               name: "github",
@@ -142,7 +142,7 @@ const default_config = {
           ],
         },
         {
-          name: "challenges",
+          name: "desafíos",
           links: [
             {
               name: "kaggle",
@@ -206,7 +206,7 @@ const default_config = {
       background_url: "src/img/banners/cbg-10.gif",
       categories: [
         {
-          name: "social medias",
+          name: "redes sociales",
           links: [
             {
               name: "twitter",
@@ -235,7 +235,7 @@ const default_config = {
           ],
         },
         {
-          name: "games",
+          name: "juegos",
           links: [
             {
               name: "IGN",
@@ -264,7 +264,7 @@ const default_config = {
           ],
         },
         {
-          name: "video",
+          name: "vídeo",
           links: [
             {
               name: "anilist",
