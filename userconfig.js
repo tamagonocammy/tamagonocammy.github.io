@@ -78,7 +78,7 @@ const default_config = {
           ],
         },
         {
-          name: "medios",
+          name: "streaming",
           links: [
             {
               name: "netflix",
