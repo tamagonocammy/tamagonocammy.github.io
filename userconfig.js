@@ -279,9 +279,9 @@ const default_config = {
               icon_color: palette.peach,
             },
             {
-              name: "patreon",
-              url: "https://www.patreon.com",
-              icon: "brand-patreon",
+              name: "tiktok",
+              url: "https://www.tiktok.com",
+              icon: "brand-tiktok",
               icon_color: palette.red,
             },
             {
