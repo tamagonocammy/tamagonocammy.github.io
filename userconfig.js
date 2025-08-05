@@ -12,7 +12,6 @@ const default_config = {
     iconColor: palette.maroon,
   },
   disabled: [],
-  fastlink: "https://search.brave.com",
   openLastVisitedTab: true,
   tabs: [
     {
