@@ -9,6 +9,7 @@ class Statusbar extends Component {
   };
 
   currentTabIndex = 0;
+  searchEngine = "google"; // "google" or "perplexity"
 
   constructor() {
     super();
@@ -239,6 +240,14 @@ class Statusbar extends Component {
             color: ${CONFIG.palette.overlay0};
             font-size: 20px;
         }
+
+        .search-engine-indicator {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: ${CONFIG.palette.overlay1};
+            font-weight: 300;
+        }
     `;
   }
 
@@ -256,7 +265,7 @@ class Statusbar extends Component {
                 </div>
             </cols>
         </div>
-        
+
         <!-- Search overlay outside the tabs div -->
         <div class="search-overlay">
             <div class="search-modal">
@@ -264,7 +273,7 @@ class Statusbar extends Component {
                 <i class="ti ti-search search-icon"></i>
             </div>
         </div>`;
-}
+  }
 
   setEvents() {
     // Your existing tab handlers
@@ -274,54 +283,76 @@ class Statusbar extends Component {
     document.onwheel = (e) => this.handleWheelScroll(e);
 
     // Replace the fastlink click handler with our new search overlay logic
-    const searchTrigger = this.shadow.querySelector('#search-trigger');
-    const searchOverlay = this.shadow.querySelector('.search-overlay');
-    const searchInput = this.shadow.querySelector('.search-input');
+    const searchTrigger = this.shadow.querySelector("#search-trigger");
+    const searchOverlay = this.shadow.querySelector(".search-overlay");
+    const searchInput = this.shadow.querySelector(".search-input");
+
+    // Update placeholder based on current engine
+    const updateSearchEngine = () => {
+      if (this.searchEngine === "google") {
+        searchInput.placeholder = "Search Google...";
+      } else {
+        searchInput.placeholder = "Ask Perplexity...";
+      }
+    };
 
     // Open search overlay when icon is clicked
     searchTrigger.onclick = () => {
-        searchOverlay.classList.add('active');
-        searchInput.focus();
+      searchOverlay.classList.add("active");
+      searchInput.focus();
     };
 
     // Close overlay when clicking outside
-    searchOverlay.addEventListener('click', (e) => {
-        if (e.target === searchOverlay) {
-            searchOverlay.classList.remove('active');
-        }
+    searchOverlay.addEventListener("click", (e) => {
+      if (e.target === searchOverlay) {
+        searchOverlay.classList.remove("active");
+      }
     });
 
     // Close on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && searchOverlay.classList.contains('active')) {
-            searchOverlay.classList.remove('active');
-        }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && searchOverlay.classList.contains("active")) {
+        searchOverlay.classList.remove("active");
+      }
+    });
+
+    // Handle Tab key to toggle search engine
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        this.searchEngine = this.searchEngine === "google" ? "perplexity" : "google";
+        updateSearchEngine();
+      }
     });
 
     // Handle search
-      searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const query = searchInput.value.trim();
-                if (query) {
-                    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                }
-            }
-        });
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        const query = searchInput.value.trim();
+        if (query) {
+          if (this.searchEngine === "google") {
+            window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+          } else {
+            window.location.href = `https://www.perplexity.ai/search?q=${encodeURIComponent(query)}`;
+          }
+        }
+      }
+    });
 
     // Optional: Keyboard shortcut to open search (press '/')
-    document.addEventListener('keydown', (e) => {
-        if (e.key === '/' && !searchOverlay.classList.contains('active')) {
-            e.preventDefault();
-            searchOverlay.classList.add('active');
-            searchInput.focus();
-        }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/" && !searchOverlay.classList.contains("active")) {
+        e.preventDefault();
+        searchOverlay.classList.add("active");
+        searchInput.focus();
+      }
     });
 
     // Keep your last visited tab logic
     if (CONFIG.openLastVisitedTab) {
-        window.onbeforeunload = () => this.saveCurrentTab();
+      window.onbeforeunload = () => this.saveCurrentTab();
     }
-}
+  }
 
   saveCurrentTab() {
     localStorage.lastVisitedTab = this.currentTabIndex;
