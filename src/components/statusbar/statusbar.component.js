@@ -24,7 +24,12 @@ class Statusbar extends Component {
   }
 
   imports() {
-    return [this.resources.fonts.roboto, this.resources.icons.material, this.resources.libs.awoo];
+    return [
+      this.resources.fonts.roboto,
+      this.resources.icons.material,
+      this.resources.icons.tabler,
+      this.resources.libs.awoo,
+    ];
   }
 
   style() {
@@ -216,7 +221,7 @@ class Statusbar extends Component {
 
         .search-input {
             width: 100%;
-            padding: 16px 45px 16px 16px;
+            padding: 16px 45px 16px 45px;
             background: ${CONFIG.palette.mantle};
             color: ${CONFIG.palette.text};
             border: 2px solid ${CONFIG.palette.surface0};
@@ -239,6 +244,23 @@ class Statusbar extends Component {
             transform: translateY(-50%);
             color: ${CONFIG.palette.overlay0};
             font-size: 20px;
+        }
+
+        .search-engine-icon {
+            position: absolute;
+            left: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .search-engine-icon.google {
+            color: ${CONFIG.palette.blue};
+        }
+
+        .search-engine-icon.perplexity {
+            color: ${CONFIG.palette.mauve};
         }
 
         .search-engine-indicator {
@@ -269,6 +291,7 @@ class Statusbar extends Component {
         <!-- Search overlay outside the tabs div -->
         <div class="search-overlay">
             <div class="search-modal">
+                <i class="ti ti-brand-google search-engine-icon google"></i>
                 <input type="text" class="search-input" placeholder="Search Google..."/>
                 <i class="ti ti-search search-icon"></i>
             </div>
@@ -286,13 +309,16 @@ class Statusbar extends Component {
     const searchTrigger = this.shadow.querySelector("#search-trigger");
     const searchOverlay = this.shadow.querySelector(".search-overlay");
     const searchInput = this.shadow.querySelector(".search-input");
+    const engineIcon = this.shadow.querySelector(".search-engine-icon");
 
-    // Update placeholder based on current engine
+    // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
       if (this.searchEngine === "google") {
         searchInput.placeholder = "Search Google...";
+        engineIcon.className = "ti ti-brand-google search-engine-icon google";
       } else {
         searchInput.placeholder = "Ask Perplexity...";
+        engineIcon.className = "ti ti-sparkles search-engine-icon perplexity";
       }
     };
 
