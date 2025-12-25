@@ -68,8 +68,13 @@ class Clock extends Component {
     }
   }
 
-  toggleView() {
-    this.isExtended = !this.isExtended;
+  showExtended() {
+    this.isExtended = true;
+    this.setTime();
+  }
+
+  showCompact() {
+    this.isExtended = false;
     this.setTime();
   }
 
@@ -78,9 +83,11 @@ class Clock extends Component {
       this.setTime();
       this.setIconColor();
 
-      // Add click event listener to toggle view
-      this.refs.clock.addEventListener("click", () => this.toggleView());
-      this.refs.icon.addEventListener("click", () => this.toggleView());
+      // Add hover event listeners
+      this.refs.clock.addEventListener("mouseenter", () => this.showExtended());
+      this.refs.clock.addEventListener("mouseleave", () => this.showCompact());
+      this.refs.icon.addEventListener("mouseenter", () => this.showExtended());
+      this.refs.icon.addEventListener("mouseleave", () => this.showCompact());
 
       setInterval(() => this.setTime(), 1000);
     });
