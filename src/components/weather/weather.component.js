@@ -79,11 +79,6 @@ class Weather extends Component {
           display: inline-block;
       }
 
-      .weather-temperature:hover .weather-temperature-value,
-      .weather-temperature:hover .weather-temperature-scale {
-          display: none;
-      }
-
       .weather-temperature-location {
           display: none;
           margin-left: 5px;
@@ -102,11 +97,15 @@ class Weather extends Component {
       }
 
       .weather-description::before {
-          content: "Está ";
+          content: " • Está ";
       }
 
       .weather-description::after {
-          content: " en ";
+          content: " en";
+      }
+
+      .weather-temperature-location::after {
+          content: "";
       }
 
       .weather-condition-icon {
@@ -128,10 +127,10 @@ class Weather extends Component {
     return `
         <p class="+ weather-temperature">
             <span class="weather-icon" class="+"><i class="material-icons weather-condition-icon sunny">wb_sunny</i></span>
-            <span class="weather-description"></span>
-            <span class="weather-temperature-location">${this.location}</span>
             <span class="weather-temperature-value">1</span>
             º<span class="weather-temperature-scale">${this.temperatureScale}</span>
+            <span class="weather-description"></span>
+            <span class="weather-temperature-location">${this.location}</span>
         </p>`;
   }
 
