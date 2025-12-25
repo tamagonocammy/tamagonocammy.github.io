@@ -3,6 +3,7 @@ class Weather extends Component {
     temperature: ".weather-temperature-value",
     condition: ".weather-condition-icon",
     scale: ".weather-temperature-scale",
+    description: ".weather-description",
   };
 
   forecasts = [
@@ -74,18 +75,38 @@ class Weather extends Component {
           display: inline-block;
       }
 
-      .weather-temperature-location {
+      .weather-temperature:hover .weather-description {
+          display: inline-block;
+      }
+
+      .weather-temperature:hover .weather-temperature-value,
+      .weather-temperature:hover .weather-temperature-scale {
           display: none;
-          margin-right: 10px;
       }
 
       .weather-temperature-location {
+          display: none;
+          margin-left: 5px;
           font-weight: 500;
       }
 
       .weather-temperature-value
       {
           font-weight: bold;
+      }
+
+      .weather-description {
+          display: none;
+          font-weight: 300;
+          text-transform: capitalize;
+      }
+
+      .weather-description::before {
+          content: "Está ";
+      }
+
+      .weather-description::after {
+          content: " en ";
       }
 
       .weather-condition-icon {
@@ -107,6 +128,7 @@ class Weather extends Component {
     return `
         <p class="+ weather-temperature">
             <span class="weather-icon" class="+"><i class="material-icons weather-condition-icon sunny">wb_sunny</i></span>
+            <span class="weather-description"></span>
             <span class="weather-temperature-location">${this.location}</span>
             <span class="weather-temperature-value">1</span>
             º<span class="weather-temperature-scale">${this.temperatureScale}</span>
@@ -144,10 +166,11 @@ class Weather extends Component {
   }
 
   setTemperature() {
-    const { temperature, condition } = this.weather;
+    const { temperature, condition, description } = this.weather;
     const { icon, color } = this.getForecast(condition);
 
     this.refs.temperature = this.convertScale(temperature);
+    this.refs.description = description;
     this.refs.condition = icon;
     this.refs.scale = this.temperatureScale;
     this.refs.condition.classList.add(color);

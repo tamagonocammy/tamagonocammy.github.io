@@ -1,7 +1,7 @@
 class WeatherForecastClient {
   constructor(location) {
     this.appId = "50a34e070dd5c09a99554b57ab7ea7e2";
-    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&appid=${
+    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&lang=es&appid=${
       this.appId
     }`;
   }
@@ -14,10 +14,12 @@ class WeatherForecastClient {
       .then((data) => {
         const temperature = Math.round(data.main.temp);
         const condition = data.weather[0].main.toLowerCase();
+        const description = data.weather[0].description;
 
         return {
           temperature,
           condition,
+          description,
         };
       })
       .catch((err) => console.warn("Weather API returned an error:", err));
