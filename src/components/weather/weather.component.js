@@ -71,22 +71,12 @@ class Weather extends Component {
           height: 100%;
       }
 
-      .weather-temperature:hover .weather-temperature-location {
-          display: inline-block;
-      }
-
       .weather-temperature:hover .weather-description {
           display: inline-block;
       }
 
-      .weather-temperature:hover .weather-temperature-value,
-      .weather-temperature:hover .weather-temperature-scale {
-          display: none;
-      }
-
       .weather-temperature-location {
           display: none;
-          font-weight: 500;
       }
 
       .weather-temperature-value
@@ -94,26 +84,11 @@ class Weather extends Component {
           font-weight: bold;
       }
 
-      .weather-temperature-scale {
-          margin-right: 5px;
-      }
-
       .weather-description {
           display: none;
           font-weight: 300;
           text-transform: capitalize;
-      }
-
-      .weather-description::before {
-          content: "Está ";
-      }
-
-      .weather-description::after {
-          content: " en ";
-      }
-
-      .weather-temperature-location::after {
-          content: " - ";
+          margin-left: 5px;
       }
 
       .weather-condition-icon {
@@ -135,10 +110,9 @@ class Weather extends Component {
     return `
         <p class="+ weather-temperature">
             <span class="weather-icon" class="+"><i class="material-icons weather-condition-icon sunny">wb_sunny</i></span>
-            <span class="weather-description"></span>
-            <span class="weather-temperature-location">${this.location}</span>
             <span class="weather-temperature-value">1</span>
             º<span class="weather-temperature-scale">${this.temperatureScale}</span>
+            <span class="weather-description"></span>
         </p>`;
   }
 
