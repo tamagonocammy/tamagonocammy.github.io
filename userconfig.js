@@ -28,12 +28,6 @@ const default_config = {
               icon_color: palette.green,
             },
             {
-              name: "bluesky",
-              url: "https://bsky.app",
-              icon: "brand-bluesky",
-              icon_color: palette.sky,
-            },
-            {
               name: "maps",
               url: "https://maps.google.com",
               icon: "map-2",
@@ -44,6 +38,12 @@ const default_config = {
               url: "https://reykunyu.lu/",
               icon: "book-2",
               icon_color: palette.lavender,
+            },
+            {
+              name: "wikipedia",
+              url: "https://es.wikipedia.org/wiki/Wikipedia:Portada",
+              icon: "brand-wikipedia",
+              icon_color: palette.blue,
             },
           ],
         },
@@ -74,6 +74,12 @@ const default_config = {
               icon: "file-text",
               icon_color: palette.teal,
             },
+            {
+              name: "linkedin",
+              url: "https://www.linkedin.com",
+              icon: "brand-linkedin",
+              icon_color: palette.sky,
+            },
           ],
         },
         {
@@ -92,10 +98,10 @@ const default_config = {
               icon_color: palette.peach,
             },
             {
-              name: "soundcloud",
-              url: "https://soundcloud.com/",
-              icon: "brand-soundcloud",
-              icon_color: palette.maroon,
+              name: "disney+",
+              url: "https://www.disneyplus.com/",
+              icon: "brand-disney",
+              icon_color: palette.green,
             },
             {
               name: "prime video",
@@ -259,6 +265,12 @@ const default_config = {
               url: "https://www.gog.com",
               icon: "device-gamepad-2",
               icon_color: palette.mauve,
+            },
+            {
+              name: "itch.io",
+              url: "https://itch.io",
+              icon: "device-gamepad-2",
+              icon_color: palette.yellow,
             },
           ],
         },
