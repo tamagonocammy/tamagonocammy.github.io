@@ -21,11 +21,6 @@ class Clock extends Component {
             color: ${CONFIG.palette.text};
             letter-spacing: .5px;
             cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .clock-time:hover {
-            color: ${CONFIG.palette.maroon};
         }
 
         .clock-icon {
