@@ -150,11 +150,13 @@ class Weather extends Component {
     const { temperature, condition, description } = this.weather;
     const { icon, color } = this.getForecast(condition);
 
-    this.refs.temperature = this.convertScale(temperature);
-    this.refs.description = description;
-    this.refs.condition = icon;
-    this.refs.scale = this.temperatureScale;
+    this.refs.temperature.textContent = this.convertScale(temperature);
+    this.refs.condition.textContent = icon;
+    this.refs.scale.textContent = this.temperatureScale;
+    this.refs.condition.className = "material-icons weather-condition-icon";
     this.refs.condition.classList.add(color);
+
+    this.refs.description.innerHTML = `${description}, ${this.location}, <strong>${this.convertScale(temperature)}º${this.temperatureScale}</strong>`;
   }
 
   getForecast(condition) {
