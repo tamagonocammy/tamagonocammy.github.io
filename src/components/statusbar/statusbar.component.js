@@ -68,11 +68,11 @@ class Statusbar extends Component {
       }
 
       #tabs ul li:nth-child(1):not(:last-child)::after {
-          content: "\\eac1";  /* ti-home icon */
+          content: "\\ea9c";  /* ti-home icon */
       }
 
       #tabs ul li:nth-child(2):not(:last-child)::after {
-          content: "\\ebef";  /* ti-code icon */
+          content: "\\ea77";  /* ti-code icon */
       }
 
       #tabs ul li:nth-child(3):not(:last-child)::after {

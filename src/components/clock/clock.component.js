@@ -49,10 +49,21 @@ class Clock extends Component {
 
   setTime() {
     const date = new Date();
+    const lang = "es-ES";
     if (this.isExtended) {
-      this.refs.clock.textContent = date.strftime(CONFIG.clock.format_extended);
+      const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      };
+      this.refs.clock.textContent = new Intl.DateTimeFormat(lang, options).format(date);
     } else {
-      this.refs.clock.textContent = date.strftime(CONFIG.clock.format);
+      const options = { hour: "numeric", minute: "numeric", hour12: true };
+      this.refs.clock.textContent = new Intl.DateTimeFormat(lang, options).format(date);
     }
   }
 

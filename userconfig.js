@@ -105,6 +105,12 @@ const default_config = {
               icon_color: palette.peach,
             },
             {
+              name: "apple tv+",
+              url: "https://tv.apple.com/",
+              icon: "brand-apple",
+              icon_color: palette.lavender,
+            },
+            {
               name: "disney+",
               url: "https://www.disneyplus.com/",
               icon: "brand-disney",
