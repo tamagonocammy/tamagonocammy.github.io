@@ -56,7 +56,6 @@ class Statusbar extends Component {
       }
 
       #tabs ul li:not(:last-child)::after {
-          content: counter(tabs, cjk-ideographic);
           counter-increment: tabs;
           display: flex;
           width: 100%;
@@ -65,6 +64,19 @@ class Statusbar extends Component {
           align-items: center;
           text-align: center;
           justify-content: center;
+          font-family: 'tabler-icons' !important;
+      }
+
+      #tabs ul li:nth-child(1):not(:last-child)::after {
+          content: "\\eac1";  /* ti-home icon */
+      }
+
+      #tabs ul li:nth-child(2):not(:last-child)::after {
+          content: "\\ebef";  /* ti-code icon */
+      }
+
+      #tabs ul li:nth-child(3):not(:last-child)::after {
+          content: "\\ea8d";  /* ti-device-tv icon */
       }
 
       #tabs ul li:not(:last-child) {
