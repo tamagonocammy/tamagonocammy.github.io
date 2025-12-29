@@ -105,10 +105,10 @@ const default_config = {
               icon_color: palette.peach,
             },
             {
-              name: "apple tv+",
+              name: "apple tv",
               url: "https://tv.apple.com/",
               icon: "brand-apple",
-              icon_color: palette.lavender,
+              icon_color: palette.text,
             },
             {
               name: "disney+",
@@ -138,12 +138,6 @@ const default_config = {
               url: "https://github.com",
               icon: "brand-github",
               icon_color: palette.green,
-            },
-            {
-              name: "claude",
-              url: "https://claude.ai",
-              icon: "robot-face",
-              icon_color: palette.peach,
             },
             {
               name: "stackoverflow",
@@ -262,12 +256,6 @@ const default_config = {
           name: "juegos",
           links: [
             {
-              name: "IGN",
-              url: "https://www.ign.com/news",
-              icon: "device-gamepad",
-              icon_color: palette.green,
-            },
-            {
               name: "steam",
               url: "https://store.steampowered.com",
               icon: "brand-steam",
@@ -297,10 +285,10 @@ const default_config = {
           name: "vídeo",
           links: [
             {
-              name: "anilist",
-              url: "https://anilist.co/home",
-              icon: "brand-funimation",
-              icon_color: palette.green,
+              name: "holodex",
+              url: "https://holodex.net",
+              icon: "player-play",
+              icon_color: palette.teal,
             },
             {
               name: "tiktok",
