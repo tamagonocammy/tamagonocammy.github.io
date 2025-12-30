@@ -42,6 +42,19 @@ I've tweaked the page to match my [`dotfiles`](https://github.com/pivoshenko/dot
 - Macchiato
 - Mocha
 
+### ✨ Gemini AI Integration
+
+This startpage now includes **Google Gemini AI** integration! 
+
+- 🔍 **Dual Search Mode**: Toggle between Google Search and Gemini AI (press `Tab` in search)
+- 🪟 **Expanded Results Window**: Beautiful modal overlay for AI responses
+- 🎨 **Markdown Support**: Formatted responses with code blocks, lists, and more
+- ⌨️ **Keyboard Shortcuts**: Quick access with `/` key
+
+> [!NOTE]
+> To use Gemini AI, you'll need a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
+> See [GEMINI_SETUP.md](GEMINI_SETUP.md) for detailed setup instructions.
+
 ## 🪵 Usage
 
 1. Fork this repository and clone it

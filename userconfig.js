@@ -1,3 +1,16 @@
+// ============================================
+// GEMINI API KEY CONFIGURATION
+// ============================================
+// To use Gemini AI search, you need to set your API key.
+// Get a free API key at: https://makersuite.google.com/app/apikey
+//
+// Option 1: Set it here (not recommended for public repos)
+// window.GEMINI_API_KEY = "your-api-key-here";
+//
+// Option 2: Set it in browser console (recommended)
+// localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
+// ============================================
+
 // latte / frappe / macchiato / mocha
 const palette = mocha;
 

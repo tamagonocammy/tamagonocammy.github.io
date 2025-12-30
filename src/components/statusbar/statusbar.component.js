@@ -9,7 +9,7 @@ class Statusbar extends Component {
   };
 
   currentTabIndex = 0;
-  searchEngine = "google"; // "google" or "perplexity"
+  searchEngine = "google"; // "google" or "gemini"
 
   constructor() {
     super();
@@ -217,30 +217,57 @@ class Statusbar extends Component {
         width: 70%;
       }
       .search-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        backdrop-filter: blur(10px);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;  // Increased z-index
-        pointer-events: none;  // Only capture events when active
-    }
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(15px);
+      background: rgba(0, 0, 0, 0.3);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      pointer-events: none;
+      transition: background 0.3s ease;
+  }
+
+      .search-overlay.results-showing {
+          background: rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(20px);
+      }
 
         .search-overlay.active {
             display: flex;
+            pointer-events: all;
         }
 
         .search-modal {
             position: relative;
             width: 600px;
-            padding: 20px;
+            max-width: 90vw;
             background: ${CONFIG.palette.base};
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .search-modal.expanded {
+            width: 1200px;
+            max-width: 90vw;
+        }
+
+        .search-header {
+            padding: 20px;
+            position: relative;
+            transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease;
+            overflow: hidden;
+        }
+
+        .search-header.hidden {
+            opacity: 0;
+            max-height: 0;
+            padding: 0 20px;
         }
 
         .search-input {
@@ -283,7 +310,7 @@ class Statusbar extends Component {
             color: ${CONFIG.palette.blue};
         }
 
-        .search-engine-icon.perplexity {
+        .search-engine-icon.gemini {
             color: ${CONFIG.palette.mauve};
         }
 
@@ -293,6 +320,200 @@ class Statusbar extends Component {
             font-size: 12px;
             color: ${CONFIG.palette.overlay1};
             font-weight: 300;
+        }
+
+        .search-results {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            border-top: 0px solid ${CONFIG.palette.surface1};
+        }
+
+        .search-results.active {
+            max-height: 70vh;
+            overflow-y: auto;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .results-header {
+            padding: 20px 20px 10px 20px;
+            background: ${CONFIG.palette.surface0};
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .results-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: ${CONFIG.palette.text};
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-title i {
+            color: ${CONFIG.palette.mauve};
+            font-size: 18px;
+        }
+
+        .results-content {
+            padding: 20px;
+            color: ${CONFIG.palette.text};
+            font-family: 'Fira Sans', sans-serif;
+            line-height: 1.6;
+        }
+
+        .search-results::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .search-results::-webkit-scrollbar-track {
+            background: ${CONFIG.palette.surface0};
+        }
+
+        .search-results::-webkit-scrollbar-thumb {
+            background: ${CONFIG.palette.surface2};
+            border-radius: 4px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb:hover {
+            background: ${CONFIG.palette.overlay0};
+        }
+
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid ${CONFIG.palette.surface2};
+            border-top: 4px solid ${CONFIG.palette.mauve};
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: ${CONFIG.palette.overlay1};
+            font-size: 16px;
+        }
+
+        .error-message {
+            padding: 20px;
+            background: ${CONFIG.palette.surface0};
+            border-left: 4px solid ${CONFIG.palette.red};
+            border-radius: 8px;
+            color: ${CONFIG.palette.text};
+        }
+
+        .error-message h3 {
+            margin: 0 0 10px 0;
+            color: ${CONFIG.palette.red};
+        }
+
+        .gemini-response {
+            font-size: 16px;
+        }
+
+        .gemini-response h1,
+        .gemini-response h2,
+        .gemini-response h3 {
+            color: ${CONFIG.palette.mauve};
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .gemini-response h1 {
+            font-size: 1.8em;
+        }
+
+        .gemini-response h2 {
+            font-size: 1.5em;
+        }
+
+        .gemini-response h3 {
+            font-size: 1.2em;
+        }
+
+        .gemini-response p {
+            margin: 1em 0;
+        }
+
+        .gemini-response code {
+            background: ${CONFIG.palette.surface0};
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            color: ${CONFIG.palette.peach};
+        }
+
+        .gemini-response pre {
+            background: ${CONFIG.palette.surface0};
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 4px solid ${CONFIG.palette.mauve};
+        }
+
+        .gemini-response pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .gemini-response ul,
+        .gemini-response ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+
+        .gemini-response li {
+            margin: 0.5em 0;
+        }
+
+        .gemini-response a {
+            color: ${CONFIG.palette.blue};
+            text-decoration: none;
+        }
+
+        .gemini-response a:hover {
+            text-decoration: underline;
+        }
+
+        .gemini-response blockquote {
+            border-left: 4px solid ${CONFIG.palette.surface2};
+            padding-left: 1em;
+            margin: 1em 0;
+            color: ${CONFIG.palette.overlay1};
+            font-style: italic;
+        }
+
+        .api-key-notice {
+            background: ${CONFIG.palette.yellow};
+            color: ${CONFIG.palette.base};
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .api-key-notice a {
+            color: ${CONFIG.palette.base};
+            text-decoration: underline;
         }
     `;
   }
@@ -312,14 +533,137 @@ class Statusbar extends Component {
             </cols>
         </div>
 
-        <!-- Search overlay outside the tabs div -->
+        <!-- Search overlay -->
         <div class="search-overlay">
             <div class="search-modal">
-                <i class="ti ti-brand-google search-engine-icon google"></i>
-                <input type="text" class="search-input" placeholder="Search Google..."/>
-                <i class="ti ti-search search-icon"></i>
+                <div class="search-header">
+                    <i class="ti ti-brand-google search-engine-icon google"></i>
+                    <input type="text" class="search-input" placeholder="Search Google..."/>
+                    <i class="ti ti-search search-icon"></i>
+                </div>
+                <div class="search-results">
+                    <div class="results-header">
+                        <div class="results-title">
+                            <i class="ti ti-sparkles"></i>
+                            <span>Gemini Results</span>
+                        </div>
+                    </div>
+                    <div class="results-content">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <div class="loading-text">Asking Gemini...</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>`;
+  }
+
+  async queryGemini(query) {
+    // Get API key from localStorage or userconfig
+    const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return {
+        error: true,
+        message:
+          'Gemini API key not configured. Please set your API key in localStorage with key "GEMINI_API_KEY" or define window.GEMINI_API_KEY in userconfig.js. Get your free API key at: https://makersuite.google.com/app/apikey',
+      };
+    }
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: query,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to get response from Gemini");
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!text) {
+        throw new Error("No response generated");
+      }
+
+      return { text };
+    } catch (error) {
+      return {
+        error: true,
+        message: `Error: ${error.message}`,
+      };
+    }
+  }
+
+  formatMarkdown(text) {
+    // Simple markdown to HTML conversion
+    let html = text;
+
+    // Code blocks
+    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, "<pre><code>$2</code></pre>");
+
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+    // Italic
+    html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+
+    // Inline code
+    html = html.replace(/`(.+?)`/g, "<code>$1</code>");
+
+    // Headers
+    html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
+    // Lists
+    html = html.replace(/^\* (.+)$/gm, "<li>$1</li>");
+    html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>");
+
+    // Numbered lists
+    html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
+
+    // Links
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+    // Paragraphs
+    html = html
+      .split("\n\n")
+      .map((para) => {
+        if (!para.startsWith("<") && para.trim() !== "") {
+          return `<p>${para}</p>`;
+        }
+        return para;
+      })
+      .join("\n");
+
+    return html;
   }
 
   setEvents() {
@@ -329,11 +673,17 @@ class Statusbar extends Component {
     document.onkeydown = (e) => this.handleKeyPress(e);
     document.onwheel = (e) => this.handleWheelScroll(e);
 
-    // Replace the fastlink click handler with our new search overlay logic
+    // Search overlay elements
     const searchTrigger = this.shadow.querySelector("#search-trigger");
     const searchOverlay = this.shadow.querySelector(".search-overlay");
+    const searchModal = this.shadow.querySelector(".search-modal");
     const searchInput = this.shadow.querySelector(".search-input");
     const engineIcon = this.shadow.querySelector(".search-engine-icon");
+
+    // Results elements
+    const searchResults = this.shadow.querySelector(".search-results");
+    const resultsContent = this.shadow.querySelector(".results-content");
+    const searchHeader = this.shadow.querySelector(".search-header");
 
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
@@ -341,8 +691,8 @@ class Statusbar extends Component {
         searchInput.placeholder = "Search Google...";
         engineIcon.className = "ti ti-brand-google search-engine-icon google";
       } else {
-        searchInput.placeholder = "Ask Perplexity...";
-        engineIcon.className = "ti ti-sparkles search-engine-icon perplexity";
+        searchInput.placeholder = "Ask Gemini...";
+        engineIcon.className = "ti ti-sparkles search-engine-icon gemini";
       }
     };
 
@@ -352,17 +702,29 @@ class Statusbar extends Component {
       searchInput.focus();
     };
 
-    // Close overlay when clicking outside
+    // Close search overlay when clicking outside
     searchOverlay.addEventListener("click", (e) => {
       if (e.target === searchOverlay) {
         searchOverlay.classList.remove("active");
+        searchOverlay.classList.remove("results-showing");
+        searchResults.classList.remove("active");
+        searchModal.classList.remove("expanded");
+        searchHeader.classList.remove("hidden");
+        searchInput.value = "";
       }
     });
 
     // Close on Escape key
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && searchOverlay.classList.contains("active")) {
-        searchOverlay.classList.remove("active");
+      if (e.key === "Escape") {
+        if (searchOverlay.classList.contains("active")) {
+          searchOverlay.classList.remove("active");
+          searchOverlay.classList.remove("results-showing");
+          searchResults.classList.remove("active");
+          searchModal.classList.remove("expanded");
+          searchHeader.classList.remove("hidden");
+          searchInput.value = "";
+        }
       }
     });
 
@@ -370,20 +732,65 @@ class Statusbar extends Component {
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Tab") {
         e.preventDefault();
-        this.searchEngine = this.searchEngine === "google" ? "perplexity" : "google";
+        this.searchEngine = this.searchEngine === "google" ? "gemini" : "google";
         updateSearchEngine();
       }
     });
 
     // Handle search
-    searchInput.addEventListener("keypress", (e) => {
+    searchInput.addEventListener("keypress", async (e) => {
       if (e.key === "Enter") {
         const query = searchInput.value.trim();
         if (query) {
           if (this.searchEngine === "google") {
             window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
           } else {
-            window.location.href = `https://www.perplexity.ai/search?q=${encodeURIComponent(query)}`;
+            // Hide search header and show results
+            searchHeader.classList.add("hidden");
+            searchOverlay.classList.add("results-showing");
+            searchModal.classList.add("expanded");
+            searchResults.classList.add("active");
+            resultsContent.innerHTML = `
+              <div class="loading-spinner">
+                <div class="spinner"></div>
+                <div class="loading-text">Asking Gemini...</div>
+              </div>
+            `;
+
+            // Query Gemini
+            const result = await this.queryGemini(query);
+
+            if (result.error) {
+              resultsContent.innerHTML = `
+                <div class="error-message">
+                  <h3>Error</h3>
+                  <p>${result.message}</p>
+                  ${
+                    !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
+                      ? `
+                    <p style="margin-top: 15px;">
+                      <strong>To set up your API key:</strong><br>
+                      1. Get a free API key at <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                      2. Open browser console (F12) and run:<br>
+                      <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');</code><br>
+                      3. Reload the page
+                    </p>
+                  `
+                      : ""
+                  }
+                </div>
+              `;
+            } else {
+              const formattedHtml = this.formatMarkdown(result.text);
+              resultsContent.innerHTML = `
+                <div class="gemini-response">
+                  ${formattedHtml}
+                </div>
+              `;
+            }
+
+            // Clear search input
+            searchInput.value = "";
           }
         }
       }
