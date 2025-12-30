@@ -249,7 +249,14 @@ class Statusbar extends Component {
             background: ${CONFIG.palette.base};
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .search-modal.loading {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
         }
 
         .search-modal.expanded {
@@ -260,7 +267,7 @@ class Statusbar extends Component {
         .search-header {
             padding: 20px;
             position: relative;
-            transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease;
+            transition: opacity 0.3s ease, max-height 0.3s ease, padding 0.3s ease, transform 0.3s ease;
             overflow: hidden;
         }
 
@@ -268,6 +275,39 @@ class Statusbar extends Component {
             opacity: 0;
             max-height: 0;
             padding: 0 20px;
+            transform: scale(0.8);
+        }
+
+        .loading-icon {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 80px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-icon.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .loading-icon i {
+            font-size: 40px;
+            color: ${CONFIG.palette.mauve};
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
         }
 
         .search-input {
@@ -325,14 +365,16 @@ class Statusbar extends Component {
         .search-results {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
             border-top: 0px solid ${CONFIG.palette.surface1};
+            opacity: 0;
         }
 
         .search-results.active {
             max-height: 70vh;
             overflow-y: auto;
             border-radius: 0 0 16px 16px;
+            opacity: 1;
         }
 
         .results-header {
@@ -536,6 +578,9 @@ class Statusbar extends Component {
         <!-- Search overlay -->
         <div class="search-overlay">
             <div class="search-modal">
+                <div class="loading-icon">
+                    <i class="ti ti-sparkles"></i>
+                </div>
                 <div class="search-header">
                     <i class="ti ti-brand-google search-engine-icon google"></i>
                     <input type="text" class="search-input" placeholder="Search Google..."/>
@@ -684,6 +729,7 @@ class Statusbar extends Component {
     const searchResults = this.shadow.querySelector(".search-results");
     const resultsContent = this.shadow.querySelector(".results-content");
     const searchHeader = this.shadow.querySelector(".search-header");
+    const loadingIcon = this.shadow.querySelector(".loading-icon");
 
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
@@ -745,23 +791,35 @@ class Statusbar extends Component {
           if (this.searchEngine === "google") {
             window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
           } else {
-            // Hide search header and show results
+            // Step 1: Hide search header
             searchHeader.classList.add("hidden");
-            searchOverlay.classList.add("results-showing");
-            searchModal.classList.add("expanded");
-            searchResults.classList.add("active");
-            resultsContent.innerHTML = `
-              <div class="loading-spinner">
-                <div class="spinner"></div>
-                <div class="loading-text">Asking Gemini...</div>
-              </div>
-            `;
+
+            // Step 2: After header fades, compress to loading icon
+            setTimeout(() => {
+              searchModal.classList.add("loading");
+              loadingIcon.classList.add("active");
+            }, 300);
 
             // Query Gemini
             const result = await this.queryGemini(query);
 
-            if (result.error) {
-              resultsContent.innerHTML = `
+            // Step 3: Expand to full results window
+            setTimeout(() => {
+              loadingIcon.classList.remove("active");
+              searchModal.classList.remove("loading");
+              searchModal.classList.add("expanded");
+              searchOverlay.classList.add("results-showing");
+
+              // Small delay for smooth expansion
+              setTimeout(() => {
+                searchResults.classList.add("active");
+              }, 100);
+            }, 800);
+
+            // Update content after expansion animation
+            setTimeout(() => {
+              if (result.error) {
+                resultsContent.innerHTML = `
                 <div class="error-message">
                   <h3>Error</h3>
                   <p>${result.message}</p>
@@ -780,14 +838,15 @@ class Statusbar extends Component {
                   }
                 </div>
               `;
-            } else {
-              const formattedHtml = this.formatMarkdown(result.text);
-              resultsContent.innerHTML = `
+              } else {
+                const formattedHtml = this.formatMarkdown(result.text);
+                resultsContent.innerHTML = `
                 <div class="gemini-response">
                   ${formattedHtml}
                 </div>
               `;
-            }
+              }
+            }, 900);
 
             // Clear search input
             searchInput.value = "";
