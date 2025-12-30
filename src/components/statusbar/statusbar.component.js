@@ -95,6 +95,18 @@ class Statusbar extends Component {
           background: ${CONFIG.palette.surface0};
       }
 
+      #tabs ul li:nth-child(1)[active]:not(:last-child)::after {
+          color: ${CONFIG.palette.green};
+      }
+
+      #tabs ul li:nth-child(2)[active]:not(:last-child)::after {
+          color: ${CONFIG.palette.peach};
+      }
+
+      #tabs ul li:nth-child(3)[active]:not(:last-child)::after {
+          color: ${CONFIG.palette.red};
+      }
+
       #tabs ul li:last-child {
           --flavour: var(--accent);
           width: 35px;
