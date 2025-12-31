@@ -12,6 +12,8 @@
 // ============================================
 
 // latte / frappe / macchiato / mocha
+// All Gemini AI features work with any palette - colors auto-adapt!
+// Try switching between: latte (light), frappe, macchiato, mocha (dark)
 const palette = mocha;
 
 const default_config = {
@@ -77,8 +79,8 @@ const default_config = {
               icon_color: palette.green,
             },
             {
-              name: "notebook",
-              url: "https://notebook.google.com",
+              name: "notebooklm",
+              url: "https://notebooklm.google.com",
               icon: "notebook",
               icon_color: palette.peach,
             },

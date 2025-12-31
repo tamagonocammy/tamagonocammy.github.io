@@ -151,7 +151,7 @@ class Statusbar extends Component {
           right: 0;
           margin: auto;
           height: 32px;
-          color: #fff;
+          color: ${CONFIG.palette.text};
           font-size: 12px;
       }
 
@@ -223,18 +223,24 @@ class Statusbar extends Component {
       width: 100%;
       height: 100%;
       backdrop-filter: blur(15px);
-      background: rgba(0, 0, 0, 0.3);
+      background: ${CONFIG.palette.crust}4D;
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 9999;
       pointer-events: none;
-      transition: background 0.3s ease;
+      transition: backdrop-filter 0.5s ease, background 0.5s ease, opacity 0.3s ease;
   }
 
       .search-overlay.results-showing {
-          background: rgba(0, 0, 0, 0.2);
+          background: ${CONFIG.palette.crust}33;
           backdrop-filter: blur(20px);
+      }
+
+      .search-overlay.closing {
+          backdrop-filter: blur(0px);
+          background: ${CONFIG.palette.crust}00;
+          opacity: 0;
       }
 
         .search-overlay.active {
@@ -248,7 +254,7 @@ class Statusbar extends Component {
             max-width: 90vw;
             background: ${CONFIG.palette.base};
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px ${CONFIG.palette.crust}4D;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
@@ -262,6 +268,19 @@ class Statusbar extends Component {
         .search-modal.expanded {
             width: 1200px;
             max-width: 90vw;
+        }
+
+        .search-modal.collapsing {
+            width: 0px;
+            height: 0px;
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        .search-modal.search-closing {
+            opacity: 0;
+            transform: scale(0.5);
         }
 
         .search-header {
@@ -375,6 +394,12 @@ class Statusbar extends Component {
             overflow-y: auto;
             border-radius: 0 0 16px 16px;
             opacity: 1;
+        }
+
+        .search-results.closing {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
         }
 
         .results-header {
@@ -748,15 +773,61 @@ class Statusbar extends Component {
       searchInput.focus();
     };
 
+    // Function to close with animation
+    const closeWithAnimation = () => {
+      // Step 1: Start blur fadeout
+      searchOverlay.classList.add("closing");
+
+      // Step 2: Collapse results
+      searchResults.classList.add("closing");
+      searchResults.classList.remove("active");
+
+      // Step 3: Shrink modal to center point
+      setTimeout(() => {
+        searchModal.classList.add("collapsing");
+        searchModal.classList.remove("expanded");
+      }, 200);
+
+      // Step 4: Close overlay and reset everything
+      setTimeout(() => {
+        searchOverlay.classList.remove("active");
+        searchOverlay.classList.remove("results-showing");
+        searchOverlay.classList.remove("closing");
+        searchResults.classList.remove("closing");
+        searchModal.classList.remove("collapsing");
+        searchModal.classList.remove("loading");
+        searchHeader.classList.remove("hidden");
+        loadingIcon.classList.remove("active");
+        searchInput.value = "";
+      }, 800);
+    };
+
+    // Function to close search box with animation
+    const closeSearchBox = () => {
+      // Start blur fadeout and shrink search box
+      searchOverlay.classList.add("closing");
+      searchModal.classList.add("search-closing");
+
+      // Close and reset after animation
+      setTimeout(() => {
+        searchOverlay.classList.remove("active");
+        searchOverlay.classList.remove("closing");
+        searchModal.classList.remove("search-closing");
+        searchHeader.classList.remove("hidden");
+        searchInput.value = "";
+      }, 500);
+    };
+
     // Close search overlay when clicking outside
     searchOverlay.addEventListener("click", (e) => {
       if (e.target === searchOverlay) {
-        searchOverlay.classList.remove("active");
-        searchOverlay.classList.remove("results-showing");
-        searchResults.classList.remove("active");
-        searchModal.classList.remove("expanded");
-        searchHeader.classList.remove("hidden");
-        searchInput.value = "";
+        // If results are showing, animate collapse
+        if (searchResults.classList.contains("active")) {
+          closeWithAnimation();
+        } else {
+          // If just search box, animate close
+          closeSearchBox();
+        }
       }
     });
 
@@ -764,12 +835,13 @@ class Statusbar extends Component {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         if (searchOverlay.classList.contains("active")) {
-          searchOverlay.classList.remove("active");
-          searchOverlay.classList.remove("results-showing");
-          searchResults.classList.remove("active");
-          searchModal.classList.remove("expanded");
-          searchHeader.classList.remove("hidden");
-          searchInput.value = "";
+          // If results are showing, animate collapse
+          if (searchResults.classList.contains("active")) {
+            closeWithAnimation();
+          } else {
+            // If just search box, animate close
+            closeSearchBox();
+          }
         }
       }
     });
