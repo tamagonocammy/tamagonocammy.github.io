@@ -34,21 +34,26 @@ Date.prototype.strftime = function (format = "c") {
     );
   };
 
-  const month = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ],
-    days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  // Get localized month and day names from i18n
+  const month = window.i18n
+      ? window.i18n.getMonths()
+      : [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ],
+    days = window.i18n
+      ? window.i18n.getDays()
+      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     result = [],
     formats = {
       a: days[date.getDay()].substr(0, 3),
@@ -65,8 +70,15 @@ Date.prototype.strftime = function (format = "c") {
       Y: date.getFullYear(),
       H: date.getHours(),
       h: date.getHours().pad(),
-      p: date.getHours() >= 12 ? "PM" : "AM",
-      o: date.getDate().ord(),
+      p:
+        date.getHours() >= 12
+          ? window.i18n
+            ? window.i18n.t("time.periods.pm")
+            : "PM"
+          : window.i18n
+            ? window.i18n.t("time.periods.am")
+            : "AM",
+      o: window.i18n ? date.getDate() + window.i18n.getOrdinal(date.getDate()) : date.getDate().ord(),
       M: date.getMinutes(),
       i: date.getMinutes().pad(),
       S: date.getSeconds(),

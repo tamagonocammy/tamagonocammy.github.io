@@ -55,6 +55,26 @@ This startpage now includes **Google Gemini AI** integration!
 > To use Gemini AI, you'll need a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
 > See [GEMINI_SETUP.md](GEMINI_SETUP.md) for detailed setup instructions.
 
+### 🌍 Localization
+
+This startpage now supports **multiple languages**!
+
+- 🇪🇸 **Spanish** (default)
+- 🇬🇧 **English**
+- 📅 **Localized dates**: Day names, month names, and time formats
+- 🔍 **Localized UI**: Search placeholders, weather conditions, and more
+
+**Change language:**
+```javascript
+// Open browser console (F12) and run:
+window.i18n.setLocale('en'); // English
+window.i18n.setLocale('es'); // Spanish
+location.reload();
+```
+
+> [!TIP]
+> See [LOCALIZATION.md](LOCALIZATION.md) for detailed documentation on adding new languages and using the i18n API.
+
 ## 🪵 Usage
 
 1. Fork this repository and clone it

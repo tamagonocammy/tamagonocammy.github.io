@@ -77,9 +77,9 @@ const default_config = {
               icon_color: palette.green,
             },
             {
-              name: "calendar",
-              url: "https://calendar.google.com",
-              icon: "calendar-filled",
+              name: "notebook",
+              url: "https://notebook.google.com",
+              icon: "notebook",
               icon_color: palette.peach,
             },
             {
@@ -110,12 +110,6 @@ const default_config = {
               url: "https://netflix.com",
               icon: "brand-netflix",
               icon_color: palette.red,
-            },
-            {
-              name: "apple music",
-              url: "https://music.apple.com/",
-              icon: "brand-apple",
-              icon_color: palette.peach,
             },
             {
               name: "apple tv",

@@ -583,20 +583,20 @@ class Statusbar extends Component {
                 </div>
                 <div class="search-header">
                     <i class="ti ti-brand-google search-engine-icon google"></i>
-                    <input type="text" class="search-input" placeholder="Search Google..."/>
+                    <input type="text" class="search-input" placeholder="${window.i18n ? window.i18n.t("search.placeholder_google") : "Buscar en Google..."}"/>
                     <i class="ti ti-search search-icon"></i>
                 </div>
                 <div class="search-results">
                     <div class="results-header">
                         <div class="results-title">
                             <i class="ti ti-sparkles"></i>
-                            <span>Gemini Results</span>
+                            <span class="gemini-results-title">${window.i18n ? window.i18n.t("search.results_title") : "Resultados de Gemini"}</span>
                         </div>
                     </div>
                     <div class="results-content">
                         <div class="loading-spinner">
                             <div class="spinner"></div>
-                            <div class="loading-text">Asking Gemini...</div>
+                            <div class="loading-text">${window.i18n ? window.i18n.t("search.loading") : "Preguntándole a Gemini..."}</div>
                         </div>
                     </div>
                 </div>
@@ -734,10 +734,10 @@ class Statusbar extends Component {
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
       if (this.searchEngine === "google") {
-        searchInput.placeholder = "Search Google...";
+        searchInput.placeholder = window.i18n ? window.i18n.t("search.placeholder_google") : "Search Google...";
         engineIcon.className = "ti ti-brand-google search-engine-icon google";
       } else {
-        searchInput.placeholder = "Ask Gemini...";
+        searchInput.placeholder = window.i18n ? window.i18n.t("search.placeholder_gemini") : "Ask Gemini...";
         engineIcon.className = "ti ti-sparkles search-engine-icon gemini";
       }
     };
