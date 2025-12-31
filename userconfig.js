@@ -38,10 +38,10 @@ const default_config = {
           name: "principal",
           links: [
             {
-              name: "chatgpt",
-              url: "https://chat.openai.com",
-              icon: "brand-openai",
-              icon_color: palette.green,
+              name: "gemini",
+              url: "https://gemini.google.com",
+              icon: "sparkles",
+              icon_color: palette.mauve,
             },
             {
               name: "maps",
