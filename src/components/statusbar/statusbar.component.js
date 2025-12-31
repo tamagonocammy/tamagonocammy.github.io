@@ -958,9 +958,24 @@ class Statusbar extends Component {
   handleWheelScroll(event) {
     if (!event) return;
 
-    let { target, wheelDelta } = event;
+    let { target, wheelDelta, deltaY } = event;
 
     if (target.shadow && target.shadow.activeElement) return;
+
+    // Use deltaY for better cross-platform compatibility, fallback to wheelDelta
+    const delta = deltaY !== undefined ? -deltaY : wheelDelta;
+
+    // Debounce scroll events to prevent rapid tab switching (especially on macOS with momentum scrolling)
+    const now = Date.now();
+    if (this._lastScrollTime && now - this._lastScrollTime < 100) {
+      return;
+    }
+    this._lastScrollTime = now;
+
+    // Require a minimum scroll threshold to prevent accidental tab switches
+    if (Math.abs(delta) < 5) {
+      return;
+    }
 
     let activeTab = -1;
     this.refs.tabs.forEach((tab, index) => {
@@ -969,10 +984,16 @@ class Statusbar extends Component {
       }
     });
 
-    if (wheelDelta > 0) {
-      this.activateByKey((activeTab + 1) % (this.refs.tabs.length - 1));
+    const totalTabs = this.refs.tabs.length - 1;
+
+    if (delta > 0) {
+      // Scroll down/right: go to next tab
+      const nextTab = (activeTab + 1) % totalTabs;
+      this.activateByKey(nextTab);
     } else {
-      this.activateByKey(activeTab - 1 < 0 ? this.refs.tabs.length - 2 : activeTab - 1);
+      // Scroll up/left: go to previous tab
+      const prevTab = activeTab - 1 < 0 ? totalTabs - 1 : activeTab - 1;
+      this.activateByKey(prevTab);
     }
   }
 
