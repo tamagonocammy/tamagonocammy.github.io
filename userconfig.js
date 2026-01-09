@@ -268,7 +268,7 @@ const default_config = {
               name: "steam",
               url: "https://store.steampowered.com",
               icon: "brand-steam",
-              icon_color: palette.peach,
+              icon_color: palette.text,
             },
             {
               name: "epicgames",
