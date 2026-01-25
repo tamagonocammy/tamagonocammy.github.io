@@ -495,6 +495,36 @@ class Statusbar extends Component {
 
         .gemini-response {
             font-size: 16px;
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
+        }
+
+        .gemini-response * {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .gemini-response ul {
+            list-style-type: disc;
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+
+        .gemini-response ol {
+            list-style-type: decimal;
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+
+        .gemini-response li {
+            display: list-item;
+            margin: 0.5em 0;
+        }
+
+        .gemini-response ::selection {
+            background: ${CONFIG.palette.surface2};
+            color: ${CONFIG.palette.text};
         }
 
         .gemini-response h1,
@@ -695,6 +725,8 @@ class Statusbar extends Component {
   }
 
   formatMarkdown(text) {
+    if (!text) return "";
+
     // Simple markdown to HTML conversion
     let html = text;
 
@@ -716,12 +748,22 @@ class Statusbar extends Component {
     html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
 
     // Lists
-    html = html.replace(/^\* (.+)$/gm, "<li>$1</li>");
-    html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>");
+    // Unordered
+    html = html.replace(/^\* (.+)$/gm, '<li class="ul-item">$1</li>');
+    html = html.replace(/^- (.+)$/gm, '<li class="ul-item">$1</li>');
 
-    // Numbered lists
-    html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
+    // Ordered
+    html = html.replace(/^\d+\. (.+)$/gm, '<li class="ol-item">$1</li>');
+
+    // Wrap Unordered
+    html = html.replace(/(<li class="ul-item">.*<\/li>\n?)+/g, "<ul>$&</ul>");
+
+    // Wrap Ordered
+    html = html.replace(/(<li class="ol-item">.*<\/li>\n?)+/g, "<ol>$&</ol>");
+
+    // Clean up classes
+    html = html.replace(/class="ul-item"/g, "");
+    html = html.replace(/class="ol-item"/g, "");
 
     // Links
     html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
