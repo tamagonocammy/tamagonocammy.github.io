@@ -1,3 +1,21 @@
+/**
+ * ==================================================================================
+ *  USER CONFIGURATION
+ * ==================================================================================
+ *  This file is the central control panel for your startpage.
+ *  Here you can configure:
+ *  - Global color palette
+ *  - Weather location and settings
+ *  - Clock format
+ *  - Tabs, categories, and links (the core navigation)
+ *  - Advanced settings like API keys and system behavior
+ *
+ *  Tips:
+ *  - Changes usually take effect immediately upon saving and refreshing.
+ *  - If something breaks, check the browser console for errors.
+ * ==================================================================================
+ */
+
 // ============================================
 // GEMINI API KEY CONFIGURATION
 // ============================================
@@ -8,27 +26,48 @@
 // window.GEMINI_API_KEY = "your-api-key-here";
 //
 // Option 2: Set it in browser console (recommended)
+// Run this in your browser's dev tools console:
 // localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
 // ============================================
 
-// latte / frappe / macchiato / mocha
+// Palette Selection
+// -----------------
+// latte (light) / frappe / macchiato / mocha (dark)
 // All Gemini AI features work with any palette - colors auto-adapt!
-// Try switching between: latte (light), frappe, macchiato, mocha (dark)
 const palette = mocha;
 
 const default_config = {
+  // Allow these settings to override whatever is saved in localStorage.
+  // Useful when testing new configs.
   overrideStorage: true,
+
+  // Weather Widget Configuration
   temperature: {
     location: "Bogota",
     scale: "C",
   },
+
+  // Clock Widget Configuration
   clock: {
     format: "h:i p",
     format_extended: "a, b d | h:i p",
     iconColor: palette.maroon,
   },
+
+  // Components to hide (e.g. ['weather', 'clock'])
   disabled: [],
+
+  // Tab Behavior
   openLastVisitedTab: true,
+
+  // --------------------------------------------------------------------------------
+  // TABS & LINKS
+  // --------------------------------------------------------------------------------
+  // Structure:
+  // - Tab (e.g., "Home", "Dev")
+  //   - Category (e.g., "Social", "News")
+  //     - Link (Name, URL, Icon, Color)
+  // --------------------------------------------------------------------------------
   tabs: [
     {
       name: "M i l i e",
@@ -334,25 +373,25 @@ const default_config = {
 const advanced_config = {
   // Gemini AI Settings
   gemini: {
-    model: "gemini-3-flash-preview",      // Model to use (check Google AI docs for latest)
-    temperature: 0.7,                      // Randomness: 0.0 (deterministic) to 1.0 (creative)
-    maxOutputTokens: 2048,                 // Maximum response length
+    model: "gemini-3-flash-preview", // Model to use (check Google AI docs for latest)
+    temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
+    maxOutputTokens: 2048, // Maximum response length
   },
 
   // Weather API Settings
   weather: {
-    apiKey: "50a34e070dd5c09a99554b57ab7ea7e2",  // OpenWeatherMap free tier key
-    language: "es",                               // Language code: "es", "en", "fr", etc.
+    apiKey: "50a34e070dd5c09a99554b57ab7ea7e2", // OpenWeatherMap free tier key
+    language: "es", // Language code: "es", "en", "fr", etc.
   },
 
   // Internationalization (i18n)
   i18n: {
-    defaultLocale: "es",    // Default language: "es" (Spanish), "en" (English)
+    defaultLocale: "es", // Default language: "es" (Spanish), "en" (English)
   },
 
   // localStorage Configuration
   storage: {
-    keyPrefix: "",          // Custom prefix for localStorage keys (empty = no prefix)
+    keyPrefix: "", // Custom prefix for localStorage keys (empty = no prefix)
   },
 };
 

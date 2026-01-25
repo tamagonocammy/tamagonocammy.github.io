@@ -1,3 +1,10 @@
+/**
+ * Weather Component.
+ * Displays current weather condition and temperature for a configured location.
+ * Allows toggling between Celsius and Fahrenheit.
+ *
+ * @extends {Component}
+ */
 class Weather extends Component {
   refs = {
     temperature: ".weather-temperature-value",
@@ -6,6 +13,10 @@ class Weather extends Component {
     description: ".weather-description",
   };
 
+  /**
+   * Mapping of raw weather conditions (from API) to icon names and colors.
+   * Used to normalize diverse weather descriptions into a few standard categories.
+   */
   forecasts = [
     {
       conditions: ["clouds", "mist", "haze", "smoke"],
@@ -116,14 +127,28 @@ class Weather extends Component {
         </p>`;
   }
 
+  /**
+   * Fahrenheit to Celsius conversion.
+   * @param {number} f - Temperature in Fahrenheit.
+   * @returns {number} Temperature in Celsius.
+   */
   toC(f) {
     return Math.round(((f - 32) * 5) / 9);
   }
 
+  /**
+   * Celsius to Fahrenheit conversion.
+   * @param {number} c - Temperature in Celsius.
+   * @returns {number} Temperature in Fahrenheit.
+   */
   toF(c) {
     return Math.round((c * 9) / 5 + 32);
   }
 
+  /**
+   * Toggles the temperature scale (C <-> F) and updates the display.
+   * Persists the change to the global CONFIG.
+   */
   swapScale() {
     this.temperatureScale = this.temperatureScale === "C" ? "F" : "C";
 
@@ -135,17 +160,30 @@ class Weather extends Component {
     this.setTemperature();
   }
 
+  /**
+   * Converts a given temperature to the current active scale.
+   * Assumes input is in Celsius (default for most APIs).
+   * @param {number} temperature - Input temperature.
+   * @returns {number} Converted temperature.
+   */
   convertScale(temperature) {
     if (this.temperatureScale === "F") return this.toF(temperature);
 
     return temperature;
   }
 
+  /**
+   * Fetches the latest weather data and updates the UI.
+   */
   async setWeather() {
     this.weather = await this.weatherForecast.getWeather();
     this.setTemperature();
   }
 
+  /**
+   * Updates the DOM elements with the current weather data.
+   * Handles icon selection, color application, and description text.
+   */
   setTemperature() {
     const { temperature, condition, description } = this.weather;
     const { icon, color } = this.getForecast(condition);
@@ -159,6 +197,11 @@ class Weather extends Component {
     this.refs.description.innerHTML = `${this.location} - ${description}`;
   }
 
+  /**
+   * Finds the matching forecast configuration for a given condition string.
+   * @param {string} condition - Weather condition string (e.g. "clear", "rain").
+   * @returns {Object} Forecast config object (icon, color).
+   */
   getForecast(condition) {
     for (const forecast of this.forecasts) if (forecast.conditions.includes(condition)) return forecast;
 
