@@ -324,6 +324,38 @@ const default_config = {
   ],
 };
 
+// ============================================
+// ADVANCED CONFIGURATION
+// ============================================
+// Customize API behavior, model selection, and system defaults
+// These settings control previously hardcoded values in component files
+// ============================================
+
+const advanced_config = {
+  // Gemini AI Settings
+  gemini: {
+    model: "gemini-3-flash-preview",      // Model to use (check Google AI docs for latest)
+    temperature: 0.7,                      // Randomness: 0.0 (deterministic) to 1.0 (creative)
+    maxOutputTokens: 2048,                 // Maximum response length
+  },
+
+  // Weather API Settings
+  weather: {
+    apiKey: "50a34e070dd5c09a99554b57ab7ea7e2",  // OpenWeatherMap free tier key
+    language: "es",                               // Language code: "es", "en", "fr", etc.
+  },
+
+  // Internationalization (i18n)
+  i18n: {
+    defaultLocale: "es",    // Default language: "es" (Spanish), "en" (English)
+  },
+
+  // localStorage Configuration
+  storage: {
+    keyPrefix: "",          // Custom prefix for localStorage keys (empty = no prefix)
+  },
+};
+
 const CONFIG = new Config(default_config, palette);
 
 const root = document.querySelector(":root");

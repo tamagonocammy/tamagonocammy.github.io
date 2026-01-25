@@ -197,7 +197,7 @@ class I18n {
 
 // Create global i18n instance
 if (typeof window !== "undefined") {
-  // Default to Spanish if not set, or use saved locale
-  const defaultLocale = localStorage.getItem("locale") || "es";
+  // Priority: saved locale > advanced_config > default (es)
+  const defaultLocale = localStorage.getItem("locale") || advanced_config?.i18n?.defaultLocale || "es";
   window.i18n = new I18n(defaultLocale);
 }

@@ -1,8 +1,11 @@
 class Storage {
   key;
 
+  prefix;
+
   constructor(key) {
-    this.key = key;
+    this.prefix = advanced_config?.storage?.keyPrefix || "";
+    this.key = this.prefix ? `${this.prefix}:${key}` : key;
   }
 
   get(prop) {

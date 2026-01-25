@@ -640,10 +640,14 @@ class Statusbar extends Component {
           'Gemini API key not configured. Please set your API key in localStorage with key "GEMINI_API_KEY" or define window.GEMINI_API_KEY in userconfig.js. Get your free API key at: https://makersuite.google.com/app/apikey',
       };
     }
+    // Use advanced_config for Gemini settings with fallbacks
+    const model = advanced_config?.gemini?.model || "gemini-3-flash-preview";
+    const temperature = advanced_config?.gemini?.temperature ?? 0.7;
+    const maxOutputTokens = advanced_config?.gemini?.maxOutputTokens ?? 2048;
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: {
@@ -660,10 +664,10 @@ class Statusbar extends Component {
               },
             ],
             generationConfig: {
-              temperature: 0.7,
+              temperature: temperature,
               topK: 40,
               topP: 0.95,
-              maxOutputTokens: 2048,
+              maxOutputTokens: maxOutputTokens,
             },
           }),
         },
