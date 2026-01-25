@@ -13,22 +13,19 @@
  *  Tips:
  *  - Changes usually take effect immediately upon saving and refreshing.
  *  - If something breaks, check the browser console for errors.
+ *
+ *  GEMINI API KEY CONFIGURATION:
+ *  To use Gemini AI search, you need to set your API key.
+ *  Get a free API key at: https://makersuite.google.com/app/apikey
+ *
+ *  Option 1: Set it here (not recommended for public repos)
+ *  window.GEMINI_API_KEY = "your-api-key-here";
+ *
+ *  Option 2: Set it in browser console (recommended)
+ *  Run this in your browser's dev tools console:
+ *  localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
  * ==================================================================================
  */
-
-// ============================================
-// GEMINI API KEY CONFIGURATION
-// ============================================
-// To use Gemini AI search, you need to set your API key.
-// Get a free API key at: https://makersuite.google.com/app/apikey
-//
-// Option 1: Set it here (not recommended for public repos)
-// window.GEMINI_API_KEY = "your-api-key-here";
-//
-// Option 2: Set it in browser console (recommended)
-// Run this in your browser's dev tools console:
-// localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
-// ============================================
 
 // Palette Selection
 // -----------------
