@@ -91,11 +91,11 @@ If you're not sharing your configuration publicly, you can add it directly to `u
 
 ## Customization
 
-You can customize the Gemini integration in `src/components/statusbar/statusbar.component.js`:
+You can customize the Gemini integration in `userconfig.js` via the `advanced_config.gemini` section (preferred):
 
-- **Model parameters**: Adjust `temperature`, `topK`, `topP`, and `maxOutputTokens` in the `queryGemini()` method
-- **Styling**: Modify the CSS in the `style()` method
-- **Markdown formatting**: Update the `formatMarkdown()` method
+- **Model parameters**: Set `model`, `temperature`, and `maxOutputTokens` in `advanced_config.gemini` inside `userconfig.js` (these values are read by `queryGemini()` at runtime)
+- **Styling**: Modify the CSS in the `style()` method of `statusbar.component.js`
+- **Markdown formatting**: Update the `formatMarkdown()` method in `statusbar.component.js`
 
 ## API Limits
 

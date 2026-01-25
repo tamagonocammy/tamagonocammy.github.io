@@ -42,10 +42,6 @@ class Component extends HTMLElement {
 ### Dual Search Engine (Gemini Integration)
 
 [src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle:
-- **Press Tab** in search input to switch between Google Search and Gemini AI
-- API key stored in `localStorage.GEMINI_API_KEY` or `window.GEMINI_API_KEY` (set in `userconfig.js`)
-- `queryGemini()` method calls Google Generative Language API (v1beta, gemini-3-flash-preview model)
-- Markdown formatting via `formatMarkdown()` converts response to styled HTML
 
 ### Internationalization (i18n)
 
@@ -121,8 +117,10 @@ class MyComponent extends Component {
 ```javascript
 class WeatherForecastClient {
   constructor(location) {
-    this.appId = "50a34e070dd5c09a99554b57ab7ea7e2"; // free tier key
-    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&lang=es&appid=${this.appId}`;
+    // Reads API key and language from `advanced_config.weather`
+    this.appId = advanced_config?.weather?.apiKey || "50a34e070dd5c09a99554b57ab7ea7e2";
+    const language = advanced_config?.weather?.language || "es";
+    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&lang=${language}&appid=${this.appId}`;
   }
   async getWeather() { /* fetch and parse */ }
 }
@@ -137,14 +135,18 @@ class WeatherForecastClient {
 async queryGemini(query) {
   const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
   if (!apiKey) return { error: true, message: "setup link" };
-  // POST to generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent
+
+  // Uses settings from `advanced_config.gemini` with sensible defaults
+  // model: advanced_config.gemini.model (default: gemini-3-flash-preview)
+  // temperature: advanced_config.gemini.temperature (default: 0.7)
+  // maxOutputTokens: advanced_config.gemini.maxOutputTokens (default: 2048)
+  // POST to generativelanguage.googleapis.com/v1beta/models/${model}:generateContent
   // Response path: data.candidates[0].content.parts[0].text
 }
 ```
 - **Always check API key exists** before making request
 - Error object format: `{ error: true, message: "user-friendly text" }`
-- Uses gemini-3-flash-preview (free tier model)
-- Temperature: 0.7, maxOutputTokens: 2048
+- Model, temperature and token limits are configurable via `advanced_config.gemini` (see `userconfig.js`)
 - Markdown formatting applied via `formatMarkdown()` method
 
 ### localStorage & Config Persistence
@@ -319,9 +321,9 @@ No npm packages or build dependencies—all loaded at runtime.
 
 ### Gemini API Specifics
 - Free tier: 60 requests/minute across all projects using same API key
-- Model `gemini-3-flash-preview` is latest; check API docs for model changes
+- Model is configurable via `advanced_config.gemini.model` (default: `gemini-3-flash-preview`); check API docs for model changes
 - Response structure: `data.candidates[0].content.parts[0].text`—all levels must exist or returns error
-- Temperature 0.7 = moderate randomness; adjust `generationConfig.temperature` for determinism
+- Temperature is configurable via `advanced_config.gemini.temperature` (default: 0.7 = moderate randomness); adjust for determinism
 
 ### Weather API
 - Location must match OpenWeatherMap city database (e.g., "Bogota", not "bogota")
