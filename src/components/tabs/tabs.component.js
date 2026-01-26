@@ -28,7 +28,7 @@ class Links extends Component {
                   <div class="link-info">
                     <a href="${link.url}">
                       ${Links.getIcon(link)}
-                      ${link.name ? `<p class="link-name" style="font-family: 'Fira Sans', sans-serif;">${link.name}</p>` : ""}
+                      ${link.name ? `<p class="link-name" style="font-family: 'Lato', sans-serif;">${link.name}</p>` : ""}
                     </a>
                 </div>`,
                 )
@@ -184,7 +184,7 @@ class Tabs extends Component {
       .categories ul .links a {
           color: ${CONFIG.palette.text};
           text-decoration: none;
-          font: 700 18px 'Fira Sans', sans-serif;
+          font: 700 18px 'Lato', sans-serif;
           transition: all .2s;
           display: inline-flex;
           align-items: center;

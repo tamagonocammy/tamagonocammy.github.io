@@ -336,7 +336,7 @@ class Statusbar extends Component {
             color: ${CONFIG.palette.text};
             border: 2px solid ${CONFIG.palette.surface0};
             border-radius: 12px;
-            font-family: 'Fira Sans', sans-serif;
+            font-family: 'Lato', sans-serif;
             font-size: 18px;
             transition: all 0.3s ease;
         }
@@ -431,7 +431,7 @@ class Statusbar extends Component {
         .results-content {
             padding: 20px;
             color: ${CONFIG.palette.text};
-            font-family: 'Fira Sans', sans-serif;
+            font-family: 'Lato', sans-serif;
             line-height: 1.6;
         }
 
