@@ -194,7 +194,7 @@ class Weather extends Component {
     this.refs.condition.className = "material-icons weather-condition-icon";
     this.refs.condition.classList.add(color);
 
-    this.refs.description.innerHTML = `${this.location} - ${description}`;
+    this.refs.description.innerHTML = `${this.location}: ${description}`;
   }
 
   /**
