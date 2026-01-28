@@ -46,8 +46,8 @@ const default_config = {
 
   // Clock Widget Configuration
   clock: {
-    format: "h:i p",
-    format_extended: "a, b d | h:i p",
+    format: "I:i p",
+    format_extended: "A, e \\d\\e B \\d\\e Y | I:i p",
     iconColor: palette.maroon,
   },
 

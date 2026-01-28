@@ -165,19 +165,16 @@ class I18n {
   }
 
   t(key) {
-    const keys = key.split(".");
-    let value = translations[this.locale];
+    const get = (obj, path) => path.split(".").reduce((o, i) => (o ? o[i] : undefined), obj);
+    const value = get(translations[this.locale], key);
 
-    for (const k of keys) {
-      if (value && typeof value === "object") {
-        value = value[k];
-      } else {
-        // Fallback to English or key itself
-        return translations.en[key] || key;
-      }
-    }
+    if (value !== undefined) return value; // Return value if found (even if it's null/false/0)
 
-    return value || translations.en[key] || key;
+    // Fallback to English
+    const fallbackValue = get(translations.en, key);
+    if (fallbackValue !== undefined) return fallbackValue; // Return English fallback if found
+
+    return key; // If not found in current locale or English, return the key itself
   }
 
   getDays(short = false) {

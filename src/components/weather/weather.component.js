@@ -194,7 +194,8 @@ class Weather extends Component {
     this.refs.condition.className = "material-icons weather-condition-icon";
     this.refs.condition.classList.add(color);
 
-    this.refs.description.innerHTML = `${this.location}: ${description}`;
+    const translatedCondition = window.i18n?.t(`weather.conditions.${condition.toLowerCase()}`) || description;
+    this.refs.description.innerHTML = `${this.location}: ${translatedCondition}`;
   }
 
   /**

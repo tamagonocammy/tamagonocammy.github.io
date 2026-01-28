@@ -44,27 +44,13 @@ class Clock extends Component {
   }
 
   setIconColor() {
-    this.refs.icon.style.color = CONFIG.palette.maroon;
+    this.refs.icon.style.color = CONFIG.clock.iconColor;
   }
 
   setTime() {
     const date = new Date();
-    const lang = "es-ES";
-    if (this.isExtended) {
-      const options = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      };
-      this.refs.clock.textContent = new Intl.DateTimeFormat(lang, options).format(date);
-    } else {
-      const options = { hour: "numeric", minute: "numeric", hour12: true };
-      this.refs.clock.textContent = new Intl.DateTimeFormat(lang, options).format(date);
-    }
+    const format = this.isExtended ? CONFIG.clock.format_extended : CONFIG.clock.format;
+    this.refs.clock.textContent = date.strftime(format);
   }
 
   showExtended() {

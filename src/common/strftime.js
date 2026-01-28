@@ -36,21 +36,21 @@ Date.prototype.strftime = function (format = "c") {
 
   // Get localized month and day names from i18n
   const month = window.i18n
-      ? window.i18n.getMonths()
-      : [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ],
+    ? window.i18n.getMonths()
+    : [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
     days = window.i18n
       ? window.i18n.getDays()
       : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -70,6 +70,8 @@ Date.prototype.strftime = function (format = "c") {
       Y: date.getFullYear(),
       H: date.getHours(),
       h: date.getHours().pad(),
+      I: (date.getHours() % 12 || 12).pad(),
+      l: date.getHours() % 12 || 12,
       p:
         date.getHours() >= 12
           ? window.i18n
@@ -89,8 +91,16 @@ Date.prototype.strftime = function (format = "c") {
       X: date.toLocaleTimeString(),
     };
 
-  format.split(/(\w|.)/m).forEach((type) => {
-    if (type) result.push(typeof formats[type] === "undefined" ? type : formats[type]);
+  let escaped = false;
+  format.split("").forEach((type) => {
+    if (escaped) {
+      result.push(type);
+      escaped = false;
+    } else if (type === "\\") {
+      escaped = true;
+    } else {
+      result.push(typeof formats[type] === "undefined" ? type : formats[type]);
+    }
   });
 
   return result.join("");
