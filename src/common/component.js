@@ -1,44 +1,45 @@
+// Global registry of rendered components
 const RenderedComponents = {};
 
-/**
- * Base Component class extending HTMLElement.
- * Provides a structure for creating Web Components with shadow DOM,
- * style management, and convenient DOM referencing.
- *
- * @extends {HTMLElement}
- */
+// Base class for all startpage components, providing shadow DOM, resource management, and rendering utilities
+// Glossary: Component, Resource, Shadow DOM
 class Component extends HTMLElement {
-  /**
-   * Object to store references to DOM elements within the shadow root.
-   * Keys are reference names, values are selector strings initially,
-   * and become DOM elements (or collections) after `render()` is called.
-   * @type {Object.<string, string>}
-   */
+  // Element references for DOM manipulation
   refs = {};
 
-  /**
-   * Pre-defined resource links for fonts, icons, and libraries.
-   * Can be returned in the `imports()` method to include them in the component.
-   */
   resources = {
+    /** Google Fonts and other web fonts */
     fonts: {
       roboto: '<link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700" rel="stylesheet">',
+      lato: '<link href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700,900" rel="stylesheet">',
       nunito: '<link href="https://fonts.googleapis.com/css?family=Nunito:200" rel="stylesheet">',
       raleway: '<link href="https://fonts.googleapis.com/css?family=Raleway:600" rel="stylesheet">',
     },
+    /** Local font alternatives */
+    localFonts: {
+      roboto: '<link rel="stylesheet" href="src/fonts/roboto-local.css">',
+      lato: '<link rel="stylesheet" href="src/fonts/lato-local.css">',
+      nunito: '<link rel="stylesheet" href="src/fonts/nunito-local.css">',
+      raleway: '<link rel="stylesheet" href="src/fonts/raleway-local.css">',
+    },
+    /** Icon font libraries */
     icons: {
       material:
         '<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">',
+      materialLocal: '<link rel="stylesheet" href="src/fonts/material-icons-local.css">',
       cryptofont: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/monzanifabio/cryptofont/cryptofont.css">',
       tabler: '<link rel="stylesheet" href="src/css/tabler-icons.min.css">',
     },
+    /** CSS libraries and frameworks */
     libs: {
       awoo: '<link rel="stylesheet" type="text/css" href="src/css/awoo.min.css">',
+      awooLocal: '<link rel="stylesheet" type="text/css" href="src/css/awoo-local.min.css">',
     },
   };
 
   /**
-   * Initializes the component and attaches a Shadow DOM.
+   * Initialise the component with shadow DOM
+   * Creates an open shadow root for style encapsulation
    */
   constructor() {
     super();
@@ -49,43 +50,77 @@ class Component extends HTMLElement {
   }
 
   /**
-   * Returns the CSS styles for the component.
-   * Should be overridden by subclasses.
-   * @returns {string|null} CSS string or null
+   * Get the appropriate font resource based on configuration
+   * @param {string} fontName - The name of the font (roboto, nunito, raleway)
+   * @returns {string} Font resource link
+   */
+  getFontResource(fontName) {
+    if (typeof CONFIG !== 'undefined' && CONFIG.localFonts) {
+      return this.resources.localFonts[fontName] || this.resources.fonts[fontName];
+    }
+    return this.resources.fonts[fontName];
+  }
+
+  /**
+   * Get the appropriate icon resource based on configuration
+   * @param {string} iconName - The name of the icon library (material, tabler, etc)
+   * @returns {string} Icon resource link
+   */
+  getIconResource(iconName) {
+    if (typeof CONFIG !== 'undefined' && CONFIG.localFonts && iconName === 'material') {
+      return this.resources.icons.materialLocal;
+    }
+    return this.resources.icons[iconName];
+  }
+
+  /**
+   * Get the appropriate library resource based on configuration
+   * @param {string} libName - The name of the library (awoo, etc)
+   * @returns {string} Library resource link
+   */
+  getLibraryResource(libName) {
+    if (typeof CONFIG !== 'undefined' && CONFIG.localFonts && libName === 'awoo') {
+      return this.resources.libs.awooLocal;
+    }
+    return this.resources.libs[libName];
+  }
+
+  /**
+   * Returns custom styles for the component
+   * @returns {string|null} CSS styles or null
    */
   style() {
     return null;
   }
 
   /**
-   * Returns the HTML template for the component.
-   * Should be overridden by subclasses.
-   * @returns {string|Promise<string>|null} HTML string or null
+   * Returns the HTML template for the component
+   * @returns {string|null} HTML template or null
    */
   template() {
     return null;
   }
 
   /**
-   * Returns a list of resources to import (e.g., fonts, icons).
-   * Should be overridden by subclasses.
-   * @returns {Array<string>} Array of HTML link strings
+   * Returns array of external resources to import
+   * @returns {Array<string>} Array of resource imports
    */
   imports() {
     return [];
   }
 
   /**
-   * Reference an external CSS file.
-   * OBS: External style loading not yet fully supported with web components, causes flickering.
-   * @param {string} path - Path to the CSS file
+   * Reference an external CSS file for the component
+   * Note: External style loading is not fully supported with web components and may cause flickering
+   * @param {string} path
+   * @returns {void}
    */
   set stylePath(path) {
     this.resources.style = `<link rel="preload" as="style" href="${path}" onload="this.rel='stylesheet'">`;
   }
 
   /**
-   * Return all the imports that a component requested.
+   * Return all the imports that a component requested
    * @returns {Array<string>} imports
    */
   get getResources() {
@@ -97,8 +132,8 @@ class Component extends HTMLElement {
   }
 
   /**
-   * Return inline style tag combined with imported resources.
-   * @returns {Promise<string>} HTML string containing styles and links
+   * Return inline style tag
+   * @returns {string}
    */
   async loadStyles() {
     let html = this.getResources.join("\n");
@@ -109,21 +144,16 @@ class Component extends HTMLElement {
   }
 
   /**
-   * Build the component's HTML body by combining styles and template.
-   * @returns {Promise<string>} Full HTML content for the shadow root
+   * Build the component's HTML body
+   * @returns {string} html
    */
   async buildHTML() {
     return (await this.loadStyles()) + (await this.template());
   }
 
   /**
-   * Create a reference Proxy for manipulating DOM elements.
-   * Allows accessing elements via `this.refs.refName` directly.
-   *
-   * - Getting `this.refs.name` returns the DOM element(s) matching the selector.
-   * - Setting `this.refs.name = "content"` updates the `innerHTML` of that element.
-   *
-   * @returns {Proxy} A proxy wrapping the refs object
+   * Create a reference proxy for manipulating DOM elements within the component's shadow DOM
+   * @returns {Proxy<HTMLElement | boolean>}
    */
   createRef() {
     return new Proxy(this.refs, {
@@ -147,8 +177,7 @@ class Component extends HTMLElement {
   }
 
   /**
-   * Renders the component by building HTML and setting up references.
-   * Stores the instance in RenderedComponents.
+   * Render the component's HTML and update references
    * @returns {Promise<void>}
    */
   async render() {

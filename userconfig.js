@@ -31,7 +31,9 @@
 // -----------------
 // latte (light) / frappe / macchiato / mocha (dark)
 // All Gemini AI features work with any palette - colors auto-adapt!
-const palette = mocha;
+const preferredLightTheme = latte;
+const preferredDarkTheme = mocha;
+let palette = initThemeSystem(preferredLightTheme, preferredDarkTheme);
 
 const default_config = {
   // Allow these settings to override whatever is saved in localStorage.
@@ -51,8 +53,23 @@ const default_config = {
     iconColor: palette.maroon,
   },
 
+  // Additional Clocks (Optional)
+  // Add more timezones to display next to the main clock
+  additionalClocks: [
+    // {
+    //   label: "NYC",
+    //   timezone: "America/New_York",
+    //   format: "H:i",
+    //   icon_color: palette.peach,
+    // },
+  ],
+
   // Components to hide (e.g. ['weather', 'clock'])
   disabled: [],
+
+  // Local assets (fonts and icons)
+  localIcons: true,
+  localFonts: true,
 
   // Tab Behavior
   openLastVisitedTab: true,

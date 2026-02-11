@@ -74,11 +74,11 @@ class Tabs extends Component {
 
   imports() {
     return [
-      this.resources.icons.material,
-      this.resources.icons.tabler,
-      this.resources.fonts.roboto,
-      this.resources.fonts.raleway,
-      this.resources.libs.awoo,
+      this.getIconResource("material"),
+      this.getIconResource("tabler"),
+      this.getFontResource("lato"),
+      this.getFontResource("raleway"),
+      this.getLibraryResource("awoo"),
     ];
   }
 

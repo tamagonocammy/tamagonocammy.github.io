@@ -60,7 +60,7 @@ class Weather extends Component {
   }
 
   imports() {
-    return [this.resources.icons.material, this.resources.fonts.roboto];
+    return [this.getIconResource("material"), this.getFontResource("lato")];
   }
 
   style() {
