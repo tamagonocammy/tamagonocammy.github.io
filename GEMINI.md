@@ -7,6 +7,7 @@
 ### Core Philosophy
 - **Minimalism**: Clean UI with reduced visual noise
 - **No Build Tool**: Pure vanilla JS using Web Components API—no npm, webpack, or transpilation
+- **Automatic Theme System**: Auto-switch light/dark based on OS/browser (`theme.js`)
 - **Catppuccin Color Palettes**: Four supported palettes (Latte, Frappé, Macchiato, Mocha) defined in `palette.js`
 - **Configuration-Driven**: All customization happens via `userconfig.js`
 
@@ -34,10 +35,21 @@ class Component extends HTMLElement {
 
 ### Config System (Proxy-Based)
 
-[src/common/config.js](../src/common/config.js#L1) creates a reactive config object:
-- Merges `userconfig.js` defaults with localStorage persistence
+[src/common/config.js](../src/common/config.js#L1) defines the `Config` manager:
+- `userconfig.js` is the **only file users edit** and is responsible for instantiating `CONFIG` via `new Config(default_config, palette)`
+- `Config` merges `userconfig.js` values with localStorage persistence
 - Auto-saves any property change via Proxy `set` trap
-- Setting `overrideStorage: true` in `userconfig.js` prevents localStorage override (except for tabs)
+- Setting `overrideStorage: true` in `userconfig.js` prevents localStorage override (**except** `tabs`, which always sync from file)
+
+### Automatic Theme System (Light/Dark)
+
+[src/common/theme.js](../src/common/theme.js) provides auto theme selection:
+- `initThemeSystem(preferredLightTheme, preferredDarkTheme)` chooses the initial palette based on `prefers-color-scheme`
+- Listens for OS theme changes and reloads by default (unless you pass a callback)
+- `userconfig.js` typically sets:
+  - `preferredLightTheme` (e.g. `latte`)
+  - `preferredDarkTheme` (e.g. `mocha`)
+  - `palette = initThemeSystem(preferredLightTheme, preferredDarkTheme)`
 
 ### Dual Search Engine (Gemini Integration)
 
@@ -60,19 +72,21 @@ Supported: Spanish (default), English. Add new language by extending `translatio
 |------|---------|
 | [userconfig.js](../userconfig.js#L1) | **ONLY config file users edit** – tabs, palette, location, Gemini key |
 | [src/common/palette.js](../src/common/palette.js) | Color palette definitions (Catppuccin flavors) |
+| [src/common/theme.js](../src/common/theme.js) | Automatic light/dark theme detection (`prefers-color-scheme`) |
 | [src/common/storage.js](../src/common/storage.js) | localStorage abstraction layer |
 | [src/common/utils.js](../src/common/utils.js) | Utility functions (DOM queries, event helpers) |
 | [src/common/strftime.js](../src/common/strftime.js) | Time formatting (respects locale) |
 | [index.html](../index.html#L1) | Single HTML file – loads scripts in strict order (palette → utils → config → components) |
 
 ### Script Load Order (Critical)
-1. `palette.js` – Defines palettes before CONFIG access
-2. `utils.js`, `storage.js`, `actions.js`
-3. `config.js` – Creates CONFIG object from `userconfig.js`
-4. `i18n.js`, `strftime.js`, `component.js`
-5. **`userconfig.js`** – User's configuration
-6. Component implementations
-7. `module.js` – Registers components
+1. `palette.js` – Defines palettes before any palette usage
+2. `theme.js` – Auto-selects light/dark palette from system preference
+3. `utils.js`, `storage.js`, `actions.js`
+4. `config.js` – Defines `Config` class (does not instantiate `CONFIG`)
+5. **`userconfig.js`** – User configuration; instantiates `CONFIG`
+6. `i18n.js`, `strftime.js`, `component.js`
+7. Component implementations
+8. `module.js` – Registers components
 
 ### Naming Conventions
 - **CSS Classes**: kebab-case (`.search-overlay`, `.link-icon`)
@@ -111,6 +125,13 @@ class MyComponent extends Component {
 - Icons from: Material Icons, Tabler Icons, or CryptoFont
 - **Performance**: Avoid frequent DOM queries; cache refs in `refs` object and populate in `activate()`
 - Shadow DOM **prevents CSS leakage** but also prevents external styles from affecting component
+
+### Local Assets (Fonts & Icons)
+
+Components can switch between CDN resources and local assets for offline-friendly setups:
+- `CONFIG.localFonts: true` prefers local CSS for fonts and some libraries/icons (see `Component.getFontResource()`, `getIconResource()`, `getLibraryResource()` in [src/common/component.js](../src/common/component.js))
+- Local font CSS lives under `src/fonts/`
+- Note: `userconfig.js` currently includes `localIcons`, but the code paths primarily use `CONFIG.localFonts` for local font/icon/library selection
 
 ### Weather API Integration
 [src/components/weather/weather.api.js](../src/components/weather/weather.api.js) pattern:
@@ -185,6 +206,12 @@ activate() {
 - Reduces repeated `querySelector` calls (performance)
 - Updates persist when CONFIG changes via Proxy
 - Component state stored in instance variables; reset on palette change if needed
+
+### Multi-timezone Clocks
+
+`userconfig.js` supports optional secondary clocks via `CONFIG.additionalClocks`:
+- Provide an array of clocks with `label`, `timezone`, and optional `format`/`icon_color`
+- Rendered by the clock component when present (see [src/components/clock/clock.component.js](../src/components/clock/clock.component.js))
 
 ---
 
