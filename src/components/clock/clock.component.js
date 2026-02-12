@@ -7,11 +7,29 @@ class Clock extends Component {
     mainClockTime: "#main-clock .clock-time",
   };
 
+  // Track whether extended format (with date) is shown
+  showExtendedFormat = false;
+
   /**
    * Initialise the clock component
    */
   constructor() {
     super();
+  }
+
+  /**
+   * Set up click event handler to toggle between normal and extended format
+   */
+  setEvents() {
+    this.onclick = this.toggleFormat;
+  }
+
+  /**
+   * Toggle between normal time format and extended format with date
+   */
+  toggleFormat = () => {
+    this.showExtendedFormat = !this.showExtendedFormat;
+    this.setTime();
   }
 
   /**
@@ -41,6 +59,14 @@ class Clock extends Component {
         .clock-time {
             white-space: nowrap;
             font: 700 9pt 'Lato', sans-serif;
+            color: ${CONFIG.palette.text};
+            letter-spacing: .5px;
+            margin: 0;
+        }
+
+        .clock-date {
+            white-space: nowrap;
+            font: 300 9pt 'Lato', sans-serif;
             color: ${CONFIG.palette.text};
             letter-spacing: .5px;
             margin: 0;
@@ -85,6 +111,7 @@ class Clock extends Component {
             <div class="clock-wrapper">
                 <span class="material-icons clock-icon">schedule</span>
                 <div id="main-clock" class="clock-item">
+                    <span class="clock-date"></span>
                     <p class="clock-time"></p>
                 </div>
             </div>
@@ -146,9 +173,31 @@ class Clock extends Component {
     if (this.shadow) {
       // Update main clock
       const mainClockElement = this.shadow.querySelector('#main-clock .clock-time');
+      const dateElement = this.shadow.querySelector('#main-clock .clock-date');
       const date = new Date();
-      if (mainClockElement) {
-        mainClockElement.textContent = date.strftime(CONFIG.clock.format, CONFIG.clock.locale);
+      
+      if (mainClockElement && dateElement) {
+        if (this.showExtendedFormat && CONFIG.clock.format_extended) {
+          // Split extended format into date and time parts
+          const fullText = date.strftime(CONFIG.clock.format_extended, CONFIG.clock.locale);
+          const parts = fullText.split(' | ');
+          
+          if (parts.length === 2) {
+            // Date part (not bold)
+            dateElement.textContent = parts[0] + ' | ';
+            dateElement.style.display = 'inline';
+            // Time part (bold)
+            mainClockElement.textContent = parts[1];
+          } else {
+            // Fallback if separator not found
+            dateElement.style.display = 'none';
+            mainClockElement.textContent = fullText;
+          }
+        } else {
+          // Normal format - only show time (bold)
+          dateElement.style.display = 'none';
+          mainClockElement.textContent = date.strftime(CONFIG.clock.format, CONFIG.clock.locale);
+        }
       }
 
       // Update additional clocks if they exist
@@ -184,6 +233,7 @@ class Clock extends Component {
   connectedCallback() {
     this.render().then(() => {
       setTimeout(() => {
+        this.setEvents();
         this.setTime();
         this.setIconColor();
         setInterval(() => this.setTime(), 1000);

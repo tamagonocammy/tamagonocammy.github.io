@@ -53,7 +53,7 @@ const default_config = {
   clock: {
     format: "I:i p",
     format_extended: "A, e \\d\\e B \\d\\e Y | I:i p",
-    iconColor: palette.maroon,
+    iconColor: palette.teal,
   },
 
   // Additional Clocks (Optional)
