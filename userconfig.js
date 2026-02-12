@@ -4,9 +4,10 @@
  * ==================================================================================
  *  This file is the central control panel for your startpage.
  *  Here you can configure:
- *  - Global color palette
+ *  - Automatic Theme System (Light/Dark mode)
  *  - Weather location and settings
- *  - Clock format
+ *  - Clock format & Multi-timezone support
+ *  - Local Assets (Fonts & Icons) for offline use
  *  - Tabs, categories, and links (the core navigation)
  *  - Advanced settings like API keys and system behavior
  *
@@ -29,7 +30,9 @@
 
 // Palette Selection
 // -----------------
-// latte (light) / frappe / macchiato / mocha (dark)
+// Define your preferred light and dark themes.
+// The system automatically switches based on your OS/browser settings.
+// Available: latte (light) / frappe / macchiato / mocha (dark)
 // All Gemini AI features work with any palette - colors auto-adapt!
 const preferredLightTheme = latte;
 const preferredDarkTheme = mocha;
