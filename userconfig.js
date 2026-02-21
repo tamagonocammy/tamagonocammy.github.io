@@ -135,9 +135,9 @@ const default_config = {
               icon_color: palette.green,
             },
             {
-              name: "notebooklm",
-              url: "https://notebooklm.google.com",
-              icon: "notebook",
+              name: "perplexity",
+              url: "https://perplexity.ai",
+              icon: "search",
               icon_color: palette.peach,
             },
             {
@@ -151,12 +151,6 @@ const default_config = {
               url: "https://docs.google.com",
               icon: "file-text",
               icon_color: palette.teal,
-            },
-            {
-              name: "linkedin",
-              url: "https://www.linkedin.com",
-              icon: "brand-linkedin",
-              icon_color: palette.sky,
             },
           ],
         },
