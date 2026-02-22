@@ -599,6 +599,47 @@ class Statusbar extends Component {
             font-style: italic;
         }
 
+        .gemini-response table.gemini-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+            font-size: 0.95em;
+        }
+
+        .gemini-response .gemini-table th,
+        .gemini-response .gemini-table td {
+            border: 1px solid ${CONFIG.palette.surface2};
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .gemini-response .gemini-table th {
+            background: ${CONFIG.palette.surface1};
+            color: ${CONFIG.palette.mauve};
+            font-weight: 600;
+        }
+
+        .gemini-response .gemini-table tr:nth-child(even) {
+            background: ${CONFIG.palette.surface0};
+        }
+
+        .gemini-response .gemini-table tbody tr:hover {
+            background: ${CONFIG.palette.surface1};
+        }
+
+        .gemini-response img.gemini-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 0.5em 0;
+            display: block;
+        }
+
+        .gemini-response del {
+            color: ${CONFIG.palette.overlay1};
+            text-decoration: line-through;
+        }
+
         .api-key-notice {
             background: ${CONFIG.palette.yellow};
             color: ${CONFIG.palette.base};
@@ -727,13 +768,42 @@ class Statusbar extends Component {
   formatMarkdown(text) {
     if (!text) return "";
 
-    // Simple markdown to HTML conversion
+    const escapeHtml = (str) => {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    };
+
     let html = text;
 
-    // Code blocks
-    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, "<pre><code>$2</code></pre>");
+    // 1) Extract code blocks so bold/italic/etc don't touch their content
+    const codeBlocks = [];
+    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, _lang, code) => {
+      const i = codeBlocks.length;
+      codeBlocks.push(code);
+      return `%%CODE_${i}%%`;
+    });
 
-    // Bold
+    // 2) Escape HTML to avoid XSS and broken layout from < > & in Gemini output
+    html = escapeHtml(html);
+
+    // 3) Restore code block placeholders as safe <pre><code> (content was raw, escape when restoring)
+    codeBlocks.forEach((code, i) => {
+      html = html.replace(`%%CODE_${i}%%`, `<pre><code>${escapeHtml(code)}</code></pre>`);
+    });
+
+    // Horizontal rules (--- or ___ or *** on own line)
+    html = html.replace(/^(---|\*\*\*|___)\s*$/gm, "<hr>");
+
+    // Blockquotes: lines starting with >
+    html = html.replace(/^&gt;\s?(.+)$/gm, "<blockquote>$1</blockquote>");
+    // Merge consecutive blockquotes into one
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, "\n");
+
+    // Bold (before italic so ** takes precedence)
     html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
     // Italic
@@ -742,38 +812,61 @@ class Statusbar extends Component {
     // Inline code
     html = html.replace(/`(.+?)`/g, "<code>$1</code>");
 
-    // Headers
-    html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
-    html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
-    html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+    // Strikethrough
+    html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
 
-    // Lists
-    // Unordered
-    html = html.replace(/^\* (.+)$/gm, '<li class="ul-item">$1</li>');
-    html = html.replace(/^- (.+)$/gm, '<li class="ul-item">$1</li>');
+    // Images ![alt](url)
+    html = html.replace(/!\[(.*?)\]\((.+?)\)/g, '<img src="$2" alt="$1" class="gemini-img" loading="lazy">');
 
-    // Ordered
-    html = html.replace(/^\d+\. (.+)$/gm, '<li class="ol-item">$1</li>');
+    // Headers (optional space after #)
+    html = html.replace(/^###\s*(.+)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^##\s*(.+)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^#\s*(.+)$/gm, "<h1>$1</h1>");
 
-    // Wrap Unordered
-    html = html.replace(/(<li class="ul-item">.*<\/li>\n?)+/g, "<ul>$&</ul>");
+    // Lists (single * or - for unordered, not **)
+    html = html.replace(/^(?!\*\*)\*\s+(.+)$/gm, '<li class="ul-item">$1</li>');
+    html = html.replace(/^-\s+(.+)$/gm, '<li class="ul-item">$1</li>');
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li class="ol-item">$1</li>');
 
-    // Wrap Ordered
-    html = html.replace(/(<li class="ol-item">.*<\/li>\n?)+/g, "<ol>$&</ol>");
-
-    // Clean up classes
+    // Wrap consecutive list items
+    html = html.replace(/(<li class="ul-item">.*?<\/li>\n?)+/g, "<ul>$&</ul>");
+    html = html.replace(/(<li class="ol-item">.*?<\/li>\n?)+/g, "<ol>$&</ol>");
     html = html.replace(/class="ul-item"/g, "");
     html = html.replace(/class="ol-item"/g, "");
 
-    // Links
-    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+    // Links (URLs already escaped; allow # in href for anchors)
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
-    // Paragraphs
+    // Markdown tables
+    html = html.replace(/(?:^\|.+\|\s*$)+/gm, (block) => {
+      const lines = block.trim().split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lines.length < 1) return block;
+      const rows = lines.map((line) =>
+        line.split("|").slice(1, -1).map((c) => c.trim())
+      );
+      if (rows.some((row) => row.length === 0)) return block;
+      let headerRow = rows[0];
+      let bodyRows = rows.slice(1);
+      if (bodyRows.length > 0 && bodyRows[0].every((c) => /^[\s:\-]+$/.test(c))) {
+        bodyRows = bodyRows.slice(1);
+      }
+      const thead =
+        "<thead><tr>" +
+        headerRow.map((c) => "<th>" + c + "</th>").join("") +
+        "</tr></thead>";
+      const tbody =
+        "<tbody>" +
+        bodyRows.map((row) => "<tr>" + row.map((c) => "<td>" + c + "</td>").join("") + "</tr>").join("") +
+        "</tbody>";
+      return "<table class=\"gemini-table\">" + thead + tbody + "</table>";
+    });
+
+    // Paragraphs: preserve single line breaks as <br>, and don't wrap already-HTML blocks
     html = html
       .split("\n\n")
       .map((para) => {
         if (!para.startsWith("<") && para.trim() !== "") {
-          return `<p>${para}</p>`;
+          return "<p>" + para.replace(/\n/g, "<br>") + "</p>";
         }
         return para;
       })
