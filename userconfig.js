@@ -100,12 +100,6 @@ const default_config = {
               icon_color: palette.mauve,
             },
             {
-              name: "maps",
-              url: "https://maps.google.com",
-              icon: "map-2",
-              icon_color: palette.red,
-            },
-            {
               name: "reykunyu",
               url: "https://reykunyu.lu/",
               icon: "book-2",
