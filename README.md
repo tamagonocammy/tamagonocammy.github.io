@@ -105,14 +105,38 @@ You can use different add-ons/extensions for it
 
 ### 🖼️ Available banners
 
-| cbg-2                                           | cbg-3                                           | cbg-4                                           | cbg-5                                           |
-| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
-| <img src="src/img/banners/cbg-2.gif" width=175> | <img src="src/img/banners/cbg-3.gif" width=175> | <img src="src/img/banners/cbg-4.gif" width=175> | <img src="src/img/banners/cbg-5.gif" width=175> |
+| banner_01 | banner_02 | banner_03 | banner_04 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/banner_01.gif" width=175> | <img src="src/img/banners/banner_02.gif" width=175> | <img src="src/img/banners/banner_03.gif" width=175> | <img src="src/img/banners/banner_04.gif" width=175> |
 
-| cbg-6                                           | cbg-7                                           | cbg-8                                           | cbg-9                                           |
-| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- |
-| <img src="src/img/banners/cbg-6.gif" width=175> | <img src="src/img/banners/cbg-7.gif" width=175> | <img src="src/img/banners/cbg-8.gif" width=175> | <img src="src/img/banners/cbg-9.gif" width=175> |
+| banner_05 | banner_06 | banner_07 | banner_08 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/banner_05.gif" width=175> | <img src="src/img/banners/banner_06.gif" width=175> | <img src="src/img/banners/banner_07.gif" width=175> | <img src="src/img/banners/banner_08.gif" width=175> |
 
-| cbg-10                                           | cbg-11                                           | cbg-12                                           | cbg-13                                           |
-| ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------ |
-| <img src="src/img/banners/cbg-10.gif" width=175> | <img src="src/img/banners/cbg-11.gif" width=175> | <img src="src/img/banners/cbg-12.gif" width=175> | <img src="src/img/banners/cbg-13.gif" width=175> |
+| banner_09 | banner_10 | banner_11 | banner_12 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/banner_09.gif" width=175> | <img src="src/img/banners/banner_10.gif" width=175> | <img src="src/img/banners/banner_11.gif" width=175> | <img src="src/img/banners/banner_12.gif" width=175> |
+
+| banner_13 | banner_14 | banner_15 | banner_16 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/banner_13.gif" width=175> | <img src="src/img/banners/banner_14.gif" width=175> | <img src="src/img/banners/banner_15.gif" width=175> | <img src="src/img/banners/banner_16.gif" width=175> |
+
+| banner_17 | banner_18 | bg-1 | bg-2 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/banner_17.gif" width=175> | <img src="src/img/banners/banner_18.gif" width=175> | <img src="src/img/banners/bg-1.gif" width=175> | <img src="src/img/banners/bg-2.gif" width=175> |
+
+| bg-3 | cbg-1 | cbg-2 | cbg-3 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/bg-3.gif" width=175> | <img src="src/img/banners/cbg-1.gif" width=175> | <img src="src/img/banners/cbg-2.gif" width=175> | <img src="src/img/banners/cbg-3.gif" width=175> |
+
+| cbg-4 | cbg-5 | cbg-6 | cbg-7 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/cbg-4.gif" width=175> | <img src="src/img/banners/cbg-5.gif" width=175> | <img src="src/img/banners/cbg-6.gif" width=175> | <img src="src/img/banners/cbg-7.gif" width=175> |
+
+| cbg-8 | cbg-9 | cbg-10 | cbg-11 |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/cbg-8.gif" width=175> | <img src="src/img/banners/cbg-9.gif" width=175> | <img src="src/img/banners/cbg-10.gif" width=175> | <img src="src/img/banners/cbg-11.gif" width=175> |
+
+| cbg-12 | cbg-13 |  |  |
+| --- | --- | --- | --- |
+| <img src="src/img/banners/cbg-12.gif" width=175> | <img src="src/img/banners/cbg-13.gif" width=175> |  |  |
