@@ -89,7 +89,7 @@ const default_config = {
     {
       name: "M i l i e",
       color: palette.lavender,
-      background_url: "src/img/banners/cbg-4.gif",
+      background_url: "src/img/banners/banner_14.gif",
       categories: [
         {
           name: "principal",
@@ -183,7 +183,7 @@ const default_config = {
     {
       name: "dev",
       color: palette.green,
-      background_url: "src/img/banners/cbg-8.gif",
+      background_url: "src/img/banners/banner_17.gif",
       categories: [
         {
           name: "recursos",
@@ -277,7 +277,7 @@ const default_config = {
     {
       name: "c h i l l",
       color: palette.rosewater,
-      background_url: "src/img/banners/cbg-11.gif",
+      background_url: "src/img/banners/cbg-2.gif",
       categories: [
         {
           name: "redes sociales",
