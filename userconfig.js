@@ -88,6 +88,7 @@ const default_config = {
   tabs: [
     {
       name: "M i l i e",
+      color: palette.lavender,
       background_url: "src/img/banners/cbg-4.gif",
       categories: [
         {
@@ -181,6 +182,7 @@ const default_config = {
     },
     {
       name: "dev",
+      color: palette.green,
       background_url: "src/img/banners/cbg-8.gif",
       categories: [
         {
@@ -274,6 +276,7 @@ const default_config = {
     },
     {
       name: "c h i l l",
+      color: palette.rosewater,
       background_url: "src/img/banners/cbg-11.gif",
       categories: [
         {

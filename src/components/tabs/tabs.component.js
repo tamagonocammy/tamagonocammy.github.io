@@ -47,14 +47,15 @@ class Category extends Component {
   }
 
   static getBackgroundStyle(url) {
-    return `style="background-image: url(${url}); background-repeat: no-repeat;background-size: contain;"`;
+    return `background-image: url(${url}); background-repeat: no-repeat;background-size: contain;`;
   }
 
   static getAll(tabs) {
     return `
       ${tabs
-        .map(({ name, background_url }, index) => {
-          return `<ul class="${name}" ${Category.getBackgroundStyle(background_url)} ${index == 0 ? "active" : ""}>
+        .map(({ name, background_url, color }, index) => {
+          const flavour = color ? `--flavour: ${color};` : "";
+          return `<ul class="${name}" style="${flavour} ${Category.getBackgroundStyle(background_url)}" ${index == 0 ? "active" : ""}>
             <div class="banner"></div>
             <div class="links">${Links.getAll(name, tabs)}</div>
           </ul>`;
@@ -138,25 +139,6 @@ class Tabs extends Component {
           50% {
               background-position-x: -240px;
           }
-      }
-
-      .categories ul:nth-child(1) {
-          --flavour: ${CONFIG.palette.green};
-      }
-
-      .categories ul:nth-child(2) {
-          --flavour: ${CONFIG.palette.peach};
-      }
-
-      .categories ul:nth-child(3) {
-          --flavour: ${CONFIG.palette.red};
-      }
-
-      .categories ul:nth-child(4) {
-          --flavour: ${CONFIG.palette.blue};
-      }
-      .categories ul:nth-child(5) {
-          --flavour: ${CONFIG.palette.mauve};
       }
 
       .categories ul .links {
