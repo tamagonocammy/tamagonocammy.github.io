@@ -33,7 +33,24 @@ class Statusbar extends Component {
   }
 
   style() {
+    let tabStyles = "";
+    CONFIG.tabs.forEach((tab, index) => {
+      const i = index + 1;
+      tabStyles += `
+      #tabs ul li:nth-child(${i})[active]:not(:last-child)::after {
+          color: ${tab.color};
+      }
+
+      #tabs ul li[active]:nth-child(${i}) ~ li:last-child {
+          margin: 0 0 0 ${index * 35}px;
+          --flavour: ${tab.color};
+      }
+      `;
+    });
+
     return `
+      ${tabStyles}
+
       *:not(:defined) { display: none; }
 
       #tabs,
@@ -95,17 +112,7 @@ class Statusbar extends Component {
           background: ${CONFIG.palette.surface0};
       }
 
-      #tabs ul li:nth-child(1)[active]:not(:last-child)::after {
-          color: ${CONFIG.palette.green};
-      }
-
-      #tabs ul li:nth-child(2)[active]:not(:last-child)::after {
-          color: ${CONFIG.palette.peach};
-      }
-
-      #tabs ul li:nth-child(3)[active]:not(:last-child)::after {
-          color: ${CONFIG.palette.red};
-      }
+      /* Dynamic icon colors handled above */
 
       #tabs ul li:last-child {
           --flavour: var(--accent);
@@ -122,30 +129,9 @@ class Statusbar extends Component {
           padding: 6px 0;
       }
 
-      #tabs ul li[active]:nth-child(2) ~ li:last-child { margin: 0 0 0 35px; }
-      #tabs ul li[active]:nth-child(3) ~ li:last-child { margin: 0 0 0 70px; }
-      #tabs ul li[active]:nth-child(4) ~ li:last-child { margin: 0 0 0 105px; }
-      #tabs ul li[active]:nth-child(5) ~ li:last-child { margin: 0 0 0 140px; }
+      /* Dynamic margin handled above */
 
-      #tabs ul li[active]:nth-child(1) ~ li:last-child {
-          --flavour: ${CONFIG.palette.green};
-      }
-
-      #tabs ul li[active]:nth-child(2) ~ li:last-child {
-          --flavour: ${CONFIG.palette.peach};
-      }
-
-      #tabs ul li[active]:nth-child(3) ~ li:last-child {
-          --flavour: ${CONFIG.palette.red};
-      }
-
-      #tabs ul li[active]:nth-child(4) ~ li:last-child {
-          --flavour: ${CONFIG.palette.blue};
-      }
-
-      #tabs ul li[active]:nth-child(5) ~ li:last-child {
-          --flavour: ${CONFIG.palette.mauve};
-      }
+      /* Dynamic flavour colors handled above */
 
       .widgets {
           right: 0;
@@ -770,11 +756,7 @@ class Statusbar extends Component {
 
     const escapeHtml = (str) => {
       if (!str) return "";
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     };
 
     let html = text;
@@ -839,10 +821,17 @@ class Statusbar extends Component {
 
     // Markdown tables
     html = html.replace(/(?:^\|.+\|\s*$)+/gm, (block) => {
-      const lines = block.trim().split("\n").map((l) => l.trim()).filter(Boolean);
+      const lines = block
+        .trim()
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
       if (lines.length < 1) return block;
       const rows = lines.map((line) =>
-        line.split("|").slice(1, -1).map((c) => c.trim())
+        line
+          .split("|")
+          .slice(1, -1)
+          .map((c) => c.trim()),
       );
       if (rows.some((row) => row.length === 0)) return block;
       let headerRow = rows[0];
@@ -850,15 +839,12 @@ class Statusbar extends Component {
       if (bodyRows.length > 0 && bodyRows[0].every((c) => /^[\s:\-]+$/.test(c))) {
         bodyRows = bodyRows.slice(1);
       }
-      const thead =
-        "<thead><tr>" +
-        headerRow.map((c) => "<th>" + c + "</th>").join("") +
-        "</tr></thead>";
+      const thead = "<thead><tr>" + headerRow.map((c) => "<th>" + c + "</th>").join("") + "</tr></thead>";
       const tbody =
         "<tbody>" +
         bodyRows.map((row) => "<tr>" + row.map((c) => "<td>" + c + "</td>").join("") + "</tr>").join("") +
         "</tbody>";
-      return "<table class=\"gemini-table\">" + thead + tbody + "</table>";
+      return '<table class="gemini-table">' + thead + tbody + "</table>";
     });
 
     // Paragraphs: preserve single line breaks as <br>, and don't wrap already-HTML blocks
