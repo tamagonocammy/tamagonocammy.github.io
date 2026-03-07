@@ -248,7 +248,7 @@ const default_config = {
           links: [
             {
               name: "genbeta",
-              url: "https://www.genbeta.com//",
+              url: "https://www.genbeta.com/",
               icon: "versions",
               icon_color: palette.teal,
             },
