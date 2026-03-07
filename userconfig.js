@@ -247,9 +247,9 @@ const default_config = {
           name: "blogs",
           links: [
             {
-              name: "genbeta",
-              url: "https://www.genbeta.com/",
-              icon: "versions",
+              name: "ars technica",
+              url: "https://arstechnica.com",
+              icon: "atom",
               icon_color: palette.teal,
             },
             {
