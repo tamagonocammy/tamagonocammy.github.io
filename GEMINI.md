@@ -53,7 +53,7 @@ class Component extends HTMLElement {
 
 ### Dual Search Engine (Gemini Integration)
 
-[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle:
+[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between Google and Gemini.
 
 ### Internationalization (i18n)
 
@@ -62,7 +62,8 @@ class Component extends HTMLElement {
 window.i18n.t('search.placeholder_google') // Get translated string
 window.i18n.setLocale('en') // Switch language
 ```
-Supported: Spanish (default), English. Add new language by extending `translations` object.
+- **Languages**: Spanish (`es`) default, English (`en`) available.
+- **Config**: Set `advanced_config.i18n.defaultLocale` in `userconfig.js` or `localStorage.setItem('locale', 'en')`.
 
 ---
 
@@ -70,7 +71,7 @@ Supported: Spanish (default), English. Add new language by extending `translatio
 
 | File | Purpose |
 |------|---------|
-| [userconfig.js](../userconfig.js#L1) | **ONLY config file users edit** – tabs, palette, location, Gemini key |
+| [userconfig.js](../userconfig.js#L1) | **ONLY config file users edit** – tabs, palette, location, Gemini key, advanced settings |
 | [src/common/palette.js](../src/common/palette.js) | Color palette definitions (Catppuccin flavors) |
 | [src/common/theme.js](../src/common/theme.js) | Automatic light/dark theme detection (`prefers-color-scheme`) |
 | [src/common/storage.js](../src/common/storage.js) | localStorage abstraction layer |
@@ -126,20 +127,13 @@ class MyComponent extends Component {
 - **Performance**: Avoid frequent DOM queries; cache refs in `refs` object and populate in `activate()`
 - Shadow DOM **prevents CSS leakage** but also prevents external styles from affecting component
 
-### Local Assets (Fonts & Icons)
-
-Components can switch between CDN resources and local assets for offline-friendly setups:
-- `CONFIG.localFonts: true` prefers local CSS for fonts and some libraries/icons (see `Component.getFontResource()`, `getIconResource()`, `getLibraryResource()` in [src/common/component.js](../src/common/component.js))
-- Local font CSS lives under `src/fonts/`
-- Note: `userconfig.js` currently includes `localIcons`, but the code paths primarily use `CONFIG.localFonts` for local font/icon/library selection
-
 ### Weather API Integration
 [src/components/weather/weather.api.js](../src/components/weather/weather.api.js) pattern:
 ```javascript
 class WeatherForecastClient {
   constructor(location) {
     // Reads API key and language from `advanced_config.weather`
-    this.appId = advanced_config?.weather?.apiKey || "50a34e070dd5c09a99554b57ab7ea7e2";
+    this.appId = advanced_config?.weather?.apiKey || "YOUR_KEY";
     const language = advanced_config?.weather?.language || "es";
     this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&lang=${language}&appid=${this.appId}`;
   }
@@ -151,7 +145,8 @@ class WeatherForecastClient {
 - Return normalized object: `{ temperature, condition, description }`
 
 ### Gemini API Integration
-[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L630-L690):
+[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js) implements the AI logic:
+
 ```javascript
 async queryGemini(query) {
   const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
@@ -165,10 +160,13 @@ async queryGemini(query) {
   // Response path: data.candidates[0].content.parts[0].text
 }
 ```
-- **Always check API key exists** before making request
-- Error object format: `{ error: true, message: "user-friendly text" }`
-- Model, temperature and token limits are configurable via `advanced_config.gemini` (see `userconfig.js`)
-- Markdown formatting applied via `formatMarkdown()` method
+- **API Key**: Checks `localStorage` first, then `window.GEMINI_API_KEY` (from `userconfig.js`).
+- **Markdown**: Custom `formatMarkdown()` method handles:
+    - Code blocks with syntax highlighting style
+    - Tables
+    - Images
+    - Blockquotes, Lists, Headers
+- **Error Handling**: Returns standardized error objects displayed in the UI.
 
 ### localStorage & Config Persistence
 - Use `Storage` class for namespaced key access: `new Storage("config").get("setting")`
@@ -177,18 +175,12 @@ async queryGemini(query) {
 - `overrideStorage: true` forces userconfig values; tabs always override
 
 ### Event Handling & Keyboard Shortcuts
-Implement in `activate()` method after DOM is ready:
-```javascript
-this.shadow.addEventListener("keydown", (e) => {
-  if (e.key === "Tab") { /* toggle search engine */ }
-  if (e.key === "/") { /* open search */ }
-  if (e.key === "Escape") { /* close overlay */ }
-});
-```
-- **Tab key**: Switches search engine (Google ↔ Gemini) while in search input
-- **/key**: Opens search overlay from any page
-- **Escape**: Closes search modal and clears results
-- Listen on `this.shadow` to ensure shadow DOM capture
+Implement in `activate()` method after DOM is ready.
+**Current Shortcuts**:
+- **`/`**: Open search overlay, focus input
+- **`Tab`**: Toggle between Google Search and Gemini AI (only when input focused)
+- **`Escape`**: Close search modal, clear results
+- **`Enter`**: Submit search query
 
 ### State Management & References
 Store DOM references in `refs` object and cache in `activate()`:
@@ -207,11 +199,31 @@ activate() {
 - Updates persist when CONFIG changes via Proxy
 - Component state stored in instance variables; reset on palette change if needed
 
-### Multi-timezone Clocks
+---
 
-`userconfig.js` supports optional secondary clocks via `CONFIG.additionalClocks`:
-- Provide an array of clocks with `label`, `timezone`, and optional `format`/`icon_color`
-- Rendered by the clock component when present (see [src/components/clock/clock.component.js](../src/components/clock/clock.component.js))
+## Configuration Details (`userconfig.js`)
+
+The `advanced_config` object in `userconfig.js` controls system-wide behavior:
+
+```javascript
+const advanced_config = {
+  gemini: {
+    model: "gemini-3-flash-preview", // Check Google AI docs for latest models
+    temperature: 0.7, // 0.0 - 1.0 (creative)
+    maxOutputTokens: 2048,
+  },
+  weather: {
+    apiKey: "...", // OpenWeatherMap Key
+    language: "es", // "en", "es", "fr", etc.
+  },
+  i18n: {
+    defaultLocale: "es", // "es" or "en"
+  },
+  storage: {
+    keyPrefix: "",
+  },
+};
+```
 
 ---
 
@@ -240,19 +252,6 @@ if (error) return { error: true, message: error.message };
 - Always catch async operations in `connectedCallback()`: `await this.loadStyles()`
 - If `template()` returns null, component is silent (use for optional components)
 - If `imports()` fails, component still renders but styling may break—log failures
-
----
-
-## Keyboard Shortcuts Reference
-
-| Key | Action | Component |
-|-----|--------|-----------|
-| `/` | Open search overlay, focus input | statusbar |
-| `Tab` | Toggle between Google Search and Gemini AI | statusbar |
-| `Escape` | Close search modal, clear results | statusbar |
-| `Enter` | Submit search query | statusbar |
-
-Implement via `addEventListener("keydown", ...)` in `activate()` method.
 
 ---
 
@@ -285,7 +284,7 @@ Implement via `addEventListener("keydown", ...)` in `activate()` method.
 ## Common Tasks
 
 ### Modify Search Behavior
-Edit `toggleSearchEngine()` and `handleSearch()` in [statusbar.component.js](../src/components/statusbar/statusbar.component.js#L900+)
+Edit `toggleSearchEngine()` and `handleSearch()` in [statusbar.component.js](../src/components/statusbar/statusbar.component.js)
 
 ### Add a New Palette
 1. Add color object to [src/common/palette.js](../src/common/palette.js)
@@ -297,7 +296,7 @@ Edit `toggleSearchEngine()` and `handleSearch()` in [statusbar.component.js](../
 - Response error format: Check `data.candidates[0].content.parts[0].text` path
 
 ### Localize UI Strings
-Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js#L1), then use `window.i18n.t('key.path')`
+Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js), then use `window.i18n.t('key.path')`
 
 ---
 
@@ -332,69 +331,6 @@ No npm packages or build dependencies—all loaded at runtime.
 
 ---
 
-## Edge Cases & Gotchas
-
-### Shadow DOM Quirks
-- `display: none` on custom element hides content but component still renders
-- External CSS cannot style shadow DOM—must be inline or in `style()` method
-- `querySelectorAll()` doesn't cross shadow boundary; use component's `this.shadow.querySelectorAll()`
-- `:host` selector targets the custom element itself
-
-### Config Merge Behavior
-- `userconfig.js` completely overrides `defaults` for defined properties
-- Nested objects (e.g., `tabs`) are **replaced, not merged**—provide complete structure
-- `overrideStorage: true` prevents localStorage persistence **except tabs** (always persistent)
-- Changing CONFIG at runtime via `CONFIG.palette = mocha` requires `location.reload()` to apply to all components
-
-### Gemini API Specifics
-- Free tier: 60 requests/minute across all projects using same API key
-- Model is configurable via `advanced_config.gemini.model` (default: `gemini-3-flash-preview`); check API docs for model changes
-- Response structure: `data.candidates[0].content.parts[0].text`—all levels must exist or returns error
-- Temperature is configurable via `advanced_config.gemini.temperature` (default: 0.7 = moderate randomness); adjust for determinism
-
-### Weather API
-- Location must match OpenWeatherMap city database (e.g., "Bogota", not "bogota")
-- Language code "es" only works for Spanish translations; "en" for English
-- Free tier caches results ~30 min; rapid calls return cached data
-- Missing location silently fails—no error thrown; check browser console
-
-### Locale Handling
-- Default locale is **Spanish** (`es`)—change in `i18n.js` or call `window.i18n.setLocale('en')`
-- `strftime.js` requires `window.i18n` to be loaded before use (date formatting)
-- Month/day names come from i18n translations; fallback to English if i18n missing
-- Locale persists in localStorage as `i18nLocale`
-
-### Component Lifecycle
-- `constructor()` fires once at definition
-- `connectedCallback()` fires when element inserted in DOM
-- `disconnectedCallback()` fires when removed (cleanup here)
-- Shadow DOM lifecycle: attach → load styles → load template → `activate()`
-- Never access `CONFIG` or `window.i18n` in constructor; they may not exist yet
-
----
-
-## About This File: AI Agent Compatibility
-
-**This file is specifically formatted for GitHub Copilot** (`.github/copilot-instructions.md`).
-
-### Other AI Agents
-Different agents use their own instruction formats:
-- **Cursor**: `.cursorrules` file
-- **Claude (Claude.dev/API)**: `.claude` or `AGENT.md` conventions (not standardized)
-- **Windsurf**: `.windsurfrules` file
-- **Generic agents**: `README.md`, `CONTRIBUTING.md`, or `AGENT.md`
-
-### Can other agents use this file?
-- **GitHub Copilot**: ✅ Yes (designed for this)
-- **Cursor**: ⚠️ Partial (will read it but prefers `.cursorrules`)
-- **Claude agents**: ⚠️ Partial (manual agent can reference it as documentation)
-- **Generic agents**: ✅ Yes (treat as best-practice documentation)
-
-### Universal Value
-The **content and patterns** in this file are language-agnostic and apply to any AI agent working on this codebase. If you want other agents to use similar guidance, consider creating `.cursorrules` or `.clinerules` with adapted instructions.
-
----
-
 ## Debugging with Console
 
 ```javascript
@@ -422,5 +358,3 @@ new WeatherForecastClient("Bogota").getWeather().then(console.log);
 // Inspect shadow DOM
 // DevTools → Settings → Preferences → Show user agent shadow DOM
 ```
-
----
