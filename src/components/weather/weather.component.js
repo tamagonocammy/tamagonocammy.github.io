@@ -19,7 +19,7 @@ class Weather extends Component {
    */
   forecasts = [
     {
-      conditions: ["clouds", "mist", "haze", "smoke", "fog"],
+      conditions: ["clouds", "mist", "haze", "smoke", "fog", "dust", "sand", "ash", "squall", "tornado"],
       icon: "cloud_queue",
       color: "cloudy",
     },
