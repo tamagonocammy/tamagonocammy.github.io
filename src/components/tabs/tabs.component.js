@@ -3,6 +3,21 @@ class Links extends Component {
     super();
   }
 
+  static getCategoryTranslationKey(name) {
+    return String(name)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "_");
+  }
+
+  static getCategoryTitle(name) {
+    const key = Links.getCategoryTranslationKey(name);
+    const translated = window.i18n?.t(`tabs.categories.${key}`);
+    return translated && translated !== `tabs.categories.${key}` ? translated : name;
+  }
+
   static getIcon(link) {
     const defaultColor = CONFIG.palette.base;
 
@@ -20,7 +35,7 @@ class Links extends Component {
         .map(({ name, links }) => {
           return `
           <li>
-            <h1>${name}</h1>
+            <h1>${Links.getCategoryTitle(name)}</h1>
               <div class="links-wrapper">
               ${links
                 .map(

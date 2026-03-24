@@ -79,6 +79,20 @@ const translations = {
       temperature: "Temperatura",
       location: "Ubicación",
     },
+
+    tabs: {
+      categories: {
+        principal: "Principal",
+        trabajo: "Trabajo",
+        streaming: "Streaming",
+        recursos: "Recursos",
+        desafios: "Desafíos",
+        blogs: "Blogs",
+        redes_sociales: "Redes sociales",
+        juegos: "Juegos",
+        video: "Vídeo",
+      },
+    },
   },
 
   en: {
@@ -158,6 +172,20 @@ const translations = {
       temperature: "Temperature",
       location: "Location",
     },
+
+    tabs: {
+      categories: {
+        principal: "Main",
+        trabajo: "Work",
+        streaming: "Streaming",
+        recursos: "Resources",
+        desafios: "Challenges",
+        blogs: "Blogs",
+        redes_sociales: "Social media",
+        juegos: "Games",
+        video: "Video",
+      },
+    },
   },
 
   eo: {
@@ -233,6 +261,20 @@ const translations = {
       language: "Lingvo",
       temperature: "Temperaturo",
       location: "Loko",
+    },
+
+    tabs: {
+      categories: {
+        principal: "Ĉefa",
+        trabajo: "Laboro",
+        streaming: "Fluado",
+        recursos: "Rimedoj",
+        desafios: "Defioj",
+        blogs: "Blogoj",
+        redes_sociales: "Sociaj retoj",
+        juegos: "Ludoj",
+        video: "Video",
+      },
     },
   },
 };
