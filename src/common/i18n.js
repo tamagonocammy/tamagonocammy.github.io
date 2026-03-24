@@ -26,25 +26,25 @@ const translations = {
     // Date and time
     time: {
       days: {
-        full: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
-        short: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+        full: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+        short: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
       },
       months: {
         full: [
-          "Enero",
-          "Febrero",
-          "Marzo",
-          "Abril",
-          "Mayo",
-          "Junio",
-          "Julio",
-          "Agosto",
-          "Septiembre",
-          "Octubre",
-          "Noviembre",
-          "Diciembre",
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre",
         ],
-        short: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+        short: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
       },
       periods: {
         am: "AM",
@@ -52,6 +52,10 @@ const translations = {
       },
       ordinals: {
         default: "º",
+      },
+      formats: {
+        short: "H:i",
+        extended: "e \\d\\e B \\d\\e Y | H:i",
       },
     },
 
@@ -146,6 +150,10 @@ const translations = {
         3: "rd",
         default: "th",
       },
+      formats: {
+        short: "I:i p",
+        extended: "B e, Y | I:i p",
+      },
     },
 
     // Weather
@@ -209,32 +217,36 @@ const translations = {
     // Date and time
     time: {
       days: {
-        full: ["Dimanĉo", "Lundo", "Mardo", "Merkredo", "Ĵaŭdo", "Vendredo", "Sabato"],
-        short: ["Dim", "Lun", "Mar", "Mer", "Ĵaŭ", "Ven", "Sab"],
+        full: ["dimanĉo", "lundo", "mardo", "merkredo", "ĵaŭdo", "vendredo", "sabato"],
+        short: ["dim", "lun", "mar", "mer", "ĵaŭ", "ven", "sab"],
       },
       months: {
         full: [
-          "Januaro",
-          "Februaro",
-          "Marto",
-          "Aprilo",
-          "Majo",
-          "Junio",
-          "Julio",
-          "Aŭgusto",
-          "Septembro",
-          "Oktobro",
-          "Novembro",
-          "Decembro",
+          "januaro",
+          "februaro",
+          "marto",
+          "aprilo",
+          "majo",
+          "junio",
+          "julio",
+          "aŭgusto",
+          "septembro",
+          "oktobro",
+          "novembro",
+          "decembro",
         ],
-        short: ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aŭg", "Sep", "Okt", "Nov", "Dec"],
+        short: ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aŭg", "sep", "okt", "nov", "dec"],
       },
       periods: {
         am: "atm",
         pm: "ptm",
       },
       ordinals: {
-        default: "a",
+        default: "-a",
+      },
+      formats: {
+        short: "H:i",
+        extended: "o B Y | H:i",
       },
     },
 
@@ -327,6 +339,12 @@ class I18n {
     const ordinals = this.t("time.ordinals");
     const lastDigit = num.toString().length > 1 ? parseInt(num.toString().split("")[1]) : num;
     return ordinals[lastDigit] || ordinals.default || "";
+  }
+
+  getTimeFormat(extended = false) {
+    const key = extended ? "time.formats.extended" : "time.formats.short";
+    const value = this.t(key);
+    return value !== key ? value : null;
   }
 }
 

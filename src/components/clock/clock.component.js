@@ -175,11 +175,15 @@ class Clock extends Component {
       const mainClockElement = this.shadow.querySelector('#main-clock .clock-time');
       const dateElement = this.shadow.querySelector('#main-clock .clock-date');
       const date = new Date();
+      const localizedFormat = window.i18n?.getTimeFormat(false);
+      const localizedExtendedFormat = window.i18n?.getTimeFormat(true);
+      const defaultFormat = localizedFormat || CONFIG.clock.format || "H:i";
+      const defaultExtendedFormat = localizedExtendedFormat || CONFIG.clock.format_extended;
       
       if (mainClockElement && dateElement) {
-        if (this.showExtendedFormat && CONFIG.clock.format_extended) {
+        if (this.showExtendedFormat && defaultExtendedFormat) {
           // Split extended format into date and time parts
-          const fullText = date.strftime(CONFIG.clock.format_extended, CONFIG.clock.locale);
+          const fullText = date.strftime(defaultExtendedFormat, CONFIG.clock.locale);
           const parts = fullText.split(' | ');
           
           if (parts.length === 2) {
@@ -196,7 +200,7 @@ class Clock extends Component {
         } else {
           // Normal format - only show time (bold)
           dateElement.style.display = 'none';
-          mainClockElement.textContent = date.strftime(CONFIG.clock.format, CONFIG.clock.locale);
+          mainClockElement.textContent = date.strftime(defaultFormat, CONFIG.clock.locale);
         }
       }
 
@@ -219,7 +223,7 @@ class Clock extends Component {
               timezoneDate = new Date();
             }
 
-            clockElement.textContent = timezoneDate.strftime(clock.format || CONFIG.clock.format, clock.locale || CONFIG.clock.locale);
+            clockElement.textContent = timezoneDate.strftime(clock.format || defaultFormat, clock.locale || CONFIG.clock.locale);
           }
         });
       }
