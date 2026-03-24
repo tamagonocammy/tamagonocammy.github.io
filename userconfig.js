@@ -389,12 +389,12 @@ const advanced_config = {
   // Weather API Settings
   weather: {
     apiKey: "50a34e070dd5c09a99554b57ab7ea7e2", // OpenWeatherMap free tier key
-    language: "es", // Language code: "es", "en", "fr", etc.
+    language: "eo", // Language code: "eo", "es", "en", "fr", etc.
   },
 
   // Internationalization (i18n)
   i18n: {
-    defaultLocale: "es", // Default language: "es" (Spanish), "en" (English)
+    defaultLocale: "eo", // Default language: "eo" (Esperanto), "es" (Spanish), "en" (English)
   },
 
   // localStorage Configuration

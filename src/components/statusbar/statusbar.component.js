@@ -665,20 +665,20 @@ class Statusbar extends Component {
                 </div>
                 <div class="search-header">
                     <i class="ti ti-brand-google search-engine-icon google"></i>
-                    <input type="text" class="search-input" placeholder="${window.i18n ? window.i18n.t("search.placeholder_google") : "Buscar en Google..."}"/>
+                    <input type="text" class="search-input" placeholder="${window.i18n.t("search.placeholder_google")}"/>
                     <i class="ti ti-search search-icon"></i>
                 </div>
                 <div class="search-results">
                     <div class="results-header">
                         <div class="results-title">
                             <i class="ti ti-sparkles"></i>
-                            <span class="gemini-results-title">${window.i18n ? window.i18n.t("search.results_title") : "Resultados de Gemini"}</span>
+                            <span class="gemini-results-title">${window.i18n.t("search.results_title")}</span>
                         </div>
                     </div>
                     <div class="results-content">
                         <div class="loading-spinner">
                             <div class="spinner"></div>
-                            <div class="loading-text">${window.i18n ? window.i18n.t("search.loading") : "Preguntándole a Gemini..."}</div>
+                            <div class="loading-text">${window.i18n.t("search.loading")}</div>
                         </div>
                     </div>
                 </div>
@@ -693,8 +693,7 @@ class Statusbar extends Component {
     if (!apiKey) {
       return {
         error: true,
-        message:
-          'Gemini API key not configured. Please set your API key in localStorage with key "GEMINI_API_KEY" or define window.GEMINI_API_KEY in userconfig.js. Get your free API key at: https://makersuite.google.com/app/apikey',
+        message: window.i18n.t("search.error_no_api_key"),
       };
     }
     // Use advanced_config for Gemini settings with fallbacks
@@ -732,21 +731,21 @@ class Statusbar extends Component {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to get response from Gemini");
+        throw new Error(errorData.error?.message || window.i18n.t("search.error_failed_response"));
       }
 
       const data = await response.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!text) {
-        throw new Error("No response generated");
+        throw new Error(window.i18n.t("search.error_no_response"));
       }
 
       return { text };
     } catch (error) {
       return {
         error: true,
-        message: `Error: ${error.message}`,
+        message: `${window.i18n.t("search.error_generic")}: ${error.message}`,
       };
     }
   }
@@ -884,10 +883,10 @@ class Statusbar extends Component {
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
       if (this.searchEngine === "google") {
-        searchInput.placeholder = window.i18n ? window.i18n.t("search.placeholder_google") : "Search Google...";
+        searchInput.placeholder = window.i18n.t("search.placeholder_google");
         engineIcon.className = "ti ti-brand-google search-engine-icon google";
       } else {
-        searchInput.placeholder = window.i18n ? window.i18n.t("search.placeholder_gemini") : "Ask Gemini...";
+        searchInput.placeholder = window.i18n.t("search.placeholder_gemini");
         engineIcon.className = "ti ti-sparkles search-engine-icon gemini";
       }
     };
@@ -1016,23 +1015,22 @@ class Statusbar extends Component {
             // Update content after expansion animation
             setTimeout(() => {
               if (result.error) {
-                resultsContent.innerHTML = `
-                <div class="error-message">
-                  <h3>Error</h3>
-                  <p>${result.message}</p>
-                  ${
-                    !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
-                      ? `
+                const apiKeyNotice = !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
+                  ? `
                     <p style="margin-top: 15px;">
-                      <strong>To set up your API key:</strong><br>
-                      1. Get a free API key at <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
-                      2. Open browser console (F12) and run:<br>
-                      <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');</code><br>
-                      3. Reload the page
+                      <strong>${window.i18n.t("search.setup_title")}</strong><br>
+                      1. ${window.i18n.t("search.setup_step_1")} <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                      2. ${window.i18n.t("search.setup_step_2")}<br>
+                      <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('GEMINI_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
+                      3. ${window.i18n.t("search.setup_step_3")}
                     </p>
                   `
-                      : ""
-                  }
+                  : "";
+                resultsContent.innerHTML = `
+                <div class="error-message">
+                  <h3>${window.i18n.t("search.error_generic")}</h3>
+                  <p>${result.message}</p>
+                  ${apiKeyNotice}
                 </div>
               `;
               } else {

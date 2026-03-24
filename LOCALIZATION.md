@@ -23,6 +23,10 @@ location.reload();
 // Cambiar a español
 window.i18n.setLocale('es');
 location.reload();
+
+// Cambiar a esperanto
+window.i18n.setLocale('eo');
+location.reload();
 ```
 
 Tu preferencia de idioma se guarda automáticamente en `localStorage`.
@@ -31,6 +35,7 @@ Tu preferencia de idioma se guarda automáticamente en `localStorage`.
 
 - **es** - Español (predeterminado)
 - **en** - English
+- **eo** - Esperanto
 
 ### Agregar un nuevo idioma
 
@@ -90,6 +95,10 @@ location.reload();
 // Switch to Spanish
 window.i18n.setLocale('es');
 location.reload();
+
+// Switch to Esperanto
+window.i18n.setLocale('eo');
+location.reload();
 ```
 
 Your language preference is automatically saved in `localStorage`.
@@ -98,6 +107,7 @@ Your language preference is automatically saved in `localStorage`.
 
 - **es** - Español (default)
 - **en** - English
+- **eo** - Esperanto
 
 ### Adding a new language
 
@@ -190,7 +200,13 @@ The translation objects follow this structure:
     placeholder_google: string,
     placeholder_gemini: string,
     results_title: string,
-    loading: string
+    loading: string,
+    error_no_api_key: string,
+    error_generic: string,
+    setup_title: string,
+    setup_step_1: string,
+    setup_step_2: string,
+    setup_step_3: string
   },
   time: {
     days: {
@@ -233,4 +249,127 @@ The translation objects follow this structure:
     location: string
   }
 }
+```
+
+---
+
+## Esperanto
+
+### Kio estas lokalizita?
+
+La startpage nun estas plene tradukita al Esperanto. La jenaj elementoj estas tradukitaj:
+
+- **Serĉa interfaco**: Placeholders por Google kaj Gemini
+- **Serĉrezultoj**: Titoloj kaj ŝargmesaĝoj
+- **Datoj kaj horoj**: Nomoj de tagoj, monatoj, atm/ptm
+- **Vetero**: Priskriboj de veteraj kondiĉoj
+
+### Ŝanĝi la lingvon
+
+Por ŝanĝi la lingvon, malfermu la retumilan konzolon (F12) kaj rulu:
+
+```javascript
+// Ŝanĝi al angla
+window.i18n.setLocale('en');
+location.reload();
+
+// Ŝanĝi al hispana
+window.i18n.setLocale('es');
+location.reload();
+
+// Ŝanĝi al esperanto
+window.i18n.setLocale('eo');
+location.reload();
+```
+
+Via lingvoprefero estas aŭtomate konservita en `localStorage`.
+
+### Disponeblaj lingvoj
+
+- **es** - Español (apriora)
+- **en** - English
+- **eo** - Esperanto
+
+### Aldoni novan lingvon
+
+1. Malfermu `src/common/i18n.js`
+2. Aldonu novan lingvo-objekton en `translations`:
+
+```javascript
+const translations = {
+  es: { ... },
+  en: { ... },
+  eo: { ... },
+  fr: {  // Nova lingvo
+    search: {
+      placeholder_google: "Rechercher sur Google...",
+      placeholder_gemini: "Demander à Gemini...",
+      results_title: "Résultats Gemini",
+      loading: "Interroger Gemini...",
+    },
+    time: {
+      days: {
+        full: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+        short: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+      },
+      // ... ktp
+    }
+  }
+};
+```
+
+3. Agordu la novan lingvon:
+
+```javascript
+window.i18n.setLocale('fr');
+```
+
+### API-referenco
+
+#### `window.i18n.t(key)`
+
+Ricevu tradukon laŭ ŝlosilo per punktnotacio:
+
+```javascript
+window.i18n.t('search.placeholder_google')  // "Serĉi per Google..."
+window.i18n.t('time.periods.am')            // "atm"
+```
+
+#### `window.i18n.setLocale(locale)`
+
+Ŝanĝu la aktualan lokalon:
+
+```javascript
+window.i18n.setLocale('en')  // Ŝanĝi al angla
+window.i18n.setLocale('es')  // Ŝanĝi al hispana
+window.i18n.setLocale('eo')  // Ŝanĝi al esperanto
+```
+
+#### `window.i18n.getDays(short = false)`
+
+Ricevu lokaligitajn tagnomojn:
+
+```javascript
+window.i18n.getDays()        // ["Dimanĉo", "Lundo", "Mardo", ...]
+window.i18n.getDays(true)    // ["Dim", "Lun", "Mar", ...]
+```
+
+#### `window.i18n.getMonths(short = false)`
+
+Ricevu lokaligitajn monatnomojn:
+
+```javascript
+window.i18n.getMonths()      // ["Januaro", "Februaro", "Marto", ...]
+window.i18n.getMonths(true)  // ["Jan", "Feb", "Mar", ...]
+```
+
+#### `window.i18n.getOrdinal(num)`
+
+Ricevu ordinalan sufikson por nombro:
+
+```javascript
+window.i18n.getOrdinal(1)    // "a" (Esperanto)
+window.i18n.getOrdinal(2)    // "a" (Esperanto)
+// En la hispana: "º"
+// En la angla: "st", "nd", "rd", "th"
 ```

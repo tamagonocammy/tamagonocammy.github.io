@@ -1,8 +1,8 @@
 // ============================================
 // INTERNATIONALIZATION (i18n) MODULE
 // ============================================
-// Default language: Spanish (es)
-// Available languages: en, es
+// Default language: Esperanto (eo)
+// Available languages: en, es, eo
 
 const translations = {
   es: {
@@ -12,6 +12,15 @@ const translations = {
       placeholder_gemini: "Preguntarle a Gemini...",
       results_title: "Resultados de Gemini",
       loading: "Preguntándole a Gemini...",
+      error_failed_response: "No se pudo obtener respuesta de Gemini",
+      error_no_response: "No se generó ninguna respuesta",
+      error_no_api_key: "Clave de API de Gemini no configurada. Configura tu clave en localStorage con la clave \"GEMINI_API_KEY\" o define window.GEMINI_API_KEY en userconfig.js. Obtén tu clave gratuita en: https://makersuite.google.com/app/apikey",
+      error_generic: "Error",
+      setup_title: "Para configurar tu clave de API:",
+      setup_step_1: "Obtén una clave gratuita en",
+      setup_step_2: "Abre la consola del navegador (F12) y ejecuta:",
+      setup_step_3: "Recarga la página",
+      setup_key_placeholder: "tu-api-key-aqui",
     },
 
     // Date and time
@@ -48,6 +57,7 @@ const translations = {
 
     // Weather
     weather: {
+      api_error: "La API del clima devolvió un error:",
       conditions: {
         clouds: "Nublado",
         mist: "Neblina",
@@ -78,6 +88,15 @@ const translations = {
       placeholder_gemini: "Ask Gemini...",
       results_title: "Gemini Results",
       loading: "Asking Gemini...",
+      error_failed_response: "Failed to get response from Gemini",
+      error_no_response: "No response generated",
+      error_no_api_key: "Gemini API key not configured. Please set your API key in localStorage with key \"GEMINI_API_KEY\" or define window.GEMINI_API_KEY in userconfig.js. Get your free API key at: https://makersuite.google.com/app/apikey",
+      error_generic: "Error",
+      setup_title: "To set up your API key:",
+      setup_step_1: "Get a free API key at",
+      setup_step_2: "Open browser console (F12) and run:",
+      setup_step_3: "Reload the page",
+      setup_key_placeholder: "your-api-key-here",
     },
 
     // Date and time
@@ -117,6 +136,7 @@ const translations = {
 
     // Weather
     weather: {
+      api_error: "Weather API returned an error:",
       conditions: {
         clouds: "Cloudy",
         mist: "Mist",
@@ -139,10 +159,86 @@ const translations = {
       location: "Location",
     },
   },
+
+  eo: {
+    // Search interface
+    search: {
+      placeholder_google: "Serĉi per Google...",
+      placeholder_gemini: "Demandu al Gemini...",
+      results_title: "Rezultoj de Gemini",
+      loading: "Demandas al Gemini...",
+      error_failed_response: "Malsukcesis ricevi respondon de Gemini",
+      error_no_response: "Neniu respondo estis generita",
+      error_no_api_key: "API-ŝlosilo de Gemini ne agordita. Bonvolu agordi vian API-ŝlosilon en localStorage kun la ŝlosilo \"GEMINI_API_KEY\" aŭ difini window.GEMINI_API_KEY en userconfig.js. Ricevu vian senpagan API-ŝlosilon ĉe: https://makersuite.google.com/app/apikey",
+      error_generic: "Eraro",
+      setup_title: "Por agordi vian API-ŝlosilon:",
+      setup_step_1: "Ricevu senpagan API-ŝlosilon ĉe",
+      setup_step_2: "Malfermu retumilan konzolon (F12) kaj rulu:",
+      setup_step_3: "Reŝargu la paĝon",
+      setup_key_placeholder: "via-api-slosilo-ci-tie",
+    },
+
+    // Date and time
+    time: {
+      days: {
+        full: ["Dimanĉo", "Lundo", "Mardo", "Merkredo", "Ĵaŭdo", "Vendredo", "Sabato"],
+        short: ["Dim", "Lun", "Mar", "Mer", "Ĵaŭ", "Ven", "Sab"],
+      },
+      months: {
+        full: [
+          "Januaro",
+          "Februaro",
+          "Marto",
+          "Aprilo",
+          "Majo",
+          "Junio",
+          "Julio",
+          "Aŭgusto",
+          "Septembro",
+          "Oktobro",
+          "Novembro",
+          "Decembro",
+        ],
+        short: ["Jan", "Feb", "Mar", "Apr", "Maj", "Jun", "Jul", "Aŭg", "Sep", "Okt", "Nov", "Dec"],
+      },
+      periods: {
+        am: "atm",
+        pm: "ptm",
+      },
+      ordinals: {
+        default: "a",
+      },
+    },
+
+    // Weather
+    weather: {
+      api_error: "Vetera API redonis eraron:",
+      conditions: {
+        clouds: "Nubeta",
+        mist: "Nebulo",
+        haze: "Brumeto",
+        smoke: "Fumo",
+        drizzle: "Pluveto",
+        snow: "Neĝo",
+        rain: "Pluvo",
+        clear: "Klara",
+        thunderstorm: "Ŝtormo",
+      },
+    },
+
+    // Settings
+    settings: {
+      title: "Agordoj",
+      theme: "Etoso",
+      language: "Lingvo",
+      temperature: "Temperaturo",
+      location: "Loko",
+    },
+  },
 };
 
 class I18n {
-  constructor(locale = "es") {
+  constructor(locale = "eo") {
     this.locale = locale;
     this.loadLocale();
   }
@@ -194,7 +290,7 @@ class I18n {
 
 // Create global i18n instance
 if (typeof window !== "undefined") {
-  // Priority: saved locale > advanced_config > default (es)
-  const defaultLocale = localStorage.getItem("locale") || advanced_config?.i18n?.defaultLocale || "es";
+  // Priority: saved locale > advanced_config > default (eo)
+  const defaultLocale = localStorage.getItem("locale") || advanced_config?.i18n?.defaultLocale || "eo";
   window.i18n = new I18n(defaultLocale);
 }
