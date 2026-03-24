@@ -19,7 +19,7 @@ class Weather extends Component {
    */
   forecasts = [
     {
-      conditions: ["clouds", "mist", "haze", "smoke"],
+      conditions: ["clouds", "mist", "haze", "smoke", "fog"],
       icon: "cloud_queue",
       color: "cloudy",
     },
@@ -194,8 +194,10 @@ class Weather extends Component {
     this.refs.condition.className = "material-icons weather-condition-icon";
     this.refs.condition.classList.add(color);
 
-    const translatedCondition = window.i18n?.t(`weather.conditions.${condition.toLowerCase()}`) || description;
-    this.refs.description.innerHTML = `${this.location}: ${translatedCondition}`;
+    const weatherKey = `weather.conditions.${condition.toLowerCase()}`;
+    const translatedCondition = window.i18n?.t(weatherKey);
+    const displayCondition = translatedCondition && translatedCondition !== weatherKey ? translatedCondition : description;
+    this.refs.description.textContent = `${this.location}: ${displayCondition}`;
   }
 
   /**

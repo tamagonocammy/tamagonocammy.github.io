@@ -65,6 +65,7 @@ const translations = {
       conditions: {
         clouds: "Nublado",
         mist: "Neblina",
+        fog: "Niebla",
         haze: "Bruma",
         smoke: "Humo",
         drizzle: "Llovizna",
@@ -162,6 +163,7 @@ const translations = {
       conditions: {
         clouds: "Cloudy",
         mist: "Mist",
+        fog: "Fog",
         haze: "Haze",
         smoke: "Smoke",
         drizzle: "Drizzle",
@@ -256,6 +258,7 @@ const translations = {
       conditions: {
         clouds: "Nubeta",
         mist: "Nebulo",
+        fog: "Nebulo densa",
         haze: "Brumeto",
         smoke: "Fumo",
         drizzle: "Pluveto",
