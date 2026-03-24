@@ -12,6 +12,9 @@ const translations = {
       placeholder_gemini: "Preguntarle a Gemini...",
       results_title: "Resultados de Gemini",
       loading: "Preguntándole a Gemini...",
+      error_title_friendly: "No pudimos completar la solicitud",
+      error_body_friendly: "Inténtalo de nuevo en unos segundos.",
+      error_details_summary: "Detalles técnicos",
       error_failed_response: "No se pudo obtener respuesta de Gemini",
       error_no_response: "No se generó ninguna respuesta",
       error_no_api_key: "Clave de API de Gemini no configurada. Configura tu clave en localStorage con la clave \"GEMINI_API_KEY\" o define window.GEMINI_API_KEY en userconfig.js. Obtén tu clave gratuita en: https://makersuite.google.com/app/apikey",
@@ -62,6 +65,9 @@ const translations = {
     // Weather
     weather: {
       api_error: "La API del clima devolvió un error:",
+      unavailable: "No se pudo obtener el clima ahora",
+      unavailable_hint: "Reintentando en la próxima actualización.",
+      error_details_summary: "Detalles técnicos",
       conditions: {
         clouds: "Nublado",
         mist: "Neblina",
@@ -112,6 +118,9 @@ const translations = {
       placeholder_gemini: "Ask Gemini...",
       results_title: "Gemini Results",
       loading: "Asking Gemini...",
+      error_title_friendly: "We couldn't complete the request",
+      error_body_friendly: "Please try again in a few seconds.",
+      error_details_summary: "Technical details",
       error_failed_response: "Failed to get response from Gemini",
       error_no_response: "No response generated",
       error_no_api_key: "Gemini API key not configured. Please set your API key in localStorage with key \"GEMINI_API_KEY\" or define window.GEMINI_API_KEY in userconfig.js. Get your free API key at: https://makersuite.google.com/app/apikey",
@@ -165,6 +174,9 @@ const translations = {
     // Weather
     weather: {
       api_error: "Weather API returned an error:",
+      unavailable: "Weather is unavailable right now",
+      unavailable_hint: "Will retry on the next refresh.",
+      error_details_summary: "Technical details",
       conditions: {
         clouds: "Cloudy",
         mist: "Mist",
@@ -215,6 +227,9 @@ const translations = {
       placeholder_gemini: "Demandu al Gemini...",
       results_title: "Rezultoj de Gemini",
       loading: "Demandas al Gemini...",
+      error_title_friendly: "Ni ne povis plenumi la peton",
+      error_body_friendly: "Bonvolu reprovi post kelkaj sekundoj.",
+      error_details_summary: "Teknikaj detaloj",
       error_failed_response: "Malsukcesis ricevi respondon de Gemini",
       error_no_response: "Neniu respondo estis generita",
       error_no_api_key: "API-ŝlosilo de Gemini ne agordita. Bonvolu agordi vian API-ŝlosilon en localStorage kun la ŝlosilo \"GEMINI_API_KEY\" aŭ difini window.GEMINI_API_KEY en userconfig.js. Ricevu vian senpagan API-ŝlosilon ĉe: https://makersuite.google.com/app/apikey",
@@ -265,6 +280,9 @@ const translations = {
     // Weather
     weather: {
       api_error: "Vetera API redonis eraron:",
+      unavailable: "Vetero ne haveblas nun",
+      unavailable_hint: "Reprovo okazos ĉe la sekva ĝisdatigo.",
+      error_details_summary: "Teknikaj detaloj",
       conditions: {
         clouds: "Nubeta",
         mist: "Nebulo",

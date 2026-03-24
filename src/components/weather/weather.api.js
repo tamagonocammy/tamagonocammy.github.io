@@ -23,6 +23,12 @@ class WeatherForecastClient {
           description,
         };
       })
-      .catch((err) => console.warn(window.i18n?.t("weather.api_error") || "Weather API returned an error:", err));
+      .catch((err) => {
+        console.warn(window.i18n?.t("weather.api_error") || "Weather API returned an error:", err);
+        return {
+          error: true,
+          message: err?.message || String(err),
+        };
+      });
   }
 }

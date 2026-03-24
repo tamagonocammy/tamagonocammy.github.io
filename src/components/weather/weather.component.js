@@ -177,6 +177,20 @@ class Weather extends Component {
    */
   async setWeather() {
     this.weather = await this.weatherForecast.getWeather();
+    if (this.weather?.error) {
+      this.refs.condition.textContent = "cloud_off";
+      this.refs.condition.className = "material-icons weather-condition-icon cloudy";
+      this.refs.temperature.textContent = "--";
+      this.refs.scale.textContent = this.temperatureScale;
+
+      const details = this.weather.message ? ` (${this.weather.message})` : "";
+      this.refs.description.textContent = `${window.i18n?.t("weather.unavailable") || "Weather unavailable"}${
+        window.i18n?.t("weather.unavailable_hint") ? ` ${window.i18n.t("weather.unavailable_hint")}` : ""
+      }`;
+      this.refs.description.title = `${window.i18n?.t("weather.error_details_summary") || "Technical details"}${details}`;
+      return;
+    }
+
     this.setTemperature();
   }
 

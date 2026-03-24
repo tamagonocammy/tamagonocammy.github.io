@@ -745,7 +745,7 @@ class Statusbar extends Component {
     } catch (error) {
       return {
         error: true,
-        message: `${window.i18n.t("search.error_generic")}: ${error.message}`,
+        message: error?.message || window.i18n.t("search.error_generic"),
       };
     }
   }
@@ -879,6 +879,12 @@ class Statusbar extends Component {
     const resultsContent = this.shadow.querySelector(".results-content");
     const searchHeader = this.shadow.querySelector(".search-header");
     const loadingIcon = this.shadow.querySelector(".loading-icon");
+    const escapeHtml = (str) =>
+      String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
@@ -1026,10 +1032,20 @@ class Statusbar extends Component {
                     </p>
                   `
                   : "";
+                const technicalMessage = result.message ? escapeHtml(result.message) : "";
+                const technicalDetails = technicalMessage
+                  ? `
+                    <details style="margin-top: 12px;">
+                      <summary>${window.i18n.t("search.error_details_summary")}</summary>
+                      <pre style="margin-top: 8px; white-space: pre-wrap;">${technicalMessage}</pre>
+                    </details>
+                  `
+                  : "";
                 resultsContent.innerHTML = `
                 <div class="error-message">
-                  <h3>${window.i18n.t("search.error_generic")}</h3>
-                  <p>${result.message}</p>
+                  <h3>${window.i18n.t("search.error_title_friendly")}</h3>
+                  <p>${window.i18n.t("search.error_body_friendly")}</p>
+                  ${technicalDetails}
                   ${apiKeyNotice}
                 </div>
               `;
