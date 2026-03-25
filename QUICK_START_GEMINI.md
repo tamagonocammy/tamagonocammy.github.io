@@ -1,62 +1,52 @@
-# 🚀 Gemini Quick Start
+# Gemini Quick Start
 
 ## Setup in 60 Seconds
 
-1. **Get API Key** → [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. **Open Browser Console** → Press `F12`
-3. **Run Command**:
-   ```javascript
-   localStorage.setItem('GEMINI_API_KEY', 'YOUR-API-KEY-HERE');
-   ```
-4. **Reload Page** → Press `F5`
-5. **Done!** ✨
+1. Get an API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Open browser console (`F12`)
+3. Run:
 
-## How to Use
-
-### Opening Search
-- Click the **icon** in bottom-left corner
-- Or press **`/`** key
-
-### Switching Between Modes
-Press **`Tab`** to toggle:
-- 🔵 **Google** → Regular web search
-- ✨ **Gemini** → AI-powered answers
-
-### Searching
-1. Type your question
-2. Press **`Enter`**
-3. View results in beautiful overlay window
-
-### Examples of Great Gemini Queries
-
+```javascript
+localStorage.setItem('GEMINI_API_KEY', 'YOUR-API-KEY-HERE');
 ```
-✓ "Explain quantum computing in simple terms"
-✓ "Write a Python function to reverse a string"
-✓ "What are the main differences between React and Vue?"
-✓ "Create a recipe for chocolate chip cookies"
-✓ "Summarize the key points of machine learning"
-```
+
+4. Reload the page
+5. Open search with `/`
+
+## Use Gemini Mode
+
+1. Open search overlay
+2. Press `Tab` to switch Google <-> Gemini
+3. Type query
+4. Press `Enter`
 
 ## Keyboard Shortcuts
 
 | Key | Action |
-|-----|--------|
+| --- | --- |
 | `/` | Open search |
-| `Tab` | Toggle Google ↔ Gemini |
+| `Tab` | Toggle Google <-> Gemini |
 | `Enter` | Execute search |
 | `Esc` | Close overlay |
 
 ## Troubleshooting
 
 ### "API key not configured"
-→ Follow setup steps above
 
-### Results not showing
-→ Make sure you see the ✨ sparkles icon (press `Tab`)
+Set key again and reload:
 
-### Invalid API key error
-→ Generate a new key at [Google AI Studio](https://makersuite.google.com/app/apikey)
+```javascript
+localStorage.setItem('GEMINI_API_KEY', 'YOUR-API-KEY-HERE');
+```
 
----
+### No Gemini results
 
-**Need more help?** See [GEMINI_SETUP.md](GEMINI_SETUP.md) for detailed documentation.
+- Ensure Gemini mode is active (sparkles icon)
+- Check browser console for request errors
+
+### Invalid key / quota errors
+
+- Regenerate key in Google AI Studio
+- Verify there are no extra spaces
+
+Need more details? See [GEMINI_SETUP.md](GEMINI_SETUP.md).

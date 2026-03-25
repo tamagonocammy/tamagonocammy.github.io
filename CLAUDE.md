@@ -149,8 +149,6 @@ throw new Error("API failed");
 | `Enter` | Execute search / submit query |
 | `Escape` | Close search modal, clear results |
 
-Custom keybindings can be defined in `userconfig.js` via `config.keybindings`.
-
 ### Component Resources
 
 Components import resources via `imports()` method:

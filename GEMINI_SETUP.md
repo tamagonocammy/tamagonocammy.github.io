@@ -1,114 +1,95 @@
 # Gemini AI Integration Setup Guide
 
-This startpage now includes **Google Gemini AI** integration! You can toggle between Google Search and Gemini AI by pressing `Tab` in the search box.
+This startpage includes **Google + Gemini dual search** in the status bar overlay.
 
-## Features
+## What You Get
 
-- 🔍 **Dual Search Mode**: Toggle between Google Search and Gemini AI
-- 🪟 **Expanded Results Window**: Gemini responses appear in a beautiful modal overlay
-- 🎨 **Markdown Support**: Formatted responses with code blocks, lists, and more
-- ⌨️ **Keyboard Shortcuts**: Quick access with `/` key
+- Dual search mode: Google or Gemini
+- Large modal for Gemini answers
+- Markdown rendering (headers, lists, code, tables, links, images)
+- Localized messages (es/en/eo)
+- Keyboard shortcuts for fast access
 
-## Getting Your Gemini API Key
+## 1) Get a Gemini API Key
 
-1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Sign in with your Google account
-3. Click "Get API Key" or "Create API Key"
-4. Copy your API key
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create an API key
+3. Copy it
 
-**Note**: The Gemini API has a generous free tier, perfect for personal use!
+## 2) Configure the API Key
 
-## Setting Up Your API Key
+### Option A (Recommended): Browser localStorage
 
-You have two options to configure your API key:
+Run in browser console (`F12`):
 
-### Option 1: Browser Console (Recommended)
+```javascript
+localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
+```
 
-This method stores your API key locally in your browser and is more secure if you're sharing your startpage configuration.
+Reload the page.
 
-1. Open your browser's developer console (press `F12`)
-2. Run the following command:
-   ```javascript
-   localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
-   ```
-3. Reload the page
+### Option B: `userconfig.js`
 
-### Option 2: userconfig.js
+If this repo/config is private, you can set:
 
-If you're not sharing your configuration publicly, you can add it directly to `userconfig.js`:
+```javascript
+window.GEMINI_API_KEY = "your-api-key-here";
+```
 
-1. Open `userconfig.js`
-2. Find the Gemini API Key section at the top
-3. Uncomment and set:
-   ```javascript
-   window.GEMINI_API_KEY = "your-api-key-here";
-   ```
-4. Save and reload
+## 3) Use It
 
-## How to Use
-
-1. **Open Search**: Click the icon in the top-left corner OR press `/` on your keyboard
-2. **Toggle Search Engine**: Press `Tab` to switch between Google and Gemini
-   - 🔵 Google icon = Google Search (redirects to Google)
-   - ✨ Sparkles icon = Gemini AI (shows results in expanded window)
-3. **Search**: Type your query and press `Enter`
-4. **View Results**: 
-   - Google: Opens in new tab
-   - Gemini: Displays in beautiful expanded window
-5. **Close Results**: Click the `X` button, click outside the window, or press `Escape`
+1. Open search with `/` (or click the search button)
+2. Press `Tab` in the input to switch Google <-> Gemini
+3. Press `Enter` to search
+4. Press `Esc` to close
 
 ## Keyboard Shortcuts
 
-- `/` - Open search overlay
-- `Tab` - Toggle between Google and Gemini
-- `Enter` - Execute search
-- `Escape` - Close any open overlay
+| Key | Action |
+| --- | --- |
+| `/` | Open search overlay |
+| `Tab` | Toggle Google <-> Gemini (input focused) |
+| `Enter` | Execute search |
+| `Escape` | Close overlay/modal |
 
 ## Troubleshooting
 
-### "API key not configured" error
-- Make sure you've set your API key using one of the methods above
-- Check that you've reloaded the page after setting the key
-- Verify your API key is correct (no extra spaces or quotes)
+### "API key not configured"
 
-### "Failed to get response from Gemini" error
-- Check your internet connection
-- Verify your API key is valid
-- Make sure you haven't exceeded the free tier quota
-- Try regenerating your API key in Google AI Studio
+- Confirm `localStorage.getItem('GEMINI_API_KEY')` returns your key
+- Reload after setting it
+- Avoid extra spaces/quotes
 
-### Results not showing
-- Check browser console (F12) for any error messages
-- Make sure you're pressing `Tab` to switch to Gemini mode (sparkles icon should be visible)
-- Verify JavaScript is enabled in your browser
+### "Failed to get response" or friendly error panel
 
-## Privacy & Security
+- Verify internet connection
+- Verify key validity and quota
+- Regenerate key in Google AI Studio if needed
 
-- Your API key is stored locally in your browser (localStorage) or in your local config file
+### No Gemini results
+
+- Make sure you switched to Gemini mode (`Tab`)
+- Check browser console for API errors
+
+## Advanced Configuration
+
+In `userconfig.js` -> `advanced_config.gemini`:
+
+```javascript
+gemini: {
+  model: "gemini-3-flash-preview",
+  temperature: 0.7,
+  maxOutputTokens: 2048,
+}
+```
+
+## Privacy Notes
+
+- API key is stored in your browser (or local file if you set `window.GEMINI_API_KEY`)
 - Queries are sent directly to Google's Gemini API
-- No data is stored or logged by this startpage
-- Consider using Option 1 (localStorage) if you plan to share your startpage configuration publicly
+- This startpage does not run a backend service for Gemini
 
-## Customization
+## Related Docs
 
-You can customize the Gemini integration in `userconfig.js` via the `advanced_config.gemini` section (preferred):
-
-- **Model parameters**: Set `model`, `temperature`, and `maxOutputTokens` in `advanced_config.gemini` inside `userconfig.js` (these values are read by `queryGemini()` at runtime)
-- **Styling**: Modify the CSS in the `style()` method of `statusbar.component.js`
-- **Markdown formatting**: Update the `formatMarkdown()` method in `statusbar.component.js`
-
-## API Limits
-
-The free tier of Gemini API includes:
-- 60 requests per minute
-- Generous daily quota
-
-For most personal use cases, the free tier is more than sufficient!
-
-## Credits
-
-Gemini integration powered by [Google Generative AI](https://ai.google.dev/)
-
----
-
-Enjoy your AI-powered startpage! 🚀
+- [QUICK_START_GEMINI.md](QUICK_START_GEMINI.md)
+- [README.md](README.md)
