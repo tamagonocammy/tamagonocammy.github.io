@@ -1,5 +1,5 @@
 <h3 align="center">
-  <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/logos/exports/1544x1544_circle.png" width="100" alt="Logo"/><br/>
+  <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/logos/exports/1544x1544_circle.png" width="100" alt="Catppuccin Logo"/><br/>
   <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/misc/transparent.png" height="30" width="0px"/>
   Catppuccin <a href="https://pivoshenko.github.io/catppuccin-startpage">Startpage</a>
   <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/misc/transparent.png" height="30" width="0px"/>
@@ -18,92 +18,123 @@
 </p>
 
 <p align="center">
-  <img src="assets/preview.png"/>
+  <img src="assets/preview.png" alt="startpage preview"/>
 </p>
 
-## 🪴 Overview
+## ✦ Witchy, Cute & Functional
 
-Aesthetic and clean startpage in [**Catppuccin**](https://catppuccin.com/palette) style, hosted on GitHub Pages.
-This startpage is based on the [`dawn`](https://github.com/b-coimbra/dawn), which has even more functionality.
-I've tweaked the page to match my [`dotfiles`](https://github.com/pivoshenko/dotfiles) so check them out as well.
+A cozy Catppuccin startpage for your browser, now with stronger i18n support, better Gemini UX, and safer weather error handling.
 
-### 🧠 Main principles
+Think: pastel magic, minimal noise, and practical power for daily browsing.
 
-- Minimalism in everything
-- Consistency
-- Simplicity
-- One style
-- Reduced visual noise
+Based on [`dawn`](https://github.com/b-coimbra/dawn), then heavily customized.
 
-### 🎨 Supported Palettes
+## ✨ What’s New (Latest Updates)
 
-- Latte
-- Frappé
-- Macchiato
-- Mocha
+- 🌍 **Localization expanded**:
+  - Languages: **Spanish (`es`)**, **English (`en`)**, **Esperanto (`eo`)**
+  - Localized category names, weather strings, Gemini UI messages, and date formats
+- 🕰️ **Clock improvements**:
+  - Localized short/extended date-time formats via i18n
+  - Click clock to toggle compact/extended mode
+  - Optional multi-timezone clocks
+- ☁️ **Weather UX polish**:
+  - Better translated weather condition mapping (including fog/mist/haze edge-cases)
+  - Friendly fallback when weather API fails + optional technical details in tooltip
+- 🔮 **Gemini UX improvements**:
+  - Friendlier localized error messaging
+  - Expanded results modal with markdown rendering (code, lists, tables, links, images)
+  - Google/Gemini toggle in search (`Tab`), open search with `/`, close with `Esc`
+- 🎨 **Visual/content updates**:
+  - Dynamic tab flavour styling
+  - Added `src/img/bg-main.jpg` background asset
+  - Docs refreshed for theme + Gemini config clarity
 
-### ✨ Gemini AI Integration
+## 🎨 Theme & Style
 
-This startpage now includes **Google Gemini AI** integration! 
+- Catppuccin palettes: `latte`, `frappe`, `macchiato`, `mocha`
+- Automatic light/dark theme system
+- Designed to stay clean, soft, and expressive without clutter
 
-- 🔍 **Dual Search Mode**: Toggle between Google Search and Gemini AI (press `Tab` in search)
-- 🪟 **Expanded Results Window**: Beautiful modal overlay for AI responses
-- 🎨 **Markdown Support**: Formatted responses with code blocks, lists, and more
-- ⌨️ **Keyboard Shortcuts**: Quick access with `/` key
+## 🔧 Setup
 
-> [!NOTE]
-> To use Gemini AI, you'll need a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
-> See [GEMINI_SETUP.md](GEMINI_SETUP.md) for detailed setup instructions.
+1. Fork and clone this repository.
+2. (Optional) Remove `.github` if you don’t need issue/PR templates.
+3. Edit [`userconfig.js`](userconfig.js):
+   - Choose palette/theme behavior
+   - Set weather location and scale
+   - Configure tabs/categories/links
+   - Pick banners/backgrounds
+   - Tune Gemini + i18n in `advanced_config`
+4. Refresh your page.
 
-### 🌍 Localization
+## 🔮 Gemini AI Integration
 
-This startpage now supports **multiple languages**!
+Dual-mode search is built in:
 
-- 🇪🇸 **Spanish** (default)
-- 🇬🇧 **English**
-- 📅 **Localized dates**: Day names, month names, and time formats
-- 🔍 **Localized UI**: Search placeholders, weather conditions, and more
+- `Google` search mode
+- `Gemini` mode (inside modal results view)
 
-**Change language:**
+### Shortcuts
+
+- `/` open search
+- `Tab` switch Google ↔ Gemini (while input is focused)
+- `Esc` close modal
+- `Enter` send query
+
+### API key setup
+
+Get a key from [Google AI Studio](https://makersuite.google.com/app/apikey), then run in browser console:
+
 ```javascript
-// Open browser console (F12) and run:
-window.i18n.setLocale('en'); // English
-window.i18n.setLocale('es'); // Spanish
+localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
+```
+
+You can also define `window.GEMINI_API_KEY` in `userconfig.js` (not recommended for public repos).
+
+More details: [GEMINI_SETUP.md](GEMINI_SETUP.md)
+
+## 🌍 Localization (i18n)
+
+Current locales:
+
+- `es` (Spanish)
+- `en` (English)
+- `eo` (Esperanto)
+
+Default locale is controlled via `advanced_config.i18n.defaultLocale` in [`userconfig.js`](userconfig.js).
+
+Quick switch (console):
+
+```javascript
+window.i18n.setLocale('en');
 location.reload();
 ```
 
-> [!TIP]
-> See [LOCALIZATION.md](LOCALIZATION.md) for detailed documentation on adding new languages and using the i18n API.
+See full guide: [LOCALIZATION.md](LOCALIZATION.md)
 
-## 🪵 Usage
+## 🧪 Useful Config Flags
 
-1. Fork this repository and clone it
-2. Optionally remove the `.github` directory as it contains only PR templates, issue labels, etc that are linked to this repository
-3. Update [`userconfig.js`](userconfig.js):
-   - Set the desired palette: `latte / frappe / macchiato / mocha`
-   - Set your location for the weather widget
-   - Update the number of pages and their banners
-   - Update bookmarks and quick links for the one you are using the most :3
+Inside [`userconfig.js`](userconfig.js):
 
-> [!TIP]
-> You can find icons for your bookmarks using [`tabler-icons`](https://tabler.io/icons)
->
-> If you want to reduce the loading time of the icons, you could install the icon [font](src/fonts) locally and activate the option `"localIcons": true` in the config to disable the remote styles
+- `overrideStorage`: prioritize file config over localStorage
+- `localIcons` / `localFonts`: use bundled assets for better offline/loading behavior
+- `openLastVisitedTab`: restore previous tab on reload
+- `additionalClocks`: add clocks with IANA timezones (e.g. `America/New_York`)
 
-#### As Homepage
+## 🌐 Use As Homepage / New Tab
 
-- Click the menu button and select `Options/Preferences`
-- Click the home panel
-- Click the menu next to the homepage and new windows and choose to show custom URLs and add your GitHub Pages link
+### Homepage
 
-#### As New Tab
+- Open browser settings/preferences
+- Set homepage URL to your hosted startpage URL
 
-You can use different add-ons/extensions for it
+### New tab
 
-- If you use Firefox: [Custom New Tab Page](https://addons.mozilla.org/en-US/firefox/addon/custom-new-tab-page/?src=search) and make sure you enable "Force links to open in the top frame (experimental)" in the extension's preferences page
-- If you use Chromium (Brave / Chrome): [Custom New Tab URL](https://chrome.google.com/webstore/detail/custom-new-tab-url/mmjbdbjnoablegbkcklggeknkfcjkjia)
+- Firefox: [Custom New Tab Page](https://addons.mozilla.org/en-US/firefox/addon/custom-new-tab-page/?src=search)
+- Chromium (Chrome/Brave): [Custom New Tab URL](https://chrome.google.com/webstore/detail/custom-new-tab-url/mmjbdbjnoablegbkcklggeknkfcjkjia)
 
-### 🖼️ Available banners
+## 🖼️ Available Banners
 
 | banner_01 | banner_02 | banner_03 | banner_04 |
 | --- | --- | --- | --- |
@@ -137,6 +168,15 @@ You can use different add-ons/extensions for it
 | --- | --- | --- | --- |
 | <img src="src/img/banners/cbg-8.gif" width=175> | <img src="src/img/banners/cbg-9.gif" width=175> | <img src="src/img/banners/cbg-10.gif" width=175> | <img src="src/img/banners/cbg-11.gif" width=175> |
 
-| cbg-12 | cbg-13 |  |  |
-| --- | --- | --- | --- |
-| <img src="src/img/banners/cbg-12.gif" width=175> | <img src="src/img/banners/cbg-13.gif" width=175> |  |  |
+| cbg-12 | cbg-13 |
+| --- | --- |
+| <img src="src/img/banners/cbg-12.gif" width=175> | <img src="src/img/banners/cbg-13.gif" width=175> |
+
+> Bonus asset: `src/img/bg-main.jpg`
+
+## 🪄 Credits
+
+- Catppuccin palette: [catppuccin.com](https://catppuccin.com/palette)
+- Original inspiration: [`dawn`](https://github.com/b-coimbra/dawn)
+
+If you make your own witchy variation, share it. ✦
