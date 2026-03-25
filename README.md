@@ -152,25 +152,9 @@ Inside [`userconfig.js`](userconfig.js):
 | --- | --- | --- | --- |
 | <img src="src/img/banners/banner_13.gif" width=175> | <img src="src/img/banners/banner_14.gif" width=175> | <img src="src/img/banners/banner_15.gif" width=175> | <img src="src/img/banners/banner_16.gif" width=175> |
 
-| banner_17 | banner_18 | bg-1 | bg-2 |
-| --- | --- | --- | --- |
-| <img src="src/img/banners/banner_17.gif" width=175> | <img src="src/img/banners/banner_18.gif" width=175> | <img src="src/img/banners/bg-1.gif" width=175> | <img src="src/img/banners/bg-2.gif" width=175> |
-
-| bg-3 | cbg-1 | cbg-2 | cbg-3 |
-| --- | --- | --- | --- |
-| <img src="src/img/banners/bg-3.gif" width=175> | <img src="src/img/banners/cbg-1.gif" width=175> | <img src="src/img/banners/cbg-2.gif" width=175> | <img src="src/img/banners/cbg-3.gif" width=175> |
-
-| cbg-4 | cbg-5 | cbg-6 | cbg-7 |
-| --- | --- | --- | --- |
-| <img src="src/img/banners/cbg-4.gif" width=175> | <img src="src/img/banners/cbg-5.gif" width=175> | <img src="src/img/banners/cbg-6.gif" width=175> | <img src="src/img/banners/cbg-7.gif" width=175> |
-
-| cbg-8 | cbg-9 | cbg-10 | cbg-11 |
-| --- | --- | --- | --- |
-| <img src="src/img/banners/cbg-8.gif" width=175> | <img src="src/img/banners/cbg-9.gif" width=175> | <img src="src/img/banners/cbg-10.gif" width=175> | <img src="src/img/banners/cbg-11.gif" width=175> |
-
-| cbg-12 | cbg-13 |
+| banner_17 | banner_18 |
 | --- | --- |
-| <img src="src/img/banners/cbg-12.gif" width=175> | <img src="src/img/banners/cbg-13.gif" width=175> |
+| <img src="src/img/banners/banner_17.gif" width=175> | <img src="src/img/banners/banner_18.gif" width=175> |
 
 > Bonus asset: `src/img/bg-main.jpg`
 
