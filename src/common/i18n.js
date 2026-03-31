@@ -109,6 +109,11 @@ const translations = {
         video: "Vídeo",
       },
     },
+
+    calendar: {
+      prev: "Mes anterior",
+      next: "Mes siguiente",
+    },
   },
 
   en: {
@@ -218,6 +223,11 @@ const translations = {
         video: "Video",
       },
     },
+
+    calendar: {
+      prev: "Previous month",
+      next: "Next month",
+    },
   },
 
   eo: {
@@ -323,6 +333,11 @@ const translations = {
         juegos: "Ludoj",
         video: "Video",
       },
+    },
+
+    calendar: {
+      prev: "Antaŭa monato",
+      next: "Sekva monato",
     },
   },
 };
