@@ -72,6 +72,12 @@ class Clock extends Component {
   }
 
   navigateMonth(delta) {
+    const container = this.shadow.querySelector('.cal-grid-container');
+    if (container) {
+      container.classList.remove('anim-next', 'anim-prev');
+      void container.offsetWidth; // force reflow to restart animation
+      container.classList.add(delta > 0 ? 'anim-next' : 'anim-prev');
+    }
     const d = this.calendarViewDate;
     this.calendarViewDate = new Date(d.getFullYear(), d.getMonth() + delta, 1);
     this.updateCalendar();
@@ -201,7 +207,7 @@ class Clock extends Component {
         .calendar-popup {
             position: absolute;
             bottom: calc(100% + 8px);
-            left: 0;
+            right: 0;
             background: ${CONFIG.palette.mantle};
             border: 1px solid ${CONFIG.palette.surface1};
             border-radius: 8px;
@@ -278,6 +284,24 @@ class Clock extends Component {
             background: ${CONFIG.palette.mauve};
             color: ${CONFIG.palette.base};
             font-weight: 700;
+        }
+
+        @keyframes cal-slide-from-right {
+            from { opacity: 0; transform: translateX(10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes cal-slide-from-left {
+            from { opacity: 0; transform: translateX(-10px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .cal-grid-container.anim-next {
+            animation: cal-slide-from-right 0.18s ease;
+        }
+
+        .cal-grid-container.anim-prev {
+            animation: cal-slide-from-left 0.18s ease;
         }
     `;
   }
