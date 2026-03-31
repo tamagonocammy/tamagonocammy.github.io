@@ -41,7 +41,7 @@ class Clock extends Component {
     });
 
     this._closeOnOutsideClick = (e) => {
-      if (!this.contains(e.target)) this.closeCalendar();
+      if (!e.composedPath().includes(this)) this.closeCalendar();
     };
     this._closeOnEscape = (e) => {
       if (e.key === 'Escape') this.closeCalendar();
