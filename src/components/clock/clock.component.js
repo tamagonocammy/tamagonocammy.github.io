@@ -11,6 +11,7 @@ class Clock extends Component {
   calendarViewDate = new Date();
   _closeOnOutsideClick = null;
   _closeOnEscape = null;
+  _closeOnOtherPopup = null;
 
   /**
    * Initialise the clock component
@@ -46,9 +47,13 @@ class Clock extends Component {
     this._closeOnEscape = (e) => {
       if (e.key === 'Escape') this.closeCalendar();
     };
+    this._closeOnOtherPopup = (e) => {
+      if (e.detail?.id !== 'calendar') this.closeCalendar();
+    };
 
     document.addEventListener('click', this._closeOnOutsideClick);
     document.addEventListener('keydown', this._closeOnEscape);
+    document.addEventListener('startpage:popup-open', this._closeOnOtherPopup);
   }
 
   toggleCalendar() {
@@ -58,6 +63,7 @@ class Clock extends Component {
   openCalendar() {
     this.calendarViewDate = new Date();
     this.calendarOpen = true;
+    document.dispatchEvent(new CustomEvent('startpage:popup-open', { detail: { id: 'calendar' } }));
     const popup = this.shadow.querySelector('.calendar-popup');
     if (popup) {
       popup.classList.remove('hidden');
@@ -131,6 +137,9 @@ class Clock extends Component {
     }
     if (this._closeOnEscape) {
       document.removeEventListener('keydown', this._closeOnEscape);
+    }
+    if (this._closeOnOtherPopup) {
+      document.removeEventListener('startpage:popup-open', this._closeOnOtherPopup);
     }
     super.disconnectedCallback?.();
   }

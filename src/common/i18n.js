@@ -68,6 +68,10 @@ const translations = {
       unavailable: "No se pudo obtener el clima ahora",
       unavailable_hint: "Reintentando en la próxima actualización.",
       error_details_summary: "Detalles técnicos",
+      popup: {
+        location: "Ubicación",
+        toggle_scale: "Cambiar escala",
+      },
       conditions: {
         clouds: "Nublado",
         mist: "Neblina",
@@ -182,6 +186,10 @@ const translations = {
       unavailable: "Weather is unavailable right now",
       unavailable_hint: "Will retry on the next refresh.",
       error_details_summary: "Technical details",
+      popup: {
+        location: "Location",
+        toggle_scale: "Toggle scale",
+      },
       conditions: {
         clouds: "Cloudy",
         mist: "Mist",
@@ -293,6 +301,10 @@ const translations = {
       unavailable: "Vetero ne haveblas nun",
       unavailable_hint: "Reprovo okazos ĉe la sekva ĝisdatigo.",
       error_details_summary: "Teknikaj detaloj",
+      popup: {
+        location: "Loko",
+        toggle_scale: "Ŝanĝi skalon",
+      },
       conditions: {
         clouds: "Nubeta",
         mist: "Nebulo",
