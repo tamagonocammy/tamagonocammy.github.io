@@ -1,7 +1,7 @@
 <h3 align="center">
   <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/logos/exports/1544x1544_circle.png" width="100" alt="Catppuccin Logo"/><br/>
   <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/misc/transparent.png" height="30" width="0px"/>
-  Catppuccin <a href="https://pivoshenko.github.io/catppuccin-startpage">Startpage</a>
+  ✦ catppuccin <a href="https://pivoshenko.github.io/catppuccin-startpage">startpage</a> ✦
   <img src="https://raw.githubusercontent.com/catppuccin/catppuccin/main/assets/misc/transparent.png" height="30" width="0px"/>
 </h3>
 
@@ -21,120 +21,104 @@
   <img src="assets/preview.png" alt="startpage preview"/>
 </p>
 
-## ✦ Witchy, Cute & Functional
+---
 
-A cozy Catppuccin startpage for your browser, now with stronger i18n support, better Gemini UX, and safer weather error handling.
+> *pastel magic for your browser. soft, multilingual, and a little bit feral.* 🌙
 
-Think: pastel magic, minimal noise, and practical power for daily browsing.
+a cozy catppuccin startpage — zero build tools, pure html/css/js, and a vibe that hits different every time you open a new tab. forked from [`dawn`](https://github.com/b-coimbra/dawn) and dressed up in moonlight ever since.
 
-Based on [`dawn`](https://github.com/b-coimbra/dawn), then heavily customized.
+## ˗ˏˋ ★ lo que hay de nuevo ˎˊ˗
 
-## ✨ What’s New (Latest Updates)
+fresh enchantments from the latest updates:
 
-- 🌍 **Localization expanded**:
-  - Languages: **Spanish (`es`)**, **English (`en`)**, **Esperanto (`eo`)**
-  - Localized category names, weather strings, Gemini UI messages, and date formats
-- 🕰️ **Clock improvements**:
-  - Localized short/extended date-time formats via i18n
-  - Click clock to toggle compact/extended mode
-  - Optional multi-timezone clocks
-- ☁️ **Weather UX polish**:
-  - Better translated weather condition mapping (including fog/mist/haze edge-cases)
-  - Friendly fallback when weather API fails + optional technical details in tooltip
-- 🔮 **Gemini UX improvements**:
-  - Friendlier localized error messaging
-  - Expanded results modal with markdown rendering (code, lists, tables, links, images)
-  - Google/Gemini toggle in search (`Tab`), open search with `/`, close with `Esc`
-- 🎨 **Visual/content updates**:
-  - Dynamic tab flavour styling
-  - Added `src/img/bg-main.jpg` background asset
-  - Docs refreshed for theme + Gemini config clarity
+- 🌍 **localization expanded** — now fluent in **español `es`**, **english `en`**, and **esperanto `eo`**. weather strings, category names, gemini messages, and date formats all properly localized, because your startpage should speak your language/s 🌿
+- 🕰️ **clock glow-up** — localized date/time formats, click to toggle compact/extended mode, plus optional multi-timezone clocks (for those of us living across multiple meridians in our head)
+- ☁️ **weather vibes** — better translated conditions (fog! mist! haze! they're different! finally!), friendly fallback when the api ghosts you, with optional technical details tucked into the tooltip
+- 🔮 **gemini magic** — friendlier error messages, expanded results modal with full markdown rendering (code, lists, tables, links, images), and a clean `/` → `Tab` → `Enter` flow to summon your answers
+- 🎨 **aesthetic updates** — dynamic tab flavour styling, new `src/img/bg-main.jpg` background asset, and freshened docs
 
-## 🎨 Theme & Style
+## ˗ˏˋ ★ themes & palettes ˎˊ˗
 
-- Catppuccin palettes: `latte`, `frappe`, `macchiato`, `mocha`
-- Automatic light/dark theme system
-- Designed to stay clean, soft, and expressive without clutter
+catppuccin's four flavours: `latte` ☕  `frappé` 🧋  `macchiato` 🌙  `mocha` 🍫
 
-## 🔧 Setup
+automatic light/dark theme detection — the page reads the room. soft, expressive, and zero clutter because clutter is for people who haven't unlocked the aesthetic yet.
 
-1. Fork and clone this repository.
-2. (Optional) Remove `.github` if you don’t need issue/PR templates.
-3. Edit [`userconfig.js`](userconfig.js):
-   - Choose palette/theme behavior
-   - Set weather location and scale
-   - Configure tabs/categories/links
-   - Pick banners/backgrounds
-   - Tune Gemini + i18n in `advanced_config`
-4. Refresh your page.
+## ˗ˏˋ ★ setup ritual ˎˊ˗
 
-## 🔮 Gemini AI Integration
+1. fork and clone this repository
+2. (optional) remove `.github` if you don't need issue/pr templates
+3. open [`userconfig.js`](userconfig.js) — this is your grimoire. the *only* file you need to touch:
+   - choose your palette & theme behavior
+   - set your weather location and temperature scale
+   - configure tabs, categories, and links
+   - pick your banner and background
+   - tune gemini + i18n in `advanced_config`
+4. refresh your page ✨
 
-Dual-mode search is built in:
+that's genuinely it.
 
-- `Google` search mode
-- `Gemini` mode (inside modal results view)
+## ˗ˏˋ ★ gemini — the crystal ball ˎˊ˗
 
-### Shortcuts
+dual-mode search is built in — google for when you know what you're looking for, gemini for when you want to ask something actually interesting.
 
-- `/` open search
-- `Tab` switch Google ↔ Gemini (while input is focused)
-- `Esc` close modal
-- `Enter` send query
+### shortcuts
 
-### API key setup
+| key | what it does |
+|-----|--------------|
+| `/` | open search |
+| `Tab` | toggle google ↔ gemini |
+| `Enter` | cast the spell |
+| `Esc` | close the modal |
 
-Get a key from [Google AI Studio](https://makersuite.google.com/app/apikey), then run in browser console:
+### api key
+
+grab one from [google ai studio](https://makersuite.google.com/app/apikey), then run this in your browser console:
 
 ```javascript
 localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
 ```
 
-You can also define `window.GEMINI_API_KEY` in `userconfig.js` (not recommended for public repos).
+you can also set `window.GEMINI_API_KEY` directly in `userconfig.js` — just don't push that to a public repo, okay? keep your secrets secret 🌿
 
-More details: [GEMINI_SETUP.md](GEMINI_SETUP.md)
+full setup guide: [GEMINI_SETUP.md](GEMINI_SETUP.md)
 
-## 🌍 Localization (i18n)
+## ˗ˏˋ ★ localization (i18n) ˎˊ˗
 
-Current locales:
+currently speaks:
 
-- `es` (Spanish)
-- `en` (English)
-- `eo` (Esperanto)
+- `es` — español 🌸
+- `en` — english 🍃
+- `eo` — esperanto 🌙
 
-Default locale is controlled via `advanced_config.i18n.defaultLocale` in [`userconfig.js`](userconfig.js).
-
-Quick switch (console):
+set your default in `advanced_config.i18n.defaultLocale` inside [`userconfig.js`](userconfig.js). or switch on the fly from the console:
 
 ```javascript
-window.i18n.setLocale('en');
+window.i18n.setLocale('es');
 location.reload();
 ```
 
-See full guide: [LOCALIZATION.md](LOCALIZATION.md)
+full guide: [LOCALIZATION.md](LOCALIZATION.md)
 
-## 🧪 Useful Config Flags
+## ˗ˏˋ ★ config flags worth knowing ˎˊ˗
 
-Inside [`userconfig.js`](userconfig.js):
+inside [`userconfig.js`](userconfig.js):
 
-- `overrideStorage`: prioritize file config over localStorage
-- `localIcons` / `localFonts`: use bundled assets for better offline/loading behavior
-- `openLastVisitedTab`: restore previous tab on reload
-- `additionalClocks`: add clocks with IANA timezones (e.g. `America/New_York`)
+- `overrideStorage` — file config wins over localStorage (useful when you actually know what you want)
+- `localIcons` / `localFonts` — use bundled assets for better offline behavior & faster loading
+- `openLastVisitedTab` — picks up where you left off on reload
+- `additionalClocks` — add clocks by iana timezone (e.g. `America/Bogota`, `Asia/Tokyo`)
 
-## 🌐 Use As Homepage / New Tab
+## ˗ˏˋ ★ homepage / new tab ˎˊ˗
 
-### Homepage
+**homepage:** browser settings → set homepage url → point it here
 
-- Open browser settings/preferences
-- Set homepage URL to your hosted startpage URL
+**new tab:**
+- firefox: [Custom New Tab Page](https://addons.mozilla.org/en-US/firefox/addon/custom-new-tab-page/?src=search)
+- chromium/brave: [Custom New Tab URL](https://chrome.google.com/webstore/detail/custom-new-tab-url/mmjbdbjnoablegbkcklggeknkfcjkjia)
 
-### New tab
+## ˗ˏˋ ★ banners ˎˊ˗
 
-- Firefox: [Custom New Tab Page](https://addons.mozilla.org/en-US/firefox/addon/custom-new-tab-page/?src=search)
-- Chromium (Chrome/Brave): [Custom New Tab URL](https://chrome.google.com/webstore/detail/custom-new-tab-url/mmjbdbjnoablegbkcklggeknkfcjkjia)
-
-## 🖼️ Available Banners
+all animated gifs — pick yours in `userconfig.js` 🌙
 
 | banner_01 | banner_02 | banner_03 | banner_04 |
 | --- | --- | --- | --- |
@@ -156,11 +140,11 @@ Inside [`userconfig.js`](userconfig.js):
 | --- | --- |
 | <img src="src/img/banners/banner_17.gif" width=175> | <img src="src/img/banners/banner_18.gif" width=175> |
 
-> Bonus asset: `src/img/bg-main.jpg`
+> bonus: `src/img/bg-main.jpg` for a full-page background ✦
 
-## 🪄 Credits
+## ˗ˏˋ ★ credits ˎˊ˗
 
-- Catppuccin palette: [catppuccin.com](https://catppuccin.com/palette)
-- Original inspiration: [`dawn`](https://github.com/b-coimbra/dawn)
+- catppuccin palette: [catppuccin.com](https://catppuccin.com/palette)
+- original inspiration: [`dawn`](https://github.com/b-coimbra/dawn)
 
-If you make your own witchy variation, share it. ✦
+if you make your own variation, share it. the world needs more witchy startpages 🌙 ✦
