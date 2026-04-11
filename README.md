@@ -27,7 +27,7 @@
 
 a cozy catppuccin startpage — zero build tools, pure html/css/js, and a vibe that hits different every time you open a new tab. forked from [`dawn`](https://github.com/b-coimbra/dawn) and dressed up in moonlight ever since.
 
-## ˗ˏˋ ★ lo que hay de nuevo ˎˊ˗
+## ˗ˏˋ ★ what's new ˎˊ˗
 
 fresh enchantments from the latest updates:
 
