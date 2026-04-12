@@ -89,7 +89,7 @@ const default_config = {
     {
       name: "M i l i e",
       color: palette.lavender,
-      background_url: "src/img/banners/banner_13.gif",
+      background_url: "src/img/banners/banner_03.gif",
       categories: [
         {
           name: "principal",
