@@ -277,7 +277,7 @@ const default_config = {
     {
       name: "c h i l l",
       color: palette.rosewater,
-      background_url: "src/img/banners/banner_08.gif",
+      background_url: "src/img/banners/banner_20.webp",
       categories: [
         {
           name: "redes sociales",
