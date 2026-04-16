@@ -639,6 +639,38 @@ class Statusbar extends Component {
             color: ${CONFIG.palette.base};
             text-decoration: underline;
         }
+
+        /* Status bar stays above the search overlay */
+        #tabs {
+            position: relative;
+            z-index: 10001;
+        }
+
+        /* AI window snaps to main panel dimensions */
+        .search-modal.panel-mode {
+            position: fixed;
+            max-width: none;
+            border-radius: 5px 0 0 5px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Results fill the full panel height */
+        .search-modal.panel-mode .search-results.active {
+            max-height: none;
+            flex: 1;
+        }
+
+        /* Collapse animation while keeping fixed positioning */
+        .search-modal.panel-mode.collapsing {
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0;
+            transform: scale(0);
+            border-radius: 50% !important;
+        }
     `;
   }
 
@@ -926,6 +958,8 @@ class Statusbar extends Component {
         searchResults.classList.remove("closing");
         searchModal.classList.remove("collapsing");
         searchModal.classList.remove("loading");
+        searchModal.classList.remove("panel-mode");
+        searchModal.style.cssText = "";
         searchHeader.classList.remove("hidden");
         loadingIcon.classList.remove("active");
         searchInput.value = "";
@@ -1011,6 +1045,14 @@ class Statusbar extends Component {
               searchModal.classList.remove("loading");
               searchModal.classList.add("expanded");
               searchOverlay.classList.add("results-showing");
+
+              // Snap modal to main panel dimensions
+              const panelsRect = this.parentElement.getBoundingClientRect();
+              searchModal.classList.add("panel-mode");
+              searchModal.style.top = `${panelsRect.top}px`;
+              searchModal.style.left = `${panelsRect.left}px`;
+              searchModal.style.width = `${panelsRect.width}px`;
+              searchModal.style.height = `${panelsRect.height}px`;
 
               // Small delay for smooth expansion
               setTimeout(() => {
