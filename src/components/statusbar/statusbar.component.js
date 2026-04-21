@@ -829,7 +829,10 @@ class Statusbar extends Component {
     html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
 
     // Images ![alt](url)
-    html = html.replace(/!\[(.*?)\]\((.+?)\)/g, '<img src="$2" alt="$1" class="gemini-img" loading="lazy">');
+    html = html.replace(/!\[(.*?)\]\((.+?)\)/g, (_, alt, url) => {
+      const safe = /^https?:\/\//i.test(url) ? url : '';
+      return `<img src="${safe}" alt="${alt}" class="gemini-img" loading="lazy">`;
+    });
 
     // Headers (optional space after #)
     html = html.replace(/^###\s*(.+)$/gm, "<h3>$1</h3>");
@@ -848,7 +851,10 @@ class Statusbar extends Component {
     html = html.replace(/class="ol-item"/g, "");
 
     // Links (URLs already escaped; allow # in href for anchors)
-    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, (_, text, url) => {
+      const safe = /^(https?:\/\/|mailto:|#)/i.test(url) ? url : '#';
+      return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    });
 
     // Markdown tables
     html = html.replace(/(?:^\|.+\|\s*$)+/gm, (block) => {
