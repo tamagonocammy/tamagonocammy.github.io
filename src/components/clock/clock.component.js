@@ -397,7 +397,7 @@ class Clock extends Component {
       const dateElement = this.shadow.querySelector('#main-clock .clock-date');
       const date = new Date();
       const localizedFormat = window.i18n?.getTimeFormat(false);
-      const defaultFormat = localizedFormat || CONFIG.clock.format || "H:i";
+      const defaultFormat = CONFIG.clock.format || localizedFormat || "H:i";
 
       if (mainClockElement && dateElement) {
         dateElement.style.display = 'none';
