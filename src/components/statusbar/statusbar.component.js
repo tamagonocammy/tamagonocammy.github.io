@@ -732,8 +732,33 @@ class Statusbar extends Component {
     const model = advanced_config?.gemini?.model || "gemini-3-flash-preview";
     const temperature = advanced_config?.gemini?.temperature ?? 0.7;
     const maxOutputTokens = advanced_config?.gemini?.maxOutputTokens ?? 2048;
+    const systemInstruction = advanced_config?.gemini?.systemInstruction;
 
     try {
+      const requestBody = {
+        contents: [
+          {
+            parts: [
+              {
+                text: query,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: temperature,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: maxOutputTokens,
+        },
+      };
+
+      if (systemInstruction) {
+        requestBody.systemInstruction = {
+          parts: [{ text: systemInstruction }],
+        };
+      }
+
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
@@ -741,23 +766,7 @@ class Statusbar extends Component {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: query,
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: temperature,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: maxOutputTokens,
-            },
-          }),
+          body: JSON.stringify(requestBody),
         },
       );
 

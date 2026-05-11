@@ -384,6 +384,8 @@ const advanced_config = {
     model: "gemini-3-flash-preview", // Model to use (check Google AI docs for latest)
     temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
     maxOutputTokens: 2048, // Maximum response length
+    systemInstruction:
+      "Answer the user's question directly and completely in a single response. Do not ask clarifying questions, do not ask for the user's opinion, and do not request further input. If something is ambiguous, make a reasonable assumption and state it briefly. Never end your response with a follow-up question or an offer to do more.",
   },
 
   // Weather API Settings
