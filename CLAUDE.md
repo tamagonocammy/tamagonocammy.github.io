@@ -111,7 +111,9 @@ window.i18n.getOrdinal(num)                   // Get ordinal suffix (e.g., "º",
 `weather.component.js` + `weather.api.js`. Free OpenWeatherMap tier (60 calls/minute).
 
 - Configure location in `userconfig.js` `temperature.location`
-- API key and language in `advanced_config.weather`
+- Language in `advanced_config.weather.language`
+- API key resolution order: `localStorage.getItem('OWM_API_KEY')` → `window.OWM_API_KEY` → `advanced_config.weather.apiKey` → shared demo key committed in `userconfig.js`
+- Prefer `localStorage.setItem('OWM_API_KEY', 'key')` for a personal key so it never lands in a commit (same pattern as the Gemini key)
 
 ### Storage Abstraction
 
@@ -192,6 +194,9 @@ new WeatherForecastClient("Bogota").getWeather().then(console.log);
 
 // Check Gemini key
 localStorage.getItem('GEMINI_API_KEY');
+
+// Check weather key
+localStorage.getItem('OWM_API_KEY');
 ```
 
 Enable "Show user agent shadow DOM" in DevTools settings to inspect component internals.

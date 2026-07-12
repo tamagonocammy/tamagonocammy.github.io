@@ -92,4 +92,5 @@ gemini: {
 ## Related Docs
 
 - [QUICK_START_GEMINI.md](QUICK_START_GEMINI.md)
+- [WEATHER_SETUP.md](WEATHER_SETUP.md)
 - [README.md](README.md)

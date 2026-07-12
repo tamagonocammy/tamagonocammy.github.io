@@ -60,7 +60,7 @@ Notes:
 `advanced_config` currently controls:
 
 - `gemini`: model, temperature, maxOutputTokens
-- `weather`: API key and language
+- `weather`: fallback API key and language (personal key should go in `localStorage.OWM_API_KEY` instead)
 - `i18n`: default locale
 - `storage`: localStorage key prefix
 
@@ -118,8 +118,14 @@ Implementation escapes unsafe HTML first, then restores formatted output.
 
 `WeatherForecastClient` reads:
 
-- `advanced_config.weather.apiKey`
+- Key source priority:
+  1. `localStorage.getItem('OWM_API_KEY')`
+  2. `window.OWM_API_KEY`
+  3. `advanced_config.weather.apiKey`
+  4. shared demo key committed in `userconfig.js` (public, rate-limited)
 - `advanced_config.weather.language`
+
+Same pattern as the Gemini key: prefer `localStorage` for a personal key so it never lands in a commit.
 
 Fetches from OpenWeatherMap and returns normalized result:
 
@@ -176,6 +182,7 @@ console.log(CONFIG);
 window.i18n.t('search.placeholder_google');
 window.i18n.setLocale('en');
 localStorage.getItem('GEMINI_API_KEY');
+localStorage.getItem('OWM_API_KEY');
 new WeatherForecastClient('Bogota').getWeather().then(console.log);
 ```
 

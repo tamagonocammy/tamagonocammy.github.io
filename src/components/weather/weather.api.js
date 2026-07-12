@@ -1,8 +1,8 @@
 class WeatherForecastClient {
   constructor(location) {
-    this.appId = advanced_config?.weather?.apiKey || "50a34e070dd5c09a99554b57ab7ea7e2";
+    this.appId = localStorage.getItem("OWM_API_KEY") || window.OWM_API_KEY || advanced_config?.weather?.apiKey || "50a34e070dd5c09a99554b57ab7ea7e2";
     const language = advanced_config?.weather?.language || "eo";
-    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&lang=${language}&appid=${
+    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=metric&lang=${language}&appid=${
       this.appId
     }`;
   }

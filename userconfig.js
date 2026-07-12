@@ -389,6 +389,10 @@ const advanced_config = {
   },
 
   // Weather API Settings
+  // apiKey below is the project's shared free-tier demo key (public since the
+  // initial commit, rate-limited). To use your own key without committing it,
+  // set it in the browser console instead — it takes priority over this value:
+  //   localStorage.setItem('OWM_API_KEY', 'your-api-key-here');
   weather: {
     apiKey: "50a34e070dd5c09a99554b57ab7ea7e2", // OpenWeatherMap free tier key
     language: "eo", // Language code: "eo", "es", "en", "fr", etc.
