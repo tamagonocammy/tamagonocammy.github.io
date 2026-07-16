@@ -115,6 +115,13 @@ window.i18n.getOrdinal(num)                   // Get ordinal suffix (e.g., "º",
 - API key resolution order: `localStorage.getItem('OWM_API_KEY')` → `window.OWM_API_KEY` → `advanced_config.weather.apiKey` → shared demo key committed in `userconfig.js`
 - Prefer `localStorage.setItem('OWM_API_KEY', 'key')` for a personal key so it never lands in a commit (same pattern as the Gemini key)
 
+### Offline Support
+
+`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for `api.openweathermap.org` and `generativelanguage.googleapis.com` so weather/Gemini stay live.
+
+- Bump `CACHE_VERSION` in `sw.js` when app-shell files change — old caches are evicted on `activate`
+- Only takes effect over `http(s)`; does nothing when the file is opened directly (`file://`)
+
 ### Storage Abstraction
 
 `storage.js` provides namespaced localStorage access:
@@ -212,3 +219,4 @@ Enable "Show user agent shadow DOM" in DevTools settings to inspect component in
 | `src/common/component.js` | Base Web Component class |
 | `src/common/module.js` | Component registration |
 | `src/common/i18n.js` | Localization system |
+| `sw.js` | Service worker — caches the app shell for offline use (registered from `index.html`, http/https only) |

@@ -36,6 +36,7 @@ fresh enchantments from the latest updates:
 - ☁️ **weather vibes** — better translated conditions (fog! mist! haze! they're different! finally!), friendly fallback when the api ghosts you, with optional technical details tucked into the tooltip
 - 🔮 **gemini magic** — friendlier error messages, expanded results modal with full markdown rendering (code, lists, tables, links, images), and a clean `/` → `Tab` → `Enter` flow to summon your answers
 - 🎨 **aesthetic updates** — dynamic tab flavour styling, new `src/img/bg-main.jpg` background asset, and freshened docs
+- 📡 **works offline** — a service worker caches the app shell so your new tab still opens with no connection (weather/gemini need network, everything else doesn't)
 
 ## ˗ˏˋ ★ themes & palettes ˎˊ˗
 
@@ -110,6 +111,12 @@ location.reload();
 ```
 
 full guide: [LOCALIZATION.md](LOCALIZATION.md)
+
+## ˗ˏˋ ★ offline ˎˊ˗
+
+`sw.js` caches the app shell (html/css/js + favicon) on first visit, cache-first after that — so opening a new tab with no connection still works. weather and gemini always hit the network since caching those would just show you stale data.
+
+only kicks in when served over `http(s)` (github pages, a local server, etc.) — service workers don't run on `file://`. made a change to a core file and it's not showing up? bump `CACHE_VERSION` in `sw.js` to invalidate the old cache, or unregister it from devtools → application → service workers.
 
 ## ˗ˏˋ ★ config flags worth knowing ˎˊ˗
 

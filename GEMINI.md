@@ -27,6 +27,7 @@ Main features:
 - `src/components/weather/weather.api.js`: API fetch client
 - `src/components/clock/clock.component.js`: main/additional clocks
 - `src/common/theme.js`: automatic light/dark theme initialization
+- `sw.js`: service worker, caches app shell for offline use (registered from `index.html`)
 
 ### Script loading order (critical)
 
@@ -141,6 +142,14 @@ On failures, returns:
 
 UI side (`weather.component.js`) shows friendly fallback text plus optional technical details in tooltip/title.
 
+## Offline Support
+
+`sw.js` registration happens inline at the bottom of `index.html`, guarded to only run over `http(s)` (service workers don't run on `file://`).
+
+- Install: precaches the app shell (core html/css/js + favicon)
+- Fetch: cache-first for same-origin/static requests, network passthrough (never cached) for `api.openweathermap.org` and `generativelanguage.googleapis.com`
+- Activate: deletes caches that don't match the current `CACHE_VERSION`
+
 ## Clock Behavior
 
 `clock.component.js` supports:
@@ -174,6 +183,7 @@ Gemini styling is palette-aware via `CONFIG.palette.*` tokens.
 - Test weather failure fallback text
 - Test clock compact/extended toggle
 - Test at least two palettes
+- Serve over http(s), reload once to let `sw.js` install, then go offline (DevTools → Network → Offline) and reload — app shell should still render
 
 ## Common Console Commands
 

@@ -2,6 +2,18 @@
 
 This startpage includes **Google + Gemini dual search** in the status bar overlay.
 
+## Quick Start (60 Seconds)
+
+1. Get an API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Open browser console (`F12`) and run:
+   ```javascript
+   localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
+   ```
+3. Reload the page
+4. Open search with `/`, press `Tab` to switch to Gemini mode, `Enter` to submit
+
+The rest of this guide covers configuration options and troubleshooting in more detail.
+
 ## What You Get
 
 - Dual search mode: Google or Gemini
@@ -91,6 +103,5 @@ gemini: {
 
 ## Related Docs
 
-- [QUICK_START_GEMINI.md](QUICK_START_GEMINI.md)
 - [WEATHER_SETUP.md](WEATHER_SETUP.md)
 - [README.md](README.md)
