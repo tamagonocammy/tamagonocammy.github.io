@@ -1,5 +1,5 @@
 // Bump this when app-shell files change so old caches get evicted on activate.
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `startpage-${CACHE_VERSION}`;
 
 // Core files needed to render the page with no network at all.
