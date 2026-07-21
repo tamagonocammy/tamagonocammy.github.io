@@ -95,10 +95,10 @@ const default_config = {
           name: "principal",
           links: [
             {
-              name: "gemini",
-              url: "https://gemini.google.com",
-              icon: "sparkles",
-              icon_color: palette.mauve,
+              name: "chatgpt",
+              url: "https://chatgpt.com",
+              icon: "brand-openai",
+              icon_color: palette.green,
             },
             {
               name: "reykunyu",
