@@ -11,7 +11,7 @@ Main features:
 - Config-driven tabs/categories/links (`userconfig.js`)
 - Weather widget (OpenWeatherMap)
 - Clock with localized short/extended formats
-- Gemini + Google dual search mode in the status bar
+- Gemini + DuckDuckGo dual search mode in the status bar
 - Internationalization (`es`, `en`, `eo`)
 
 ## Architecture
@@ -70,7 +70,7 @@ Notes:
 `window.i18n` provides:
 
 ```javascript
-window.i18n.t('search.placeholder_google');
+window.i18n.t('search.placeholder_duckduckgo');
 window.i18n.setLocale('en');
 window.i18n.getTimeFormat(true);
 ```
@@ -99,7 +99,7 @@ Gemini query flow is in `statusbar.component.js` (`queryGemini`).
 Search UX:
 
 - `/` opens overlay
-- `Tab` toggles Google <-> Gemini while input is focused
+- `Tab` toggles DuckDuckGo <-> Gemini while input is focused
 - `Escape` closes overlay/modal
 - `Enter` submits query
 
@@ -175,7 +175,7 @@ Gemini styling is palette-aware via `CONFIG.palette.*` tokens.
 
 - Open `index.html` in browser
 - Verify `/` opens search overlay
-- Toggle Google/Gemini with `Tab`
+- Toggle DuckDuckGo/Gemini with `Tab`
 - Submit Gemini query with valid API key
 - Validate markdown formatting in response
 - Trigger invalid key and confirm friendly error panel
@@ -189,7 +189,7 @@ Gemini styling is palette-aware via `CONFIG.palette.*` tokens.
 
 ```javascript
 console.log(CONFIG);
-window.i18n.t('search.placeholder_google');
+window.i18n.t('search.placeholder_duckduckgo');
 window.i18n.setLocale('en');
 localStorage.getItem('GEMINI_API_KEY');
 localStorage.getItem('OWM_API_KEY');

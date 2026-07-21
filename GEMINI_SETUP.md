@@ -1,6 +1,6 @@
 # Gemini AI Integration Setup Guide
 
-This startpage includes **Google + Gemini dual search** in the status bar overlay.
+This startpage includes **DuckDuckGo + Gemini dual search** in the status bar overlay.
 
 ## Quick Start (60 Seconds)
 
@@ -16,7 +16,7 @@ The rest of this guide covers configuration options and troubleshooting in more 
 
 ## What You Get
 
-- Dual search mode: Google or Gemini
+- Dual search mode: DuckDuckGo or Gemini
 - Large modal for Gemini answers
 - Markdown rendering (headers, lists, code, tables, links, images)
 - Localized messages (es/en/eo)
@@ -51,7 +51,7 @@ window.GEMINI_API_KEY = "your-api-key-here";
 ## 3) Use It
 
 1. Open search with `/` (or click the search button)
-2. Press `Tab` in the input to switch Google <-> Gemini
+2. Press `Tab` in the input to switch DuckDuckGo <-> Gemini
 3. Press `Enter` to search
 4. Press `Esc` to close
 
@@ -60,7 +60,7 @@ window.GEMINI_API_KEY = "your-api-key-here";
 | Key | Action |
 | --- | --- |
 | `/` | Open search overlay |
-| `Tab` | Toggle Google <-> Gemini (input focused) |
+| `Tab` | Toggle DuckDuckGo <-> Gemini (input focused) |
 | `Enter` | Execute search |
 | `Escape` | Close overlay/modal |
 

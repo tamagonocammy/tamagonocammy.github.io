@@ -8,7 +8,7 @@ const translations = {
   es: {
     // Search interface
     search: {
-      placeholder_google: "Buscar en Google...",
+      placeholder_duckduckgo: "Buscar en DuckDuckGo...",
       placeholder_gemini: "Preguntarle a Gemini...",
       results_title: "Resultados de Gemini",
       loading: "Preguntándole a Gemini...",
@@ -123,7 +123,7 @@ const translations = {
   en: {
     // Search interface
     search: {
-      placeholder_google: "Search Google...",
+      placeholder_duckduckgo: "Search DuckDuckGo...",
       placeholder_gemini: "Ask Gemini...",
       results_title: "Gemini Results",
       loading: "Asking Gemini...",
@@ -241,7 +241,7 @@ const translations = {
   eo: {
     // Search interface
     search: {
-      placeholder_google: "Serĉi per Google...",
+      placeholder_duckduckgo: "Serĉi per DuckDuckGo...",
       placeholder_gemini: "Demandu al Gemini...",
       results_title: "Rezultoj de Gemini",
       loading: "Demandas al Gemini...",

@@ -23,7 +23,7 @@ const preferredDarkTheme = mocha;
 
 3. Try combinations (`latte`/`frappe`, `latte`/`macchiato`, etc.)
 4. Save and reload
-5. Test Google mode + Gemini mode
+5. Test DuckDuckGo mode + Gemini mode
 
 ## What Should Adapt Automatically
 

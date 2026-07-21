@@ -60,14 +60,14 @@ that's genuinely it.
 
 ## ˗ˏˋ ★ gemini — the crystal ball ˎˊ˗
 
-dual-mode search is built in — google for when you know what you're looking for, gemini for when you want to ask something actually interesting.
+dual-mode search is built in — duckduckgo for when you know what you're looking for, gemini for when you want to ask something actually interesting.
 
 ### shortcuts
 
 | key | what it does |
 |-----|--------------|
 | `/` | open search |
-| `Tab` | toggle google ↔ gemini |
+| `Tab` | toggle duckduckgo ↔ gemini |
 | `Enter` | cast the spell |
 | `Esc` | close the modal |
 

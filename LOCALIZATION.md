@@ -46,7 +46,7 @@ window.i18n.setLocale('eo');
 ### `window.i18n.t(key)`
 
 ```javascript
-window.i18n.t('search.placeholder_google');
+window.i18n.t('search.placeholder_duckduckgo');
 window.i18n.t('weather.conditions.fog');
 ```
 
@@ -89,7 +89,7 @@ window.i18n.getOrdinal(1);
 ```javascript
 {
   search: {
-    placeholder_google: string,
+    placeholder_duckduckgo: string,
     placeholder_gemini: string,
     results_title: string,
     loading: string,

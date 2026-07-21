@@ -9,7 +9,7 @@ class Statusbar extends Component {
   };
 
   currentTabIndex = 0;
-  searchEngine = "google"; // "google" or "gemini"
+  searchEngine = "duckduckgo"; // "duckduckgo" or "gemini"
 
   constructor() {
     super();
@@ -351,8 +351,8 @@ class Statusbar extends Component {
             transition: color 0.3s ease;
         }
 
-        .search-engine-icon.google {
-            color: ${CONFIG.palette.blue};
+        .search-engine-icon.duckduckgo {
+            color: ${CONFIG.palette.peach};
         }
 
         .search-engine-icon.gemini {
@@ -696,8 +696,8 @@ class Statusbar extends Component {
                     <i class="ti ti-sparkles"></i>
                 </div>
                 <div class="search-header">
-                    <i class="ti ti-brand-google search-engine-icon google"></i>
-                    <input type="text" class="search-input" placeholder="${window.i18n.t("search.placeholder_google")}"/>
+                    <i class="ti ti-world search-engine-icon duckduckgo"></i>
+                    <input type="text" class="search-input" placeholder="${window.i18n.t("search.placeholder_duckduckgo")}"/>
                     <i class="ti ti-search search-icon"></i>
                 </div>
                 <div class="search-results">
@@ -935,9 +935,9 @@ class Statusbar extends Component {
 
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
-      if (this.searchEngine === "google") {
-        searchInput.placeholder = window.i18n.t("search.placeholder_google");
-        engineIcon.className = "ti ti-brand-google search-engine-icon google";
+      if (this.searchEngine === "duckduckgo") {
+        searchInput.placeholder = window.i18n.t("search.placeholder_duckduckgo");
+        engineIcon.className = "ti ti-world search-engine-icon duckduckgo";
       } else {
         searchInput.placeholder = window.i18n.t("search.placeholder_gemini");
         engineIcon.className = "ti ti-sparkles search-engine-icon gemini";
@@ -1029,7 +1029,7 @@ class Statusbar extends Component {
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Tab") {
         e.preventDefault();
-        this.searchEngine = this.searchEngine === "google" ? "gemini" : "google";
+        this.searchEngine = this.searchEngine === "duckduckgo" ? "gemini" : "duckduckgo";
         updateSearchEngine();
       }
     });
@@ -1039,8 +1039,8 @@ class Statusbar extends Component {
       if (e.key === "Enter") {
         const query = searchInput.value.trim();
         if (query) {
-          if (this.searchEngine === "google") {
-            window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+          if (this.searchEngine === "duckduckgo") {
+            window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
           } else {
             // Step 1: Hide search header
             searchHeader.classList.add("hidden");

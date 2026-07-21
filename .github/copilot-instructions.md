@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Catppuccin Startpage** is a minimalist, aesthetic browser startpage built with vanilla JavaScript Web Components. It features a tabbed interface for organizing bookmarks, integrated weather widget, clock display, and **Google Gemini AI search integration** with dual search mode (Google/Gemini toggle).
+**Catppuccin Startpage** is a minimalist, aesthetic browser startpage built with vanilla JavaScript Web Components. It features a tabbed interface for organizing bookmarks, integrated weather widget, clock display, and **Google Gemini AI search integration** with dual search mode (DuckDuckGo/Gemini toggle).
 
 ### Core Philosophy
 - **Minimalism**: Clean UI with reduced visual noise
@@ -53,13 +53,13 @@ class Component extends HTMLElement {
 
 ### Dual Search Engine (Gemini Integration)
 
-[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between Google and Gemini.
+[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between DuckDuckGo and Gemini.
 
 ### Internationalization (i18n)
 
 [src/common/i18n.js](../src/common/i18n.js#L1) provides translation API:
 ```javascript
-window.i18n.t('search.placeholder_google') // Get translated string
+window.i18n.t('search.placeholder_duckduckgo') // Get translated string
 window.i18n.setLocale('en') // Switch language
 ```
 - **Languages**: Spanish (`es`) default, English (`en`) available.
@@ -178,7 +178,7 @@ async queryGemini(query) {
 Implement in `activate()` method after DOM is ready.
 **Current Shortcuts**:
 - **`/`**: Open search overlay, focus input
-- **`Tab`**: Toggle between Google Search and Gemini AI (only when input focused)
+- **`Tab`**: Toggle between DuckDuckGo Search and Gemini AI (only when input focused)
 - **`Escape`**: Close search modal, clear results
 - **`Enter`**: Submit search query
 
@@ -338,7 +338,7 @@ No npm packages or build dependencies—all loaded at runtime.
 console.log(CONFIG);
 
 // Test i18n
-window.i18n.t('search.placeholder_google');
+window.i18n.t('search.placeholder_duckduckgo');
 
 // Manually activate component
 Actions.activate('current-time');

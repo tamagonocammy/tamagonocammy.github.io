@@ -80,7 +80,7 @@ Scripts in `index.html` must load in this exact order:
 
 ### Gemini AI Integration
 
-Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to toggle between Google and Gemini.
+Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to toggle between DuckDuckGo and Gemini.
 
 - API key: `localStorage.setItem('GEMINI_API_KEY', 'key')` or `window.GEMINI_API_KEY` in `userconfig.js`
 - Configurable via `advanced_config.gemini` (model, temperature, maxOutputTokens)
@@ -97,7 +97,7 @@ Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to togg
 **i18n API:**
 
 ```javascript
-window.i18n.t('search.placeholder_google')     // Get translation by dot-notation key
+window.i18n.t('search.placeholder_duckduckgo')     // Get translation by dot-notation key
 window.i18n.setLocale('en')                   // Switch language (persists to localStorage)
 window.i18n.getDays(short = false)            // Get localized day names
 window.i18n.getMonths(short = false)          // Get localized month names
@@ -154,7 +154,7 @@ throw new Error("API failed");
 | Key | Action |
 |-----|--------|
 | `/` | Open search overlay, focus input |
-| `Tab` | Toggle between Google Search and Gemini AI (when input focused) |
+| `Tab` | Toggle between DuckDuckGo Search and Gemini AI (when input focused) |
 | `Enter` | Execute search / submit query |
 | `Escape` | Close search modal, clear results |
 
@@ -185,7 +185,7 @@ Open browser console (F12) and use these globals:
 console.log(CONFIG);
 
 // Test translations
-window.i18n.t('search.placeholder_google');
+window.i18n.t('search.placeholder_duckduckgo');
 
 // Activate component manually
 Actions.activate('status-bar');
