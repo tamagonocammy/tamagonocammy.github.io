@@ -87,7 +87,7 @@ const default_config = {
   // --------------------------------------------------------------------------------
   tabs: [
     {
-      name: "M i l i e",
+      name: "M i l l i e",
       color: palette.lavender,
       background_url: "src/img/banners/banner_21.gif",
       categories: [
