@@ -718,7 +718,8 @@ class Statusbar extends Component {
         </div>`;
   }
 
-  async queryGemini(query, signal) {
+  // Streams the answer: onText(textSoFar) is called as chunks arrive; resolves to { text } or an error object
+  async queryGemini(query, signal, onText) {
     // Get API key from localStorage or userconfig
     const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
 
@@ -760,7 +761,7 @@ class Statusbar extends Component {
       }
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
         {
           method: "POST",
           headers: {
@@ -778,17 +779,41 @@ class Statusbar extends Component {
         throw new Error(errorData.error?.message || `${window.i18n.t("search.error_failed_response")} (HTTP ${response.status})`);
       }
 
-      const data = await response.json();
-      const candidate = data.candidates?.[0];
-      // Newer models can split a reply into several parts; skip thought summaries
-      const text = (candidate?.content?.parts || [])
-        .filter((part) => part.text && !part.thought)
-        .map((part) => part.text)
-        .join("");
+      // Server-sent events: each "data: {...}" line is one chunk of the answer
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let text = "";
+      let reason;
+      let blockReason;
+
+      const handleLine = (line) => {
+        if (!line.startsWith("data:")) return;
+        const data = JSON.parse(line.slice(5));
+        if (data.error) throw new Error(data.error.message || window.i18n.t("search.error_failed_response"));
+        const candidate = data.candidates?.[0];
+        // A chunk can hold several parts; skip thought summaries
+        for (const part of candidate?.content?.parts || []) {
+          if (part.text && !part.thought) text += part.text;
+        }
+        reason = candidate?.finishReason || reason;
+        blockReason = data.promptFeedback?.blockReason || blockReason;
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop(); // keep a partial line for the next read
+        const before = text;
+        lines.forEach(handleLine);
+        if (text !== before) onText?.(text);
+      }
+      handleLine(buffer.trim());
 
       if (!text) {
-        const reason = candidate?.finishReason;
-        if (data.promptFeedback?.blockReason || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"].includes(reason)) {
+        if (blockReason || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"].includes(reason)) {
           throw new Error(window.i18n.t("search.error_blocked"));
         }
         if (reason === "MAX_TOKENS") {
@@ -1139,8 +1164,64 @@ class Statusbar extends Component {
               loadingIcon.classList.add("active");
             }, 300);
 
-            // Query Gemini
-            const result = await this.queryGemini(query, request.signal);
+            // Query Gemini; the answer streams in chunk by chunk
+            let streamedText = "";
+            let canRender = false; // only draw text once the panel has expanded
+            let renderQueued = false;
+            const responseHtml = (text) => {
+              // Close a code block that is still streaming so it renders as code meanwhile
+              const fences = (text.match(/```/g) || []).length;
+              return `<div class="gemini-response">${this.formatMarkdown(fences % 2 ? text + "\n```" : text)}</div>`;
+            };
+            const renderStream = () => {
+              if (!canRender || renderQueued || isStale()) return;
+              renderQueued = true;
+              // At most one re-render per frame, however fast chunks arrive
+              requestAnimationFrame(() => {
+                renderQueued = false;
+                if (!isStale()) resultsContent.innerHTML = responseHtml(streamedText);
+              });
+            };
+            const errorHtml = (result) => {
+              const apiKeyNotice = !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
+                ? `
+                  <p style="margin-top: 15px;">
+                    <strong>${window.i18n.t("search.setup_title")}</strong><br>
+                    1. ${window.i18n.t("search.setup_step_1")} <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                    2. ${window.i18n.t("search.setup_step_2")}<br>
+                    <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('GEMINI_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
+                    3. ${window.i18n.t("search.setup_step_3")}
+                  </p>
+                `
+                : "";
+              const technicalMessage = result.message ? escapeHtml(result.message) : "";
+              const technicalDetails = technicalMessage
+                ? `
+                  <details style="margin-top: 12px;">
+                    <summary>${window.i18n.t("search.error_details_summary")}</summary>
+                    <pre style="margin-top: 8px; white-space: pre-wrap;">${technicalMessage}</pre>
+                  </details>
+                `
+                : "";
+              return `
+              <div class="error-message">
+                <h3>${window.i18n.t("search.error_title_friendly")}</h3>
+                <p>${window.i18n.t("search.error_body_friendly")}</p>
+                ${technicalDetails}
+                ${apiKeyNotice}
+              </div>
+            `;
+            };
+
+            let firstChunk;
+            const firstChunkArrived = new Promise((resolve) => (firstChunk = resolve));
+            const resultPromise = this.queryGemini(query, request.signal, (text) => {
+              streamedText = text;
+              firstChunk();
+              renderStream();
+            });
+            // Open the panel as soon as Gemini starts answering (or fails)
+            await Promise.race([firstChunkArrived, resultPromise]);
             // The overlay was closed while waiting: drop the answer
             if (isStale()) return;
 
@@ -1166,46 +1247,20 @@ class Statusbar extends Component {
               }, 100);
             }, 800);
 
-            // Update content after expansion animation
-            setTimeout(() => {
+            // Start drawing after the expansion animation, then keep up with the stream
+            setTimeout(async () => {
+              if (isStale()) return;
+              canRender = true;
+              if (streamedText) resultsContent.innerHTML = responseHtml(streamedText);
+
+              const result = await resultPromise;
               if (isStale()) return;
               currentRequest = null;
               if (result.error) {
-                const apiKeyNotice = !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
-                  ? `
-                    <p style="margin-top: 15px;">
-                      <strong>${window.i18n.t("search.setup_title")}</strong><br>
-                      1. ${window.i18n.t("search.setup_step_1")} <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
-                      2. ${window.i18n.t("search.setup_step_2")}<br>
-                      <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('GEMINI_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
-                      3. ${window.i18n.t("search.setup_step_3")}
-                    </p>
-                  `
-                  : "";
-                const technicalMessage = result.message ? escapeHtml(result.message) : "";
-                const technicalDetails = technicalMessage
-                  ? `
-                    <details style="margin-top: 12px;">
-                      <summary>${window.i18n.t("search.error_details_summary")}</summary>
-                      <pre style="margin-top: 8px; white-space: pre-wrap;">${technicalMessage}</pre>
-                    </details>
-                  `
-                  : "";
-                resultsContent.innerHTML = `
-                <div class="error-message">
-                  <h3>${window.i18n.t("search.error_title_friendly")}</h3>
-                  <p>${window.i18n.t("search.error_body_friendly")}</p>
-                  ${technicalDetails}
-                  ${apiKeyNotice}
-                </div>
-              `;
+                // Keep whatever already arrived, with the error below it
+                resultsContent.innerHTML = (streamedText ? responseHtml(streamedText) : "") + errorHtml(result);
               } else {
-                const formattedHtml = this.formatMarkdown(result.text);
-                resultsContent.innerHTML = `
-                <div class="gemini-response">
-                  ${formattedHtml}
-                </div>
-              `;
+                resultsContent.innerHTML = responseHtml(result.text);
               }
             }, 900);
 

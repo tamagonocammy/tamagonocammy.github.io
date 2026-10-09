@@ -84,7 +84,7 @@ Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to togg
 
 - API key: `localStorage.setItem('GEMINI_API_KEY', 'key')` or `window.GEMINI_API_KEY` in `userconfig.js`
 - Configurable via `advanced_config.gemini` (model, temperature, maxOutputTokens)
-- Returns markdown-formatted responses with code block highlighting
+- Streams the answer (`streamGenerateContent?alt=sse`) and re-renders the markdown as chunks arrive, with code block highlighting
 
 ### Internationalization
 
