@@ -89,7 +89,7 @@ In `userconfig.js` -> `advanced_config.gemini`:
 
 ```javascript
 gemini: {
-  model: "gemini-3-flash-preview",
+  model: "gemini-3.8-flash",
   temperature: 0.7,
   maxOutputTokens: 2048,
 }

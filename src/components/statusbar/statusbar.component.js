@@ -729,7 +729,7 @@ class Statusbar extends Component {
       };
     }
     // Use advanced_config for Gemini settings with fallbacks
-    const model = advanced_config?.gemini?.model || "gemini-3-flash-preview";
+    const model = advanced_config?.gemini?.model || "gemini-3.8-flash";
     const temperature = advanced_config?.gemini?.temperature ?? 0.7;
     const maxOutputTokens = advanced_config?.gemini?.maxOutputTokens ?? 2048;
     const systemInstruction = advanced_config?.gemini?.systemInstruction;

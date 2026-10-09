@@ -153,7 +153,7 @@ async queryGemini(query) {
   if (!apiKey) return { error: true, message: "setup link" };
 
   // Uses settings from `advanced_config.gemini` with sensible defaults
-  // model: advanced_config.gemini.model (default: gemini-3-flash-preview)
+  // model: advanced_config.gemini.model (default: gemini-3.8-flash)
   // temperature: advanced_config.gemini.temperature (default: 0.7)
   // maxOutputTokens: advanced_config.gemini.maxOutputTokens (default: 2048)
   // POST to generativelanguage.googleapis.com/v1beta/models/${model}:generateContent
@@ -208,7 +208,7 @@ The `advanced_config` object in `userconfig.js` controls system-wide behavior:
 ```javascript
 const advanced_config = {
   gemini: {
-    model: "gemini-3-flash-preview", // Check Google AI docs for latest models
+    model: "gemini-3.8-flash", // Check Google AI docs for latest models
     temperature: 0.7, // 0.0 - 1.0 (creative)
     maxOutputTokens: 2048,
   },

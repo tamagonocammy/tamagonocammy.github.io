@@ -381,7 +381,7 @@ const default_config = {
 const advanced_config = {
   // Gemini AI Settings
   gemini: {
-    model: "gemini-3-flash-preview", // Model to use (check Google AI docs for latest)
+    model: "gemini-3.8-flash", // Model to use (check Google AI docs for latest)
     temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
     maxOutputTokens: 2048, // Maximum response length
     systemInstruction:
