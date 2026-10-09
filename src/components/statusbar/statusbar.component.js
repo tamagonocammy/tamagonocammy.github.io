@@ -1237,7 +1237,10 @@ class Statusbar extends Component {
 
   openLastVisitedTab() {
     if (!CONFIG.openLastVisitedTab) return;
-    this.activateByKey(localStorage.lastVisitedTab);
+    // Nothing saved yet on a fresh browser
+    const key = Number(localStorage.lastVisitedTab);
+    if (!Number.isInteger(key)) return;
+    this.activateByKey(key);
   }
 
   handleTabChange(tab) {
@@ -1299,7 +1302,8 @@ class Statusbar extends Component {
   }
 
   activateByKey(key) {
-    if (key < 0) return;
+    // Also skips a saved tab that no longer exists (e.g. after removing a category)
+    if (key < 0 || !this.refs.tabs[key] || !this.externalRefs.categories[key]) return;
     this.currentTabIndex = key;
 
     this.activate(this.refs.tabs, this.refs.tabs[key]);
