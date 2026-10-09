@@ -743,6 +743,7 @@ class Statusbar extends Component {
     const fallbackModels = advanced_config?.gemini?.fallbackModels ?? ["gemini-3.5-flash"];
     const temperature = advanced_config?.gemini?.temperature ?? 0.7;
     const maxOutputTokens = advanced_config?.gemini?.maxOutputTokens ?? 2048;
+    const thinkingLevel = advanced_config?.gemini?.thinkingLevel ?? "low";
     const systemInstruction = advanced_config?.gemini?.systemInstruction;
 
     const requestBody = {
@@ -769,6 +770,11 @@ class Statusbar extends Component {
       };
     }
 
+    // Less silent "thinking" before the first word = faster answers
+    if (thinkingLevel) {
+      requestBody.generationConfig.thinkingConfig = { thinkingLevel };
+    }
+
     // Overloaded / rate limited / temporary server trouble: worth another try
     const isBusy = (error) => [429, 500, 503, 504].includes(error.status);
     const models = [model, ...fallbackModels.filter((m) => m && m !== model)];
@@ -783,6 +789,12 @@ class Statusbar extends Component {
             const result = await this.streamGemini(currentModel, requestBody, apiKey, signal, onText);
             return currentModel === model ? result : { ...result, fallbackFrom: model };
           } catch (error) {
+            // This model doesn't accept the thinking level: ask again with the model's own default
+            if (error.status === 400 && requestBody.generationConfig.thinkingConfig && /thinking/i.test(error.message)) {
+              delete requestBody.generationConfig.thinkingConfig;
+              attempt--;
+              continue;
+            }
             // Give up on anything but "busy", and never switch models once text has been shown
             if (signal?.aborted || error.streamed || !isBusy(error)) throw error;
             lastError = error;
@@ -1195,6 +1207,7 @@ class Statusbar extends Component {
             const request = new AbortController();
             currentRequest = request;
             const isStale = () => currentRequest !== request;
+            const startedAt = performance.now();
             resultsContent.innerHTML = loadingHtml;
 
             // Step 1: Hide search header
@@ -1268,7 +1281,8 @@ class Statusbar extends Component {
             // The overlay was closed while waiting: drop the answer
             if (isStale()) return;
 
-            // Step 3: Expand to full results window
+            // Step 3: Expand to full results window, as soon as the loading animation has played
+            const expandDelay = Math.max(0, 800 - (performance.now() - startedAt));
             setTimeout(() => {
               if (isStale()) return;
               loadingIcon.classList.remove("active");
@@ -1288,9 +1302,9 @@ class Statusbar extends Component {
               setTimeout(() => {
                 searchResults.classList.add("active");
               }, 100);
-            }, 800);
+            }, expandDelay);
 
-            // Start drawing after the expansion animation, then keep up with the stream
+            // Start drawing once the panel is opening, then keep up with the stream
             setTimeout(async () => {
               if (isStale()) return;
               canRender = true;
@@ -1313,7 +1327,7 @@ class Statusbar extends Component {
                   : "";
                 resultsContent.innerHTML = responseHtml(result.text) + fallbackNote;
               }
-            }, 900);
+            }, expandDelay + 150);
 
             // Clear search input
             searchInput.value = "";

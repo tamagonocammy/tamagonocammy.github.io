@@ -385,6 +385,7 @@ const advanced_config = {
     fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy ([] to disable)
     temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
     maxOutputTokens: 2048, // Maximum response length
+    thinkingLevel: "low", // Thinking before answering: "minimal" (fastest), "low", "medium", "high" (slowest), or null for the model's default
     systemInstruction:
       "Answer the user's question directly and completely in a single response. Do not ask clarifying questions, do not ask for the user's opinion, and do not request further input. If something is ambiguous, make a reasonable assumption and state it briefly. Never end your response with a follow-up question or an offer to do more.",
   },
