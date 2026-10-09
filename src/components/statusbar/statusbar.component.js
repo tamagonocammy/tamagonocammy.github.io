@@ -718,7 +718,7 @@ class Statusbar extends Component {
         </div>`;
   }
 
-  async queryGemini(query) {
+  async queryGemini(query, signal) {
     // Get API key from localStorage or userconfig
     const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
 
@@ -760,26 +760,41 @@ class Statusbar extends Component {
       }
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            // Send the key as a header so it stays out of URLs and request logs
+            "x-goog-api-key": apiKey,
           },
           body: JSON.stringify(requestBody),
+          signal,
         },
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || window.i18n.t("search.error_failed_response"));
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `${window.i18n.t("search.error_failed_response")} (HTTP ${response.status})`);
       }
 
       const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const candidate = data.candidates?.[0];
+      // Newer models can split a reply into several parts; skip thought summaries
+      const text = (candidate?.content?.parts || [])
+        .filter((part) => part.text && !part.thought)
+        .map((part) => part.text)
+        .join("");
 
       if (!text) {
-        throw new Error(window.i18n.t("search.error_no_response"));
+        const reason = candidate?.finishReason;
+        if (data.promptFeedback?.blockReason || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"].includes(reason)) {
+          throw new Error(window.i18n.t("search.error_blocked"));
+        }
+        if (reason === "MAX_TOKENS") {
+          throw new Error(window.i18n.t("search.error_max_tokens"));
+        }
+        throw new Error(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
       }
 
       return { text };
@@ -801,21 +816,22 @@ class Statusbar extends Component {
 
     let html = text;
 
-    // 1) Extract code blocks so bold/italic/etc don't touch their content
+    // 1) Extract code blocks and inline code so lists/bold/italic/etc don't touch their content
     const codeBlocks = [];
     html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, _lang, code) => {
       const i = codeBlocks.length;
       codeBlocks.push(code);
       return `%%CODE_${i}%%`;
     });
+    const inlineCodes = [];
+    html = html.replace(/`([^`\n]+)`/g, (_, code) => {
+      const i = inlineCodes.length;
+      inlineCodes.push(code);
+      return `%%INLINE_${i}%%`;
+    });
 
     // 2) Escape HTML to avoid XSS and broken layout from < > & in Gemini output
     html = escapeHtml(html);
-
-    // 3) Restore code block placeholders as safe <pre><code> (content was raw, escape when restoring)
-    codeBlocks.forEach((code, i) => {
-      html = html.replace(`%%CODE_${i}%%`, `<pre><code>${escapeHtml(code)}</code></pre>`);
-    });
 
     // Horizontal rules (--- or ___ or *** on own line)
     html = html.replace(/^(---|\*\*\*|___)\s*$/gm, "<hr>");
@@ -825,14 +841,14 @@ class Statusbar extends Component {
     // Merge consecutive blockquotes into one
     html = html.replace(/<\/blockquote>\n<blockquote>/g, "\n");
 
+    // Lists before bold/italic, so "* item" bullets aren't mistaken for emphasis
+    html = this.formatLists(html);
+
     // Bold (before italic so ** takes precedence)
     html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
-    // Italic
-    html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
-
-    // Inline code
-    html = html.replace(/`(.+?)`/g, "<code>$1</code>");
+    // Italic: only *word*, not 2*3*4 or stray asterisks
+    html = html.replace(/(?<![\w*\\])\*(?![\s*])(.+?)(?<![\s*])\*(?![\w*])/g, "<em>$1</em>");
 
     // Strikethrough
     html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
@@ -843,21 +859,11 @@ class Statusbar extends Component {
       return `<img src="${safe}" alt="${alt}" class="gemini-img" loading="lazy">`;
     });
 
-    // Headers (optional space after #)
-    html = html.replace(/^###\s*(.+)$/gm, "<h3>$1</h3>");
-    html = html.replace(/^##\s*(.+)$/gm, "<h2>$1</h2>");
-    html = html.replace(/^#\s*(.+)$/gm, "<h1>$1</h1>");
-
-    // Lists (single * or - for unordered, not **)
-    html = html.replace(/^(?!\*\*)\*\s+(.+)$/gm, '<li class="ul-item">$1</li>');
-    html = html.replace(/^-\s+(.+)$/gm, '<li class="ul-item">$1</li>');
-    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li class="ol-item">$1</li>');
-
-    // Wrap consecutive list items
-    html = html.replace(/(<li class="ul-item">.*?<\/li>\n?)+/g, "<ul>$&</ul>");
-    html = html.replace(/(<li class="ol-item">.*?<\/li>\n?)+/g, "<ol>$&</ol>");
-    html = html.replace(/class="ul-item"/g, "");
-    html = html.replace(/class="ol-item"/g, "");
+    // Headers (optional space after #); h4-h6 render as h3
+    html = html.replace(/^(#{1,6})\s*(.+)$/gm, (_, hashes, title) => {
+      const level = Math.min(hashes.length, 3);
+      return `<h${level}>${title}</h${level}>`;
+    });
 
     // Links (URLs already escaped; allow # in href for anchors)
     html = html.replace(/\[(.+?)\]\((.+?)\)/g, (_, text, url) => {
@@ -866,7 +872,8 @@ class Statusbar extends Component {
     });
 
     // Markdown tables
-    html = html.replace(/(?:^\|.+\|\s*$)+/gm, (block) => {
+    // (one match = a whole run of consecutive | rows, so a table isn't split per row)
+    html = html.replace(/^\|.+\|[ \t]*(?:\n\|.+\|[ \t]*)*$/gm, (block) => {
       const lines = block
         .trim()
         .split("\n")
@@ -897,14 +904,73 @@ class Statusbar extends Component {
     html = html
       .split("\n\n")
       .map((para) => {
-        if (!para.startsWith("<") && para.trim() !== "") {
-          return "<p>" + para.replace(/\n/g, "<br>") + "</p>";
+        const trimmed = para.trim();
+        if (!trimmed.startsWith("<") && !/^%%CODE_\d+%%$/.test(trimmed) && trimmed !== "") {
+          return "<p>" + trimmed.replace(/\n/g, "<br>") + "</p>";
         }
-        return para;
+        return trimmed;
       })
       .join("\n");
 
+    // Restore code last, escaped, so no other rule ever touches its content
+    html = html.replace(/%%INLINE_(\d+)%%/g, (_, i) => `<code>${escapeHtml(inlineCodes[i])}</code>`);
+    html = html.replace(/%%CODE_(\d+)%%/g, (_, i) => `<pre><code>${escapeHtml(codeBlocks[i])}</code></pre>`);
+
     return html;
+  }
+
+  // Turns markdown bullet/numbered lines into (nested) <ul>/<ol>, using indentation for nesting
+  formatLists(text) {
+    const listLine = /^(\s*)([*-]|\d+\.)\s+(.+)$/;
+    const lines = text.split("\n");
+    const out = [];
+    const stack = [];
+    let listHtml = "";
+
+    const closeLevel = () => (listHtml += `</li></${stack.pop().type}>`);
+    const openLevel = (indent, type, marker) => {
+      const start = type === "ol" && parseInt(marker) !== 1 ? ` start="${parseInt(marker)}"` : "";
+      stack.push({ indent, type });
+      listHtml += `<${type}${start}><li>`;
+    };
+    const flush = () => {
+      while (stack.length) closeLevel();
+      // Blank lines around the list keep it out of the surrounding paragraphs
+      out.push("", listHtml, "");
+      listHtml = "";
+    };
+
+    lines.forEach((line, index) => {
+      const match = line.match(listLine);
+      if (!match) {
+        // A blank line between items (a "loose" list) shouldn't end the list
+        const next = lines.slice(index + 1).find((l) => l.trim() !== "");
+        if (stack.length && line.trim() === "" && next && listLine.test(next)) return;
+        if (stack.length) flush();
+        out.push(line);
+        return;
+      }
+
+      const [, spaces, marker, content] = match;
+      const indent = spaces.replace(/\t/g, "    ").length;
+      const type = /\d/.test(marker) ? "ol" : "ul";
+
+      while (stack.length && stack[stack.length - 1].indent > indent) closeLevel();
+      const top = stack[stack.length - 1];
+
+      if (!top || indent > top.indent) {
+        openLevel(indent, type, marker);
+      } else if (top.type !== type) {
+        closeLevel();
+        openLevel(indent, type, marker);
+      } else {
+        listHtml += "</li><li>";
+      }
+      listHtml += content;
+    });
+
+    if (stack.length) flush();
+    return out.join("\n");
   }
 
   setEvents() {
@@ -933,6 +999,16 @@ class Statusbar extends Component {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
 
+    // Only one Gemini request at a time; closing the overlay cancels it
+    const loadingHtml = resultsContent.innerHTML;
+    let currentRequest = null;
+    const cancelRequest = () => {
+      currentRequest?.abort();
+      currentRequest = null;
+    };
+    const isShowingResults = () =>
+      searchResults.classList.contains("active") || searchModal.classList.contains("expanded");
+
     // Update placeholder and icon based on current engine
     const updateSearchEngine = () => {
       if (this.searchEngine === "duckduckgo") {
@@ -952,6 +1028,7 @@ class Statusbar extends Component {
 
     // Function to close with animation
     const closeWithAnimation = () => {
+      cancelRequest();
       // Step 1: Start blur fadeout
       searchOverlay.classList.add("closing");
 
@@ -983,6 +1060,7 @@ class Statusbar extends Component {
 
     // Function to close search box with animation
     const closeSearchBox = () => {
+      cancelRequest();
       // Start blur fadeout and shrink search box
       searchOverlay.classList.add("closing");
       searchModal.classList.add("search-closing");
@@ -992,6 +1070,8 @@ class Statusbar extends Component {
         searchOverlay.classList.remove("active");
         searchOverlay.classList.remove("closing");
         searchModal.classList.remove("search-closing");
+        searchModal.classList.remove("loading");
+        loadingIcon.classList.remove("active");
         searchHeader.classList.remove("hidden");
         searchInput.value = "";
       }, 500);
@@ -1001,7 +1081,7 @@ class Statusbar extends Component {
     searchOverlay.addEventListener("click", (e) => {
       if (e.target === searchOverlay) {
         // If results are showing, animate collapse
-        if (searchResults.classList.contains("active")) {
+        if (isShowingResults()) {
           closeWithAnimation();
         } else {
           // If just search box, animate close
@@ -1015,7 +1095,7 @@ class Statusbar extends Component {
       if (e.key === "Escape") {
         if (searchOverlay.classList.contains("active")) {
           // If results are showing, animate collapse
-          if (searchResults.classList.contains("active")) {
+          if (isShowingResults()) {
             closeWithAnimation();
           } else {
             // If just search box, animate close
@@ -1042,20 +1122,31 @@ class Statusbar extends Component {
           if (this.searchEngine === "duckduckgo") {
             window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
           } else {
+            // Ignore repeated Enter presses while a query is in flight
+            if (currentRequest) return;
+            const request = new AbortController();
+            currentRequest = request;
+            const isStale = () => currentRequest !== request;
+            resultsContent.innerHTML = loadingHtml;
+
             // Step 1: Hide search header
             searchHeader.classList.add("hidden");
 
             // Step 2: After header fades, compress to loading icon
             setTimeout(() => {
+              if (isStale()) return;
               searchModal.classList.add("loading");
               loadingIcon.classList.add("active");
             }, 300);
 
             // Query Gemini
-            const result = await this.queryGemini(query);
+            const result = await this.queryGemini(query, request.signal);
+            // The overlay was closed while waiting: drop the answer
+            if (isStale()) return;
 
             // Step 3: Expand to full results window
             setTimeout(() => {
+              if (isStale()) return;
               loadingIcon.classList.remove("active");
               searchModal.classList.remove("loading");
               searchModal.classList.add("expanded");
@@ -1077,6 +1168,8 @@ class Statusbar extends Component {
 
             // Update content after expansion animation
             setTimeout(() => {
+              if (isStale()) return;
+              currentRequest = null;
               if (result.error) {
                 const apiKeyNotice = !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
                   ? `
