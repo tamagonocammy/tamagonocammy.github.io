@@ -474,6 +474,14 @@ class Statusbar extends Component {
             color: ${CONFIG.palette.text};
         }
 
+        .model-note {
+            margin-top: 16px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: ${CONFIG.palette.subtext0};
+            border-left: 3px solid ${CONFIG.palette.overlay0};
+        }
+
         .error-message h3 {
             margin: 0 0 10px 0;
             color: ${CONFIG.palette.red};
@@ -718,7 +726,8 @@ class Statusbar extends Component {
         </div>`;
   }
 
-  // Streams the answer: onText(textSoFar) is called as chunks arrive; resolves to { text } or an error object
+  // Streams the answer: onText(textSoFar) is called as chunks arrive; resolves to { text, model, fallbackFrom? } or an error object.
+  // When Google says the model is busy (before anything arrived), retries once, then tries advanced_config.gemini.fallbackModels.
   async queryGemini(query, signal, onText) {
     // Get API key from localStorage or userconfig
     const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
@@ -731,104 +740,138 @@ class Statusbar extends Component {
     }
     // Use advanced_config for Gemini settings with fallbacks
     const model = advanced_config?.gemini?.model || "gemini-3.8-flash";
+    const fallbackModels = advanced_config?.gemini?.fallbackModels ?? ["gemini-3.5-flash"];
     const temperature = advanced_config?.gemini?.temperature ?? 0.7;
     const maxOutputTokens = advanced_config?.gemini?.maxOutputTokens ?? 2048;
     const systemInstruction = advanced_config?.gemini?.systemInstruction;
 
-    try {
-      const requestBody = {
-        contents: [
-          {
-            parts: [
-              {
-                text: query,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: temperature,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: maxOutputTokens,
-        },
-      };
-
-      if (systemInstruction) {
-        requestBody.systemInstruction = {
-          parts: [{ text: systemInstruction }],
-        };
-      }
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+    const requestBody = {
+      contents: [
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Send the key as a header so it stays out of URLs and request logs
-            "x-goog-api-key": apiKey,
-          },
-          body: JSON.stringify(requestBody),
-          signal,
+          parts: [
+            {
+              text: query,
+            },
+          ],
         },
-      );
+      ],
+      generationConfig: {
+        temperature: temperature,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: maxOutputTokens,
+      },
+    };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `${window.i18n.t("search.error_failed_response")} (HTTP ${response.status})`);
-      }
-
-      // Server-sent events: each "data: {...}" line is one chunk of the answer
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let text = "";
-      let reason;
-      let blockReason;
-
-      const handleLine = (line) => {
-        if (!line.startsWith("data:")) return;
-        const data = JSON.parse(line.slice(5));
-        if (data.error) throw new Error(data.error.message || window.i18n.t("search.error_failed_response"));
-        const candidate = data.candidates?.[0];
-        // A chunk can hold several parts; skip thought summaries
-        for (const part of candidate?.content?.parts || []) {
-          if (part.text && !part.thought) text += part.text;
-        }
-        reason = candidate?.finishReason || reason;
-        blockReason = data.promptFeedback?.blockReason || blockReason;
+    if (systemInstruction) {
+      requestBody.systemInstruction = {
+        parts: [{ text: systemInstruction }],
       };
+    }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split(/\r?\n/);
-        buffer = lines.pop(); // keep a partial line for the next read
-        const before = text;
-        lines.forEach(handleLine);
-        if (text !== before) onText?.(text);
-      }
-      handleLine(buffer.trim());
+    // Overloaded / rate limited / temporary server trouble: worth another try
+    const isBusy = (error) => [429, 500, 503, 504].includes(error.status);
+    const models = [model, ...fallbackModels.filter((m) => m && m !== model)];
 
-      if (!text) {
-        if (blockReason || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"].includes(reason)) {
-          throw new Error(window.i18n.t("search.error_blocked"));
+    try {
+      let lastError;
+      for (const [index, currentModel] of models.entries()) {
+        // The main model gets one retry after a short pause; each backup model gets one try
+        const attempts = index === 0 ? 2 : 1;
+        for (let attempt = 0; attempt < attempts; attempt++) {
+          try {
+            const result = await this.streamGemini(currentModel, requestBody, apiKey, signal, onText);
+            return currentModel === model ? result : { ...result, fallbackFrom: model };
+          } catch (error) {
+            // Give up on anything but "busy", and never switch models once text has been shown
+            if (signal?.aborted || error.streamed || !isBusy(error)) throw error;
+            lastError = error;
+            if (attempt < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
         }
-        if (reason === "MAX_TOKENS") {
-          throw new Error(window.i18n.t("search.error_max_tokens"));
-        }
-        throw new Error(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
       }
-
-      return { text };
+      throw lastError;
     } catch (error) {
       return {
         error: true,
         message: error?.message || window.i18n.t("search.error_generic"),
       };
     }
+  }
+
+  // One streamed request to one model. Throws an Error carrying .status (HTTP or stream error code)
+  // and .streamed (whether any text had already been passed to onText).
+  async streamGemini(model, requestBody, apiKey, signal, onText) {
+    const fail = (message, status, streamed = false) => Object.assign(new Error(message), { status, streamed });
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Send the key as a header so it stays out of URLs and request logs
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify(requestBody),
+        signal,
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw fail(
+        errorData.error?.message || `${window.i18n.t("search.error_failed_response")} (HTTP ${response.status})`,
+        response.status,
+      );
+    }
+
+    // Server-sent events: each "data: {...}" line is one chunk of the answer
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let text = "";
+    let reason;
+    let blockReason;
+
+    const handleLine = (line) => {
+      if (!line.startsWith("data:")) return;
+      const data = JSON.parse(line.slice(5));
+      if (data.error) {
+        throw fail(data.error.message || window.i18n.t("search.error_failed_response"), data.error.code, text !== "");
+      }
+      const candidate = data.candidates?.[0];
+      // A chunk can hold several parts; skip thought summaries
+      for (const part of candidate?.content?.parts || []) {
+        if (part.text && !part.thought) text += part.text;
+      }
+      reason = candidate?.finishReason || reason;
+      blockReason = data.promptFeedback?.blockReason || blockReason;
+    };
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop(); // keep a partial line for the next read
+      const before = text;
+      lines.forEach(handleLine);
+      if (text !== before) onText?.(text);
+    }
+    handleLine(buffer.trim());
+
+    if (!text) {
+      if (blockReason || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"].includes(reason)) {
+        throw fail(window.i18n.t("search.error_blocked"));
+      }
+      if (reason === "MAX_TOKENS") {
+        throw fail(window.i18n.t("search.error_max_tokens"));
+      }
+      throw fail(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
+    }
+
+    return { text, model };
   }
 
   formatMarkdown(text) {
@@ -1260,7 +1303,15 @@ class Statusbar extends Component {
                 // Keep whatever already arrived, with the error below it
                 resultsContent.innerHTML = (streamedText ? responseHtml(streamedText) : "") + errorHtml(result);
               } else {
-                resultsContent.innerHTML = responseHtml(result.text);
+                const fallbackNote = result.fallbackFrom
+                  ? `<div class="model-note"><i class="ti ti-info-circle"></i> ${escapeHtml(
+                      window.i18n
+                        .t("search.fallback_note")
+                        .replace("{model}", result.model)
+                        .replace("{primary}", result.fallbackFrom),
+                    )}</div>`
+                  : "";
+                resultsContent.innerHTML = responseHtml(result.text) + fallbackNote;
               }
             }, 900);
 

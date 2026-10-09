@@ -90,6 +90,7 @@ In `userconfig.js` -> `advanced_config.gemini`:
 ```javascript
 gemini: {
   model: "gemini-3.8-flash",
+  fallbackModels: ["gemini-3.5-flash"], // used when the main model is busy
   temperature: 0.7,
   maxOutputTokens: 2048,
 }
