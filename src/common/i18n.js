@@ -74,6 +74,16 @@ const translations = {
       popup: {
         location: "Ubicación",
         toggle_scale: "Cambiar escala",
+        feels_like: "Sensación térmica",
+        humidity: "Humedad",
+        wind: "Viento",
+        sunrise: "Amanecer",
+        sunset: "Atardecer",
+      },
+      errors: {
+        invalid_key: "Clave de API no válida",
+        city_not_found: "Ciudad no encontrada",
+        rate_limited: "Demasiadas solicitudes, intenta más tarde",
       },
       conditions: {
         clouds: "Nublado",
@@ -195,6 +205,16 @@ const translations = {
       popup: {
         location: "Location",
         toggle_scale: "Toggle scale",
+        feels_like: "Feels like",
+        humidity: "Humidity",
+        wind: "Wind",
+        sunrise: "Sunrise",
+        sunset: "Sunset",
+      },
+      errors: {
+        invalid_key: "Invalid API key",
+        city_not_found: "City not found",
+        rate_limited: "Too many requests, try again later",
       },
       conditions: {
         clouds: "Cloudy",
@@ -313,6 +333,16 @@ const translations = {
       popup: {
         location: "Loko",
         toggle_scale: "Ŝanĝi skalon",
+        feels_like: "Sentiĝas kiel",
+        humidity: "Humideco",
+        wind: "Vento",
+        sunrise: "Sunleviĝo",
+        sunset: "Sunsubiro",
+      },
+      errors: {
+        invalid_key: "Nevalida API-ŝlosilo",
+        city_not_found: "Urbo ne trovita",
+        rate_limited: "Tro da petoj, reprovu poste",
       },
       conditions: {
         clouds: "Nubeta",
