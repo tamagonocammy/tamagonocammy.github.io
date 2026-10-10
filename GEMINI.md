@@ -60,7 +60,7 @@ Notes:
 
 `advanced_config` currently controls:
 
-- `gemini`: model, temperature, maxOutputTokens
+- `gemini`: model, fallbackModels, temperature, maxOutputTokens, thinkingLevel, systemInstruction
 - `weather`: fallback API key and language (personal key should go in `localStorage.OWM_API_KEY` instead)
 - `i18n`: default locale
 - `storage`: localStorage key prefix
@@ -90,11 +90,12 @@ Gemini query flow is in `statusbar.component.js` (`queryGemini`).
 - Key source priority:
   1. `localStorage.getItem('GEMINI_API_KEY')`
   2. `window.GEMINI_API_KEY`
-- Endpoint:
-  - `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+- Endpoint (streamed, one request per model tried in `streamGemini`):
+  - `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`
+  - Key sent in the `x-goog-api-key` header, never in the URL
 - Model/settings from `advanced_config.gemini`
-- Response path expected:
-  - `data.candidates[0].content.parts[0].text`
+- Each SSE chunk carries text at `candidates[0].content.parts[].text`; chunks are appended and re-rendered as they arrive
+- Busy responses (429/500/503/504) before any text: one retry after 2s, then each of `fallbackModels`
 
 Search UX:
 

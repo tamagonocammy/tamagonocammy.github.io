@@ -58,9 +58,9 @@ Components are disabled by adding their name to `CONFIG.disabled` in `userconfig
 - Listens for OS theme changes and reloads page by default
 - Returns the active palette object to be passed to `Config`
 
-### Script Load Order (Critical)
+### Script Load Order
 
-Scripts in `index.html` must load in this exact order:
+Scripts in `index.html` load in this order, because each file uses globals defined by the ones before it (a component loaded before `userconfig.js` fails with an undefined `CONFIG`):
 
 1. `palette.js` — Defines Catppuccin color objects
 2. `theme.js` — Auto-selects light/dark palette

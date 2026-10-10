@@ -62,7 +62,7 @@ class Component extends HTMLElement {
 window.i18n.t('search.placeholder_duckduckgo') // Get translated string
 window.i18n.setLocale('en') // Switch language
 ```
-- **Languages**: Spanish (`es`) default, English (`en`) available.
+- **Languages**: Esperanto (`eo`, default), Spanish (`es`), English (`en`).
 - **Config**: Set `advanced_config.i18n.defaultLocale` in `userconfig.js` or `localStorage.setItem('locale', 'en')`.
 
 ---
@@ -132,9 +132,9 @@ class MyComponent extends Component {
 ```javascript
 class WeatherForecastClient {
   constructor(location) {
-    // Reads API key and language from `advanced_config.weather`
-    this.appId = advanced_config?.weather?.apiKey || "YOUR_KEY";
-    const language = advanced_config?.weather?.language || "es";
+    // Key: localStorage OWM_API_KEY -> window.OWM_API_KEY -> advanced_config.weather.apiKey -> shared demo key
+    this.appId = localStorage.getItem("OWM_API_KEY") || window.OWM_API_KEY || advanced_config?.weather?.apiKey || "<demo key>";
+    const language = advanced_config?.weather?.language || "eo";
     this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&lang=${language}&appid=${this.appId}`;
   }
   async getWeather() { /* fetch and parse */ }
@@ -148,16 +148,15 @@ class WeatherForecastClient {
 [src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js) implements the AI logic:
 
 ```javascript
-async queryGemini(query) {
+async queryGemini(query, signal, onText) {
   const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
   if (!apiKey) return { error: true, message: "setup link" };
 
-  // Uses settings from `advanced_config.gemini` with sensible defaults
-  // model: advanced_config.gemini.model (default: gemini-3.8-flash)
-  // temperature: advanced_config.gemini.temperature (default: 0.7)
-  // maxOutputTokens: advanced_config.gemini.maxOutputTokens (default: 2048)
-  // POST to generativelanguage.googleapis.com/v1beta/models/${model}:generateContent
-  // Response path: data.candidates[0].content.parts[0].text
+  // Settings from `advanced_config.gemini`: model (default gemini-3.8-flash), fallbackModels,
+  // temperature (0.7), maxOutputTokens (2048), thinkingLevel ("low"), systemInstruction
+  // streamGemini() POSTs to .../v1beta/models/${model}:streamGenerateContent?alt=sse
+  // with the key in the x-goog-api-key header; each SSE chunk's text is passed to onText
+  // Busy (429/500/503/504) before any text: retry once after 2s, then try fallbackModels
 }
 ```
 - **API Key**: Checks `localStorage` first, then `window.GEMINI_API_KEY` (from `userconfig.js`).
@@ -209,15 +208,18 @@ The `advanced_config` object in `userconfig.js` controls system-wide behavior:
 const advanced_config = {
   gemini: {
     model: "gemini-3.8-flash", // Check Google AI docs for latest models
+    fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy
     temperature: 0.7, // 0.0 - 1.0 (creative)
     maxOutputTokens: 2048,
+    thinkingLevel: "low", // "minimal" | "low" | "medium" | "high" | null
+    systemInstruction: "...",
   },
   weather: {
-    apiKey: "...", // OpenWeatherMap Key
-    language: "es", // "en", "es", "fr", etc.
+    apiKey: "...", // Shared demo key; put a personal key in localStorage OWM_API_KEY
+    language: "eo", // "eo", "es", "en", "fr", etc.
   },
   i18n: {
-    defaultLocale: "es", // "es" or "en"
+    defaultLocale: "eo", // "eo", "es" or "en"
   },
   storage: {
     keyPrefix: "",
@@ -266,7 +268,7 @@ if (error) return { error: true, message: error.message };
 ### API Calls
 - Weather: Call once per component lifecycle, cache result
 - Gemini: User-initiated; no polling; 60 req/min free tier limit
-- Debounce search input to avoid firing multiple Gemini calls
+- Only one Gemini request runs at a time; closing the overlay aborts it
 
 ### Config Proxy Overhead
 - Proxy `set` trap fires on every CONFIG property change
@@ -284,7 +286,7 @@ if (error) return { error: true, message: error.message };
 ## Common Tasks
 
 ### Modify Search Behavior
-Edit `toggleSearchEngine()` and `handleSearch()` in [statusbar.component.js](../src/components/statusbar/statusbar.component.js)
+Edit the search overlay's key handlers in `activate()` in [statusbar.component.js](../src/components/statusbar/statusbar.component.js)
 
 ### Add a New Palette
 1. Add color object to [src/common/palette.js](../src/common/palette.js)
@@ -293,7 +295,7 @@ Edit `toggleSearchEngine()` and `handleSearch()` in [statusbar.component.js](../
 ### Fix Gemini Integration
 - Verify API key set: `localStorage.getItem('GEMINI_API_KEY')` in browser console
 - Check free tier limits at https://makersuite.google.com/app/apikey
-- Response error format: Check `data.candidates[0].content.parts[0].text` path
+- Streamed responses: check `streamGemini()`, which reads `candidates[0].content.parts[].text` from each SSE chunk
 
 ### Localize UI Strings
 Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js), then use `window.i18n.t('key.path')`
