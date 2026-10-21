@@ -22,7 +22,7 @@ class Links extends Component {
     const defaultColor = CONFIG.palette.base;
 
     return link.icon
-      ? `<i class="ti ti-${link.icon} link-icon"
+      ? `<i class="ti ti-${link.icon} link-icon" aria-hidden="true"
             style="color: ${link.icon_color ?? defaultColor}"></i>`
       : "";
   }
@@ -41,7 +41,7 @@ class Links extends Component {
                 .map(
                   (link) => `
                   <div class="link-info">
-                    <a href="${link.url}">
+                    <a href="${link.url}" aria-label="${link.name ?? link.url}">
                       ${Links.getIcon(link)}
                       ${link.name ? `<p class="link-name" style="font-family: 'Lato', sans-serif;">${link.name}</p>` : ""}
                     </a>
@@ -198,7 +198,8 @@ class Tabs extends Component {
 
       .categories .link-info:not(:last-child) { margin-right: .5em; }
 
-      .categories ul .links a:hover {
+      .categories ul .links a:hover,
+      .categories ul .links a:focus-visible {
           transform: translate(0, 4px);
           box-shadow: 0 0 rgba(0, 0, 0, 0.25), 0 0 0 rgba(0, 0, 0, .5), 0 -0px 5px rgba(0, 0, 0, .1);
           color: var(--flavour);

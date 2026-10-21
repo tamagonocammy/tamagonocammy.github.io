@@ -226,7 +226,7 @@ const default_config = {
             {
               name: "leetcode",
               url: "https://leetcode.com",
-              icon: "code-plus",
+              icon: "brand-leetcode",
               icon_color: palette.peach,
             },
             {
@@ -255,7 +255,7 @@ const default_config = {
             {
               name: "hackernews",
               url: "https://news.ycombinator.com",
-              icon: "brand-redhat",
+              icon: "brand-ycombinator",
               icon_color: palette.peach,
             },
             {
@@ -332,7 +332,7 @@ const default_config = {
             {
               name: "itch.io",
               url: "https://itch.io",
-              icon: "device-gamepad-2",
+              icon: "brand-itch",
               icon_color: palette.yellow,
             },
           ],
