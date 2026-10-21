@@ -124,6 +124,7 @@ const translations = {
         redes_sociales: "Redes sociales",
         juegos: "Juegos",
         video: "Vídeo",
+        lenguas: "Lenguas",
       },
     },
 
@@ -255,6 +256,7 @@ const translations = {
         redes_sociales: "Social media",
         juegos: "Games",
         video: "Video",
+        lenguas: "Languages",
       },
     },
 
@@ -383,6 +385,7 @@ const translations = {
         redes_sociales: "Sociaj retoj",
         juegos: "Ludoj",
         video: "Video",
+        lenguas: "Lingvoj",
       },
     },
 
