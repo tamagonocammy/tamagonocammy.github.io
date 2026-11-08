@@ -88,16 +88,6 @@ Scripts in `index.html` load in this order, because each file uses globals defin
 - Cache DOM references in `activate()` using `this.refs` proxy, not repeated `querySelector` calls
 - Shadow DOM prevents CSS leakage but also prevents external styles from affecting components
 
-### Gemini AI Integration
-
-Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to toggle between DuckDuckGo and Gemini.
-
-- API key: `localStorage.setItem('GEMINI_API_KEY', 'key')` or `window.GEMINI_API_KEY` in `userconfig.js`
-- Configurable via `advanced_config.gemini` (model, fallbackModels, temperature, maxOutputTokens, thinkingLevel)
-- `thinkingLevel` (default `"low"`) is sent as `generationConfig.thinkingConfig`; if a model rejects it (HTTP 400 mentioning thinking), the request is resent without it
-- When Google answers "busy" (429/500/503/504) before any text arrives, retries the main model once after 2s, then tries each of `fallbackModels` and notes which model answered
-- Streams the answer (`streamGenerateContent?alt=sse`) and re-renders the markdown as chunks arrive, with code block highlighting
-
 ### Internationalization
 
 `i18n.js` provides `window.i18n.t('key')` and `window.i18n.setLocale('en')`.
@@ -106,30 +96,9 @@ Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to togg
 - Available locales: `es` (Spanish), `en` (English), `eo` (Esperanto)
 - Use `window.i18n.t()` for all user-facing strings
 
-**i18n API:**
-
-```javascript
-window.i18n.t('search.placeholder_duckduckgo')     // Get translation by dot-notation key
-window.i18n.setLocale('en')                   // Switch language (persists to localStorage)
-window.i18n.getDays(short = false)            // Get localized day names
-window.i18n.getMonths(short = false)          // Get localized month names
-window.i18n.getOrdinal(num)                   // Get ordinal suffix (e.g., "º", "st")
-```
-
 **Translation structure** includes: `search.*`, `time.days/months/periods`, `weather.conditions`, `settings.*`
 
-### Weather API
-
-`weather.component.js` + `weather.api.js`. Free OpenWeatherMap tier (60 calls/minute).
-
-- Configure location in `userconfig.js` `temperature.location`
-- Language in `advanced_config.weather.language`
-- API key resolution order: `localStorage.getItem('OWM_API_KEY')` → `window.OWM_API_KEY` → `advanced_config.weather.apiKey` → shared demo key committed in `userconfig.js`
-- Prefer `localStorage.setItem('OWM_API_KEY', 'key')` for a personal key so it never lands in a commit (same pattern as the Gemini key)
-- Fetches `/weather` (current) and `/forecast?cnt=5` (next five 3-hour slots) in parallel; a failed forecast only hides the hourly row
-- Caches the result in localStorage (`weatherCache:<location>:<lang>`) for 10 minutes, so new tabs render instantly; the component refreshes every 15 minutes and when a tab becomes visible with stale data
-- A failed refresh keeps showing the last good data; HTTP 401/404/429 map to translated messages (`weather.errors.*`)
-- Icons are Tabler only (inline and popup), with night variants; use only glyphs present in `src/css/tabler-icons.min.css` (e.g. `ti-cloud-drizzle` and `ti-cloud-moon` are missing)
+Component-specific notes live next to the code: `src/components/statusbar/CLAUDE.md` (Gemini search) and `src/components/weather/CLAUDE.md` (weather API).
 
 ### Offline Support
 
@@ -137,21 +106,6 @@ window.i18n.getOrdinal(num)                   // Get ordinal suffix (e.g., "º",
 
 - Bump `CACHE_VERSION` in `sw.js` when app-shell files change — old caches are evicted on `activate`
 - Only takes effect over `http(s)`; does nothing when the file is opened directly (`file://`)
-
-### Storage Abstraction
-
-`storage.js` provides namespaced localStorage access:
-
-```javascript
-const storage = new Storage("config");
-storage.set("key", value);
-storage.get("key");
-storage.hasValue("key");
-storage.save(jsonString);
-```
-
-- Gemini API key stored separately: `localStorage.setItem('GEMINI_API_KEY', 'key')`
-- Language preference: `localStorage.setItem('locale', 'en')`
 
 ### Error Handling
 
@@ -164,75 +118,3 @@ return { error: true, message: "API failed" };
 // Incorrect
 throw new Error("API failed");
 ```
-
-### Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| `/` | Open search overlay, focus input |
-| `Tab` | Toggle between DuckDuckGo Search and Gemini AI (when input focused) |
-| `Enter` | Execute search / submit query |
-| `Escape` | Close search modal, clear results |
-
-### Component Resources
-
-Components import resources via `imports()` method:
-
-**Fonts** (Google Fonts or local in `src/fonts/`):
-- `this.resources.fonts.roboto/lato/nunito/raleway`
-- `this.resources.localFonts.*` (when `CONFIG.localFonts` is true)
-
-**Icons**:
-- `this.resources.icons.material` / `materialLocal`
-- `this.resources.icons.tabler` (Tabler Icons)
-- `this.resources.icons.cryptofont`
-
-**Libraries**:
-- `this.resources.libs.awoo` / `awooLocal` (CSS utility framework)
-
-Use `getFontResource()`, `getIconResource()`, `getLibraryResource()` helpers to respect `CONFIG.localIcons`/`CONFIG.localFonts` settings.
-
-### Debugging
-
-Open browser console (F12) and use these globals:
-
-```javascript
-// Inspect current config
-console.log(CONFIG);
-
-// Test translations
-window.i18n.t('search.placeholder_duckduckgo');
-
-// Activate component manually
-Actions.activate('status-bar');
-
-// Test palette change
-window.CONFIG.palette = mocha;
-
-// Get rendered component references
-console.log(RenderedComponents);
-
-// Test weather API
-new WeatherForecastClient("Bogota").getWeather(true).then(console.log); // true skips the cache
-
-// Check Gemini key
-localStorage.getItem('GEMINI_API_KEY');
-
-// Check weather key
-localStorage.getItem('OWM_API_KEY');
-```
-
-Enable "Show user agent shadow DOM" in DevTools settings to inspect component internals.
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `userconfig.js` | **Only user-edited config** — tabs, bookmarks, palette, API keys |
-| `src/common/palette.js` | Catppuccin color definitions (latte, frappe, macchiato, mocha) |
-| `src/common/theme.js` | Automatic light/dark theme detection |
-| `src/common/config.js` | Proxy-based Config class with auto-save |
-| `src/common/component.js` | Base Web Component class |
-| `src/common/module.js` | Component registration |
-| `src/common/i18n.js` | Localization system |
-| `sw.js` | Service worker — caches the app shell for offline use (registered from `index.html`, http/https only) |
