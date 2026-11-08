@@ -201,9 +201,43 @@ class Weather extends Component {
           font-family: 'Lato', sans-serif;
       }
 
-      .weather-popup.hidden {
-          display: none;
-      }
+        .weather-popup {
+            transform-origin: bottom right;
+            transition:
+                opacity .2s var(--ease-out),
+                transform .3s var(--ease-spring),
+                visibility 0s;
+        }
+
+        /* Fade and drop instead of display:none so opening and closing both animate */
+        .weather-popup.hidden {
+            opacity: 0;
+            transform: translateY(6px) scale(.96);
+            visibility: hidden;
+            pointer-events: none;
+            transition:
+                opacity .15s ease,
+                transform .15s ease,
+                visibility 0s linear .15s;
+        }
+
+        /* Popup contents rise in one after another on open */
+        .weather-popup:not(.hidden) .weather-popup-body > * {
+            animation: rise-in .35s var(--ease-out) backwards;
+        }
+        ${[...Array(9)].map((_, i) => `.weather-popup:not(.hidden) .weather-popup-body > :nth-child(${i + 1}) { animation-delay: ${40 + i * 30}ms; }`).join("\n")}
+
+        .weather-popup:not(.hidden) .weather-popup-icon {
+            animation: icon-pop .5s var(--ease-spring) 40ms backwards;
+        }
+
+        @keyframes rise-in {
+            from { opacity: 0; transform: translateY(6px); }
+        }
+
+        @keyframes icon-pop {
+            from { opacity: 0; transform: scale(.5) rotate(-20deg); }
+        }
 
       .weather-popup-body {
           display: flex;
@@ -341,6 +375,11 @@ class Weather extends Component {
           padding: 3px 10px;
           cursor: pointer;
           margin-top: 2px;
+          transition: background-color .2s ease, color .2s ease, transform .15s var(--ease-out);
+      }
+
+      .weather-popup-toggle:active {
+          transform: scale(.94);
       }
 
       .weather-popup-toggle:hover {

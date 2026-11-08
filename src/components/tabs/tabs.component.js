@@ -29,6 +29,8 @@ class Links extends Component {
 
   static getAll(tabName, tabs) {
     const { categories } = tabs.find((f) => f.name === tabName);
+    // Running index across categories, drives the entrance stagger
+    let linkIndex = 0;
 
     return `
       ${categories
@@ -40,7 +42,7 @@ class Links extends Component {
               ${links
                 .map(
                   (link) => `
-                  <div class="link-info">
+                  <div class="link-info" style="--i: ${linkIndex++}">
                     <a href="${link.url}" aria-label="${link.name ?? link.url}">
                       ${Links.getIcon(link)}
                       ${link.name ? `<p class="link-name" style="font-family: 'Lato', sans-serif;">${link.name}</p>` : ""}
@@ -129,6 +131,16 @@ class Tabs extends Component {
           margin: auto;
           box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
           background: ${CONFIG.palette.base};
+          /* "backwards" so no transform lingers afterwards: a transformed ancestor
+             would become the containing block for the fixed search overlay */
+          animation: panels-in .7s var(--ease-out) backwards;
+      }
+
+      @keyframes panels-in {
+          from {
+              opacity: 0;
+              transform: translateY(16px) scale(.985);
+          }
       }
 
       .categories {
@@ -144,9 +156,13 @@ class Tabs extends Component {
           --flavour: var(--accent);
           width: 100%;
           height: 100%;
-          right: 100%;
+          right: 0;
           background: ${CONFIG.palette.base} url("../img/bg-1.gif") repeat left;
-          transition: all .6s;
+          transform: translateX(-100%);
+          visibility: hidden;
+          /* The outgoing panel holds still while the new one wipes over it, then
+             jumps offscreen and hides so offscreen links can't take focus */
+          transition: transform 0s linear .6s, visibility 0s linear .6s;
           # animation: scroll 25s ease-in-out infinite;
       }
 
@@ -161,8 +177,32 @@ class Tabs extends Component {
       }
 
       .categories ul[active] {
-          right: 0;
+          transform: none;
+          visibility: visible;
           z-index: 1;
+          transition: transform .6s var(--ease-out), visibility 0s;
+      }
+
+      /* Links trail the panel slightly as it wipes in (a bit of parallax) */
+      .categories ul[active] .link-info {
+          animation: link-in .55s var(--ease-out) backwards;
+          animation-delay: calc(40ms + min(var(--i, 0) * 15ms, 250ms));
+      }
+
+      .categories ul[active] .links li h1 {
+          animation: fade-in .4s ease backwards;
+          animation-delay: 40ms;
+      }
+
+      @keyframes link-in {
+          from {
+              opacity: 0;
+              transform: translateX(-24px);
+          }
+      }
+
+      @keyframes fade-in {
+          from { opacity: 0; }
       }
 
       .categories .links {
@@ -182,7 +222,10 @@ class Tabs extends Component {
           color: ${CONFIG.palette.text};
           text-decoration: none;
           font: 700 18px 'Lato', sans-serif;
-          transition: all .2s;
+          transition:
+              transform .2s var(--ease-out),
+              box-shadow .2s var(--ease-out),
+              color .2s ease;
           display: inline-flex;
           align-items: center;
           padding: .4em .7em;
@@ -203,6 +246,20 @@ class Tabs extends Component {
           transform: translate(0, 4px);
           box-shadow: 0 0 rgba(0, 0, 0, 0.25), 0 0 0 rgba(0, 0, 0, .5), 0 -0px 5px rgba(0, 0, 0, .1);
           color: var(--flavour);
+      }
+
+      .categories ul .links a:active {
+          transform: translate(0, 5px) scale(.97);
+          transition-duration: .06s;
+      }
+
+      .categories ul .links a .link-icon {
+          transition: transform .3s var(--ease-spring);
+      }
+
+      .categories ul .links a:hover .link-icon,
+      .categories ul .links a:focus-visible .link-icon {
+          transform: scale(1.12) rotate(-6deg);
       }
 
       .categories ul::after {
@@ -263,20 +320,8 @@ class Tabs extends Component {
       }
 
       .ti {
-          animation: fadeInAnimation ease .5s;
-          animation-iteration-count: 1;
-          animation-fill-mode: forwards;
           height: 27px;
           width: 27px;
-      }
-
-      @keyframes fadeInAnimation {
-          0% {
-              opacity: 0;
-          }
-          100% {
-              opacity: 1;
-          }
       }
     `;
   }

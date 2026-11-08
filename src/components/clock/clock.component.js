@@ -84,6 +84,12 @@ class Clock extends Component {
       void container.offsetWidth; // force reflow to restart animation
       container.classList.add(delta > 0 ? 'anim-next' : 'anim-prev');
     }
+    const header = this.shadow.querySelector('.cal-header');
+    if (header) {
+      header.classList.remove('anim-next', 'anim-prev');
+      void header.offsetWidth;
+      header.classList.add(delta > 0 ? 'anim-next' : 'anim-prev');
+    }
     const d = this.calendarViewDate;
     this.calendarViewDate = new Date(d.getFullYear(), d.getMonth() + delta, 1);
     this.updateCalendar();
@@ -226,8 +232,24 @@ class Clock extends Component {
             z-index: 100;
         }
 
+        .calendar-popup {
+            transform-origin: bottom right;
+            transition:
+                opacity .2s var(--ease-out),
+                transform .3s var(--ease-spring),
+                visibility 0s;
+        }
+
+        /* Fade and drop instead of display:none so opening and closing both animate */
         .calendar-popup.hidden {
-            display: none;
+            opacity: 0;
+            transform: translateY(6px) scale(.96);
+            visibility: hidden;
+            pointer-events: none;
+            transition:
+                opacity .15s ease,
+                transform .15s ease,
+                visibility 0s linear .15s;
         }
 
         .cal-header {
@@ -251,6 +273,11 @@ class Clock extends Component {
             padding: 0 5px;
             border-radius: 4px;
             line-height: 1;
+            transition: background-color .15s ease, color .15s ease, transform .15s var(--ease-out);
+        }
+
+        .cal-nav:active {
+            transform: scale(.88);
         }
 
         .cal-nav:hover {
@@ -283,6 +310,11 @@ class Clock extends Component {
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background-color .15s ease;
+        }
+
+        .cal-day:not(.empty):not(.today):hover {
+            background: ${CONFIG.palette.surface0};
         }
 
         .cal-day.empty {
@@ -295,22 +327,41 @@ class Clock extends Component {
             font-weight: 700;
         }
 
+        .calendar-popup:not(.hidden) .cal-day.today {
+            animation: today-pop .45s var(--ease-spring) .1s backwards;
+        }
+
+        @keyframes today-pop {
+            from { transform: scale(.4); opacity: 0; }
+        }
+
         @keyframes cal-slide-from-right {
-            from { opacity: 0; transform: translateX(10px); }
-            to   { opacity: 1; transform: translateX(0); }
+            from { opacity: 0; transform: translateX(14px); }
         }
 
         @keyframes cal-slide-from-left {
-            from { opacity: 0; transform: translateX(-10px); }
-            to   { opacity: 1; transform: translateX(0); }
+            from { opacity: 0; transform: translateX(-14px); }
         }
 
         .cal-grid-container.anim-next {
-            animation: cal-slide-from-right 0.18s ease;
+            animation: cal-slide-from-right .28s var(--ease-out);
         }
 
         .cal-grid-container.anim-prev {
-            animation: cal-slide-from-left 0.18s ease;
+            animation: cal-slide-from-left .28s var(--ease-out);
+        }
+
+        .cal-month-year {
+            display: inline-block;
+        }
+
+        .cal-header.anim-next .cal-month-year,
+        .cal-header.anim-prev .cal-month-year {
+            animation: fade-in .28s ease;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; }
         }
     `;
   }

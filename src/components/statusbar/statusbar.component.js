@@ -42,7 +42,7 @@ class Statusbar extends Component {
       }
 
       #tabs ul li[active]:nth-child(${i}) ~ li:last-child {
-          margin: 0 0 0 ${index * 35}px;
+          transform: translateX(${index * 35}px);
           --flavour: ${tab.color};
       }
       `;
@@ -82,6 +82,19 @@ class Statusbar extends Component {
           text-align: center;
           justify-content: center;
           font-family: 'tabler-icons' !important;
+          transition: color .25s ease, transform .3s var(--ease-spring);
+      }
+
+      #tabs ul li:not(:last-child):hover::after {
+          transform: translateY(-2px);
+      }
+
+      #tabs ul li[active]:not(:last-child)::after {
+          animation: tab-icon-pop .4s var(--ease-spring);
+      }
+
+      @keyframes tab-icon-pop {
+          40% { transform: scale(1.25); }
       }
 
       #tabs ul li:nth-child(1):not(:last-child)::after {
@@ -102,7 +115,7 @@ class Statusbar extends Component {
           font: 700 13px 'Yu Gothic', serif;
           color: ${CONFIG.palette.text};
           padding: 6px 0;
-          transition: all .1s;
+          transition: background-color .2s ease;
           cursor: pointer;
           line-height: 0;
           height: 100%;
@@ -120,7 +133,8 @@ class Statusbar extends Component {
           height: 3px;
           background: var(--flavour);
           bottom: 0;
-          transition: all .3s;
+          border-radius: 3px 3px 0 0;
+          transition: transform .45s var(--ease-spring), background-color .3s ease;
       }
 
       #tabs ul li[active]:not(:last-child) {
@@ -159,6 +173,10 @@ class Statusbar extends Component {
           padding-right: 2em;
       }
 
+      .widget {
+          transition: background-color .2s ease;
+      }
+
       .widget:hover {
           cursor: pointer;
           background: rgba(255, 255, 255, .05);
@@ -193,6 +211,7 @@ class Statusbar extends Component {
           color: ${CONFIG.palette.green};
           cursor: pointer;
           border-radius: 5px 15px 15px 5px;
+          transition: filter .2s ease;
       }
 
       .fastlink:hover {
@@ -201,6 +220,16 @@ class Statusbar extends Component {
 
       .fastlink-icon {
         width: 70%;
+        transition: transform .35s var(--ease-spring);
+      }
+
+      .fastlink:hover .fastlink-icon {
+          transform: scale(1.1) rotate(-8deg);
+      }
+
+      .fastlink:active .fastlink-icon {
+          transform: scale(.9);
+          transition-duration: .08s;
       }
       .search-overlay {
       position: fixed;
@@ -232,6 +261,26 @@ class Statusbar extends Component {
         .search-overlay.active {
             display: flex;
             pointer-events: all;
+            animation: overlay-in .35s var(--ease-out) backwards;
+        }
+
+        @keyframes overlay-in {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+        }
+
+        /* "backwards" hands control back to the transitions (loading, expand, close) once done */
+        .search-overlay.active .search-modal {
+            animation: modal-in .45s var(--ease-spring) backwards;
+        }
+
+        @keyframes modal-in {
+            from {
+                opacity: 0;
+                transform: translateY(-12px) scale(.94);
+            }
         }
 
         .search-modal {
@@ -241,7 +290,7 @@ class Statusbar extends Component {
             background: ${CONFIG.palette.base};
             border-radius: 16px;
             box-shadow: 0 10px 30px ${CONFIG.palette.crust}4D;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s var(--ease-in-out);
             overflow: hidden;
         }
 
@@ -301,17 +350,17 @@ class Statusbar extends Component {
         .loading-icon i {
             font-size: 40px;
             color: ${CONFIG.palette.mauve};
-            animation: pulse 1.5s ease-in-out infinite;
+            animation: pulse 1.6s ease-in-out infinite;
         }
 
         @keyframes pulse {
             0%, 100% {
                 opacity: 0.6;
-                transform: scale(1);
+                transform: scale(1) rotate(-8deg);
             }
             50% {
                 opacity: 1;
-                transform: scale(1.1);
+                transform: scale(1.15) rotate(8deg);
             }
         }
 
@@ -324,13 +373,14 @@ class Statusbar extends Component {
             border-radius: 12px;
             font-family: 'Lato', sans-serif;
             font-size: 18px;
-            transition: all 0.3s ease;
+            transition: border-color .25s ease, background-color .25s ease, box-shadow .25s ease;
         }
 
         .search-input:focus {
             outline: none;
             border-color: ${CONFIG.palette.green};
             background: ${CONFIG.palette.surface0};
+            box-shadow: 0 0 0 4px ${CONFIG.palette.green}26;
         }
 
         .search-icon {
@@ -351,12 +401,23 @@ class Statusbar extends Component {
             transition: color 0.3s ease;
         }
 
+        /* Two keyframe names so swapping engines (Tab) restarts the pop */
         .search-engine-icon.duckduckgo {
             color: ${CONFIG.palette.peach};
+            animation: engine-pop-a .4s var(--ease-spring);
         }
 
         .search-engine-icon.gemini {
             color: ${CONFIG.palette.mauve};
+            animation: engine-pop-b .4s var(--ease-spring);
+        }
+
+        @keyframes engine-pop-a {
+            from { opacity: 0; transform: translateY(-50%) scale(.4) rotate(-90deg); }
+        }
+
+        @keyframes engine-pop-b {
+            from { opacity: 0; transform: translateY(-50%) scale(.4) rotate(90deg); }
         }
 
         .search-engine-indicator {
@@ -370,7 +431,7 @@ class Statusbar extends Component {
         .search-results {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            transition: max-height 0.5s var(--ease-out), opacity 0.3s ease;
             border-top: 0px solid ${CONFIG.palette.surface1};
             opacity: 0;
         }

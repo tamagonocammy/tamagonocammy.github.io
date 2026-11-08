@@ -42,6 +42,16 @@ Registered components (`src/common/module.js`): `tabs-list`, `weather-forecast`,
 
 Components are disabled by adding their name to `CONFIG.disabled` in `userconfig.js`.
 
+### Motion
+
+`Component.motionStyles` (in `component.js`) is injected into every shadow root ahead of the component's own style:
+
+- Easing/duration tokens on `:host`: `--ease-out`, `--ease-in-out`, `--ease-spring`, `--dur-fast/base/slow`. Use these instead of ad-hoc curves
+- A `prefers-reduced-motion: reduce` guard that collapses all animations/transitions (it has to live here: document CSS can't reach shadow DOM)
+- Popups hide with `.hidden` = opacity/transform/visibility (not `display: none`) so both open and close animate
+- Entrance animations use `animation-fill-mode: backwards` so no transform lingers afterwards. A leftover transform on `#panels` would become the containing block for the fixed search overlay
+- Transition specific properties, not `all` (exception: `.search-modal`, whose JS-timed morph animates size and position together)
+
 ### Config System (Proxy-Based)
 
 `userconfig.js` is the **only file users edit**. It instantiates the global `CONFIG` object via `new Config(default_config, palette)`.

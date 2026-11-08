@@ -86,6 +86,32 @@ class Component extends HTMLElement {
   }
 
   /**
+   * Shared motion tokens, injected into every shadow root before the component's own style.
+   * Document-level stylesheets can't reach inside shadow DOM, so the reduced-motion
+   * guard has to live here to cover every component.
+   */
+  static motionStyles = `
+    :host {
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --dur-fast: 150ms;
+      --dur-base: 250ms;
+      --dur-slow: 500ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+      }
+    }
+  `;
+
+  /**
    * Returns custom styles for the component
    * @returns {string|null} CSS styles or null
    */
@@ -138,6 +164,7 @@ class Component extends HTMLElement {
   async loadStyles() {
     let html = this.getResources.join("\n");
 
+    html += `<style>${Component.motionStyles}</style>`;
     if (this.style()) html += `<style>${this.style()}</style>`;
 
     return html;
