@@ -156,13 +156,9 @@ class Tabs extends Component {
           --flavour: var(--accent);
           width: 100%;
           height: 100%;
-          right: 0;
+          right: 100%;
           background: ${CONFIG.palette.base} url("../img/bg-1.gif") repeat left;
-          transform: translateX(-100%);
-          visibility: hidden;
-          /* The outgoing panel holds still while the new one wipes over it, then
-             jumps offscreen and hides so offscreen links can't take focus */
-          transition: transform 0s linear .6s, visibility 0s linear .6s;
+          transition: all .6s;
           # animation: scroll 25s ease-in-out infinite;
       }
 
@@ -177,32 +173,8 @@ class Tabs extends Component {
       }
 
       .categories ul[active] {
-          transform: none;
-          visibility: visible;
+          right: 0;
           z-index: 1;
-          transition: transform .6s var(--ease-out), visibility 0s;
-      }
-
-      /* Links trail the panel slightly as it wipes in (a bit of parallax) */
-      .categories ul[active] .link-info {
-          animation: link-in .55s var(--ease-out) backwards;
-          animation-delay: calc(40ms + min(var(--i, 0) * 15ms, 250ms));
-      }
-
-      .categories ul[active] .links li h1 {
-          animation: fade-in .4s ease backwards;
-          animation-delay: 40ms;
-      }
-
-      @keyframes link-in {
-          from {
-              opacity: 0;
-              transform: translateX(-24px);
-          }
-      }
-
-      @keyframes fade-in {
-          from { opacity: 0; }
       }
 
       .categories .links {
