@@ -8,6 +8,11 @@ Music.app (through osascript) and answers the startpage on http://127.0.0.1:4761
   GET  /now               current track as JSON ({"state": "stopped"} when nothing plays)
   GET  /artwork?id=<id>   album art of the current track (exported from Music.app)
   POST /control           body "playpause" | "next" | "previous"
+  GET  /                  the startpage itself, served from this checkout
+
+Serving the page from here too gives browsers that refuse to let an https page
+talk to a local http server (Safari) a home page that just works:
+http://127.0.0.1:47615/ — page and music data then share one origin.
 
 Only the origins in ALLOWED_ORIGINS may read it or control playback, so other
 websites you visit can't see what you listen to or pause your music.
@@ -18,6 +23,7 @@ Install as a login item with install.sh; remove with uninstall.sh.
 """
 
 import json
+import mimetypes
 import os
 import subprocess
 import tempfile
@@ -36,9 +42,20 @@ ALLOWED_ORIGINS = {
     "https://tamagonocammy.github.io",
     "http://127.0.0.1:8765",
     "http://localhost:8765",
+    # The copy of the startpage this helper serves itself
+    f"http://127.0.0.1:{PORT}",
+    f"http://localhost:{PORT}",
 }
 READ_ONLY_ORIGINS = {"null"}
 ALLOWED_ORIGINS |= {o.strip() for o in os.environ.get("NOWPLAYING_ORIGINS", "").split(",") if o.strip()}
+
+# The startpage checkout this file lives in (tools/nowplaying/ -> repo root)
+SITE_ROOT = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+# Never served: dotfiles/dot-folders (.git, local config) and the helper's own folder
+SITE_BLOCKED_TOP = {"tools"}
+mimetypes.add_type("text/javascript", ".js")
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("font/woff2", ".woff2")
 
 CACHE_DIR = os.path.join(os.path.expanduser("~/Library/Caches"), "startpage-nowplaying")
 STATE_TTL = 1.0  # seconds; several open tabs polling at once share one osascript call
@@ -257,7 +274,31 @@ class Handler(BaseHTTPRequestHandler):
         elif url.path == "/health":
             self.send_json(200, {"ok": True})
         else:
+            self.serve_site_file(url.path)
+
+    def serve_site_file(self, path):
+        rel = urllib.parse.unquote(path).lstrip("/")
+        if rel == "" or rel.endswith("/"):
+            rel += "index.html"
+        parts = rel.split("/")
+        full = os.path.realpath(os.path.join(SITE_ROOT, rel))
+        if (
+            any(part.startswith(".") or part == "" for part in parts)
+            or parts[0] in SITE_BLOCKED_TOP
+            or not full.startswith(SITE_ROOT + os.sep)
+            or not os.path.isfile(full)
+        ):
             self.send_json(404, {"error": True, "message": "Not found"})
+            return
+        with open(full, "rb") as f:
+            data = f.read()
+        self.send_response(200)
+        self.send_header("Content-Type", mimetypes.guess_type(full)[0] or "application/octet-stream")
+        # Always revalidate, so edits to the checkout show up on the next reload
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def do_POST(self):
         if not self.host_ok():

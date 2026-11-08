@@ -1,5 +1,5 @@
 // Bump this when app-shell files change so old caches get evicted on activate.
-const CACHE_VERSION = "v18";
+const CACHE_VERSION = "v19";
 const CACHE_NAME = `startpage-${CACHE_VERSION}`;
 
 // Core files needed to render the page with no network at all.
@@ -32,6 +32,7 @@ const APP_SHELL = [
 
 // Live/dynamic APIs must never be served from cache.
 const NEVER_CACHE_HOSTS = ["api.openweathermap.org", "generativelanguage.googleapis.com"];
+const LIVE_PATHS = ["/now", "/artwork", "/health", "/control"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -57,8 +58,10 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (NEVER_CACHE_HOSTS.includes(url.hostname)) return;
-  // Local services on other ports (the now-playing helper) are live data too
-  if (["127.0.0.1", "localhost"].includes(url.hostname) && url.origin !== self.location.origin) return;
+  // The now-playing helper's data is live. It's on another origin when the page comes from github.io,
+  // and on the same origin when the helper serves the page itself (http://127.0.0.1:47615/)
+  const local = ["127.0.0.1", "localhost"].includes(url.hostname);
+  if (local && (url.origin !== self.location.origin || LIVE_PATHS.includes(url.pathname))) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {

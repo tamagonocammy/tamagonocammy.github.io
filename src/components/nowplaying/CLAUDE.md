@@ -10,5 +10,6 @@
 - Artwork: exported from Music.app into `~/Library/Caches/startpage-nowplaying` (newest 20 kept); falls back to the iTunes Search API for tracks without local art
 - The widget polls every `advanced_config.nowPlaying.pollSeconds` (default 3) while visible, every 30s while the helper is unreachable, and not at all in background tabs. The progress bar extrapolates from the helper's `at` timestamp between polls
 - Hidden (no `active` attribute) when the helper is down or nothing plays. The hide rule lives in the status bar's CSS, because its `+` layout class outranks the component's `:host` rule
-- `sw.js` skips caching for 127.0.0.1/localhost on other ports, so `/now` is never served stale
+- The helper also serves this checkout as a website at `http://127.0.0.1:47615/` (for browsers that block an https page from reaching a local http server, e.g. Safari). It refuses dotfiles/dot-folders, `tools/`, and anything outside the repo; files are sent with `Cache-Control: no-cache`, so it serves whatever is in the working tree
+- `sw.js` never caches the helper's live data: 127.0.0.1/localhost on other ports, or `/now`, `/artwork`, `/health`, `/control` when the page is served by the helper itself
 - `m` toggles the popup (see the status bar shortcuts)
