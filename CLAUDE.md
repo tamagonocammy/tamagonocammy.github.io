@@ -38,7 +38,7 @@ class MyComponent extends Component {
 }
 ```
 
-Registered components (`src/common/module.js`): `tabs-list`, `weather-forecast`, `current-time`, `status-bar`.
+Registered components (`src/common/module.js`): `tabs-list`, `weather-forecast`, `current-time`, `now-playing`, `status-bar`.
 
 Components are disabled by adding their name to `CONFIG.disabled` in `userconfig.js`.
 
@@ -98,7 +98,7 @@ Scripts in `index.html` load in this order, because each file uses globals defin
 
 **Translation structure** includes: `search.*`, `time.days/months/periods`, `weather.conditions`, `settings.*`
 
-Component-specific notes live next to the code: `src/components/statusbar/CLAUDE.md` (Gemini search) and `src/components/weather/CLAUDE.md` (weather API).
+Component-specific notes live next to the code: `src/components/statusbar/CLAUDE.md` (Gemini search, prefixes, shortcuts), `src/components/weather/CLAUDE.md` (weather API) and `src/components/nowplaying/CLAUDE.md` (Apple Music helper).
 
 ### Offline Support
 

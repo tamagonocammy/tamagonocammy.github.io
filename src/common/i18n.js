@@ -46,12 +46,22 @@ const translations = {
         search: "Abrir la búsqueda",
         gemini: "Preguntarle a Gemini",
         weather: "Ver el clima",
+        music: "Ver lo que suena",
         help: "Mostrar esta ayuda",
         engine: "Cambiar de buscador",
         prefix: "Ir directo a un sitio",
         actions: "Elegir una acción rápida",
         close: "Cerrar",
       },
+    },
+
+    // Now playing
+    music: {
+      title: "Sonando ahora",
+      play: "Reproducir",
+      pause: "Pausa",
+      next: "Siguiente",
+      previous: "Anterior",
     },
 
     // Date and time
@@ -203,12 +213,22 @@ const translations = {
         search: "Open search",
         gemini: "Ask Gemini",
         weather: "Show the weather",
+        music: "Show what's playing",
         help: "Show this help",
         engine: "Switch search engine",
         prefix: "Jump straight to a site",
         actions: "Pick a quick action",
         close: "Close",
       },
+    },
+
+    // Now playing
+    music: {
+      title: "Now playing",
+      play: "Play",
+      pause: "Pause",
+      next: "Next",
+      previous: "Previous",
     },
 
     // Date and time
@@ -363,12 +383,22 @@ const translations = {
         search: "Malfermi la serĉon",
         gemini: "Demandi al Gemini",
         weather: "Montri la veteron",
+        music: "Montri la nunan kanton",
         help: "Montri ĉi tiun helpon",
         engine: "Ŝanĝi la serĉilon",
         prefix: "Iri rekte al retejo",
         actions: "Elekti rapidan agon",
         close: "Fermi",
       },
+    },
+
+    // Now playing
+    music: {
+      title: "Nun ludanta",
+      play: "Ludi",
+      pause: "Paŭzi",
+      next: "Sekva",
+      previous: "Antaŭa",
     },
 
     // Date and time

@@ -196,6 +196,20 @@ class Statusbar extends Component {
           font-size: 14pt !important;
       }
 
+      /* While nothing plays, the now-playing widget is hidden and shouldn't leave a divider or gap.
+         (Hidden from here: the "+" layout class outranks the component's own :host rule) */
+      now-playing:not([active]) {
+          display: none !important;
+      }
+
+      now-playing:not([active]) + .widget {
+          padding-left: 2em;
+      }
+
+      now-playing:not([active]) + .widget::before {
+          display: none;
+      }
+
       .widget:not(:first-child)::before {
           content: '';
           position: absolute;
@@ -961,6 +975,7 @@ class Statusbar extends Component {
                 </button>
                 <ul class="- indicator"></ul>
                 <div class="+ widgets col-end">
+                    <now-playing class="+ widget"></now-playing>
                     <current-time class="+ widget"></current-time>
                     <weather-forecast class="+ widget weather"></weather-forecast>
                 </div>
@@ -1042,6 +1057,7 @@ class Statusbar extends Component {
         ${row(t("search"), "/")}
         ${row(t("gemini"), "g")}
         ${row(t("weather"), "w")}
+        ${row(t("music"), "m")}
         ${row(t("help"), "?")}
         <h3>${t("in_search")}</h3>
         ${row(t("engine"), "Tab")}
@@ -1942,6 +1958,9 @@ class Statusbar extends Component {
         break;
       case "w":
         this.shadow.querySelector("weather-forecast")?.togglePopup?.();
+        break;
+      case "m":
+        this.shadow.querySelector("now-playing")?.togglePopup?.();
         break;
       case "?":
         this.toggleShortcuts(true);

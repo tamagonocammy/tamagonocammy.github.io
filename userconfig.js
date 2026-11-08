@@ -480,6 +480,14 @@ const advanced_config = {
     language: "eo", // Language code: "eo", "es", "en", "fr", etc.
   },
 
+  // Now Playing (Apple Music)
+  // Shows what Music.app is playing, read from the local helper in tools/nowplaying
+  // (run tools/nowplaying/install.sh once). The widget stays hidden while the helper isn't running.
+  nowPlaying: {
+    url: "http://127.0.0.1:47615",
+    pollSeconds: 3, // How often to ask while the page is visible
+  },
+
   // Internationalization (i18n)
   i18n: {
     defaultLocale: "eo", // Default language: "eo" (Esperanto), "es" (Spanish), "en" (English)

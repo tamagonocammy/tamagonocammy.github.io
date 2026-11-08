@@ -1,5 +1,5 @@
 // Bump this when app-shell files change so old caches get evicted on activate.
-const CACHE_VERSION = "v17";
+const CACHE_VERSION = "v18";
 const CACHE_NAME = `startpage-${CACHE_VERSION}`;
 
 // Core files needed to render the page with no network at all.
@@ -24,6 +24,7 @@ const APP_SHELL = [
   "./src/components/weather/weather.api.js",
   "./src/components/weather/weather.component.js",
   "./src/components/clock/clock.component.js",
+  "./src/components/nowplaying/nowplaying.component.js",
   "./src/components/statusbar/statusbar.component.js",
   "./src/birthday.js",
   "./src/img/favicon.png",
@@ -56,6 +57,8 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (NEVER_CACHE_HOSTS.includes(url.hostname)) return;
+  // Local services on other ports (the now-playing helper) are live data too
+  if (["127.0.0.1", "localhost"].includes(url.hostname) && url.origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {
