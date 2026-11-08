@@ -11,7 +11,7 @@ Main features:
 - Config-driven tabs/categories/links (`userconfig.js`)
 - Weather widget (OpenWeatherMap)
 - Clock with localized short/extended formats
-- Gemini + DuckDuckGo dual search mode in the status bar
+- AI (Claude, Gemini as backup) + DuckDuckGo dual search mode in the status bar
 - Internationalization (`es`, `en`, `eo`)
 
 ## Architecture
@@ -22,7 +22,7 @@ Main features:
 - `src/common/config.js`: Proxy-based config merge/persistence
 - `src/common/i18n.js`: translations + i18n API
 - `src/common/strftime.js`: date/time formatting helpers
-- `src/components/statusbar/statusbar.component.js`: search overlay, Gemini logic, markdown formatting
+- `src/components/statusbar/statusbar.component.js`: search overlay, AI providers (Claude/Gemini), markdown formatting
 - `src/components/weather/weather.component.js`: weather UI + fallback behavior
 - `src/components/weather/weather.api.js`: API fetch client
 - `src/components/clock/clock.component.js`: main/additional clocks
@@ -60,7 +60,9 @@ Notes:
 
 `advanced_config` currently controls:
 
-- `gemini`: model, fallbackModels, temperature, maxOutputTokens, thinkingLevel, systemInstruction
+- `assistant`: provider order, systemInstruction, translateTo, quickActions
+- `claude`: model, fallbackModels, effort, maxTokens, webSearch, maxSearches
+- `gemini`: model, fallbackModels, temperature, maxOutputTokens, thinkingLevel
 - `weather`: fallback API key and language (personal key should go in `localStorage.OWM_API_KEY` instead)
 - `i18n`: default locale
 - `storage`: localStorage key prefix
@@ -83,28 +85,26 @@ Locale resolution:
 
 Current repo config uses `eo` as default locale.
 
-## Gemini Integration
+## AI Search Integration
 
-Gemini query flow is in `statusbar.component.js` (`queryGemini`).
+AI search lives in `statusbar.component.js`. Press `g` (or `/` then `Tab`) for AI mode. It asks **Claude** first and falls back to **Gemini**. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys such as `placeholder_gemini`); the user-facing strings say Claude.
 
-- Key source priority:
-  1. `localStorage.getItem('GEMINI_API_KEY')`
-  2. `window.GEMINI_API_KEY`
-- Endpoint (streamed, one request per model tried in `streamGemini`):
-  - `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`
-  - Key sent in the `x-goog-api-key` header, never in the URL
-- Model/settings from `advanced_config.gemini`
-- Each SSE chunk carries text at `candidates[0].content.parts[].text`; chunks are appended and re-rendered as they arrive
-- Busy responses (429/500/503/504) before any text: one retry after 2s, then each of `fallbackModels`
+- Providers: `advanced_config.assistant.providers` (default `["claude", "gemini"]`); per-provider settings in `advanced_config.claude` and `advanced_config.gemini`. Shared settings (`systemInstruction`, `translateTo`, `quickActions`) live in `advanced_config.assistant`
+- Keys (`apiKey()`): `localStorage` `CLAUDE_API_KEY` / `GEMINI_API_KEY` → gitignored `secrets.js` (`window.startpageSecrets.claude()`) → `window.CLAUDE_API_KEY` / `window.GEMINI_API_KEY`. The repo is public: never commit a key
+- `queryAI()` walks `aiAttempts()` (every provider/model with a key). Busy or unreachable (0/429/5xx/529) before any text: one retry after 2s on the first model, then the next model/provider, with a note saying who answered. 401/402/403 or a credit/billing 400 skips that provider
+- Claude (`streamClaude`): Messages API from the browser with `anthropic-dangerous-direct-browser-access: true`, streamed SSE, `output_config.effort`, no `temperature`. Web search (`web_search_20250305`) only for the web quick action unless `claude.webSearch` is true; web fetch (`web_fetch_20250910`) for `urlContext` actions or any question containing a URL. Sources = cited URLs
+- Gemini (`streamGemini`): `streamGenerateContent?alt=sse`, key in the `x-goog-api-key` header, `thinkingLevel` → `generationConfig.thinkingConfig` (dropped if a model rejects it)
+- `systemPrompt()` appends today's date. Full details: `src/components/statusbar/CLAUDE.md` and `AI_SETUP.md`
 
 Search UX:
 
-- `/` opens overlay
-- `Tab` toggles DuckDuckGo <-> Gemini while input is focused
+- `/` opens overlay (`g` opens it in AI mode)
+- `Tab` toggles DuckDuckGo <-> AI while input is focused
+- `Alt+1..9` arms a quick action
 - `Escape` closes overlay/modal
 - `Enter` submits query
 
-## Markdown Rendering in Gemini Responses
+## Markdown Rendering in AI Responses
 
 `formatMarkdown()` currently supports:
 
@@ -127,7 +127,7 @@ Implementation escapes unsafe HTML first, then restores formatted output.
   4. shared demo key committed in `userconfig.js` (public, rate-limited)
 - `advanced_config.weather.language`
 
-Same pattern as the Gemini key: prefer `localStorage` for a personal key so it never lands in a commit.
+Same pattern as the AI keys: prefer `localStorage` for a personal key so it never lands in a commit.
 
 Fetches from OpenWeatherMap and returns normalized result:
 
@@ -170,14 +170,15 @@ const preferredDarkTheme = mocha;
 let palette = initThemeSystem(preferredLightTheme, preferredDarkTheme);
 ```
 
-Gemini styling is palette-aware via `CONFIG.palette.*` tokens.
+AI search styling is palette-aware via `CONFIG.palette.*` tokens.
 
 ## Manual Testing Checklist
 
 - Open `index.html` in browser
 - Verify `/` opens search overlay
-- Toggle DuckDuckGo/Gemini with `Tab`
-- Submit Gemini query with valid API key
+- Toggle DuckDuckGo/AI with `Tab`
+- Submit an AI query with a valid Claude key (each query spends API credit)
+- Remove the Claude key and confirm Gemini answers with a fallback note
 - Validate markdown formatting in response
 - Trigger invalid key and confirm friendly error panel
 - Toggle locale (`es`/`en`/`eo`) and verify search/weather/clock text
@@ -192,6 +193,7 @@ Gemini styling is palette-aware via `CONFIG.palette.*` tokens.
 console.log(CONFIG);
 window.i18n.t('search.placeholder_duckduckgo');
 window.i18n.setLocale('en');
+localStorage.getItem('CLAUDE_API_KEY');
 localStorage.getItem('GEMINI_API_KEY');
 localStorage.getItem('OWM_API_KEY');
 new WeatherForecastClient('Bogota').getWeather().then(console.log);

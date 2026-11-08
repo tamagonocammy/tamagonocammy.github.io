@@ -34,8 +34,8 @@ window.i18n.setLocale('eo');
 
 ## What Is Localized
 
-- Search placeholders and Gemini status text
-- Friendly Gemini error messages and setup guidance
+- Search placeholders and AI status text (they name Claude)
+- Friendly AI error messages and setup guidance
 - Weather conditions + weather error/fallback copy
 - Day/month names, AM/PM terms, ordinals
 - Time format strings (short and extended)
@@ -82,7 +82,7 @@ window.i18n.getOrdinal(1);
 2. Add locale object in `translations`
 3. Include all required keys
 4. Set locale with `window.i18n.setLocale('xx')`
-5. Reload and test Gemini, weather, clock, tabs
+5. Reload and test AI search, weather, clock, tabs
 
 ## Required Translation Shape
 

@@ -31,12 +31,12 @@ a cozy catppuccin startpage — zero build tools, pure html/css/js, and a vibe t
 
 fresh enchantments from the latest updates:
 
-- 🌍 **localization expanded** — now fluent in **español `es`**, **english `en`**, and **esperanto `eo`**. weather strings, category names, gemini messages, and date formats all properly localized, because your startpage should speak your language/s 🌿
+- 🌍 **localization expanded** — now fluent in **español `es`**, **english `en`**, and **esperanto `eo`**. weather strings, category names, ai messages, and date formats all properly localized, because your startpage should speak your language/s 🌿
 - 🕰️ **clock glow-up** — localized date/time formats, click to toggle compact/extended mode, plus optional multi-timezone clocks (for those of us living across multiple meridians in our head)
 - ☁️ **weather vibes** — better translated conditions (fog! mist! haze! they're different! finally!), friendly fallback when the api ghosts you, with optional technical details tucked into the tooltip
-- 🔮 **gemini magic** — friendlier error messages, expanded results modal with full markdown rendering (code, lists, tables, links, images), and a clean `/` → `Tab` → `Enter` flow to summon your answers
+- 🔮 **claude magic** — ai search now asks claude first (gemini steps in when claude's down), with quick actions, sources, full markdown rendering (code, lists, tables, links, images), and a clean `g` → `Enter` flow to summon your answers
 - 🎨 **aesthetic updates** — dynamic tab flavour styling, new `src/img/bg-main.jpg` background asset, and freshened docs
-- 📡 **works offline** — a service worker caches the app shell so your new tab still opens with no connection (weather/gemini need network, everything else doesn't)
+- 📡 **works offline** — a service worker caches the app shell so your new tab still opens with no connection (weather/ai need network, everything else doesn't)
 
 ## ˗ˏˋ ★ themes & palettes ˎˊ˗
 
@@ -53,35 +53,41 @@ automatic light/dark theme detection — the page reads the room. soft, expressi
    - set your weather location and temperature scale
    - configure tabs, categories, and links
    - pick your banner and background
-   - tune gemini + i18n in `advanced_config`
+   - tune the ai + i18n in `advanced_config`
 4. refresh your page ✨
 
 that's genuinely it.
 
-## ˗ˏˋ ★ gemini — the crystal ball ˎˊ˗
+## ˗ˏˋ ★ claude — the crystal ball ˎˊ˗
 
-dual-mode search is built in — duckduckgo for when you know what you're looking for, gemini for when you want to ask something actually interesting.
+dual-mode search is built in — duckduckgo for when you know what you're looking for, claude for when you want to ask something actually interesting. if claude is down or out of credit, gemini picks up the ball (if you gave it a key too), so the crystal ball never goes dark.
 
 ### shortcuts
 
 | key | what it does |
 |-----|--------------|
+| `g` | open search, straight into ai mode |
 | `/` | open search |
-| `Tab` | toggle duckduckgo ↔ gemini |
+| `Tab` | toggle duckduckgo ↔ ai |
+| `Alt+1..9` | quick actions: translate, define, summarize a link, web search, eli5, code |
 | `Enter` | cast the spell |
 | `Esc` | close the modal |
 
 ### api key
 
-grab one from [google ai studio](https://makersuite.google.com/app/apikey), then run this in your browser console:
+make one at [platform.claude.com](https://platform.claude.com/) (the api is pay as you go and separate from a claude pro subscription — a few dollars lasts ages), then run this in your browser console:
 
 ```javascript
+localStorage.setItem('CLAUDE_API_KEY', 'your-api-key-here');
+// optional backup:
 localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
 ```
 
-you can also set `window.GEMINI_API_KEY` directly in `userconfig.js` — just don't push that to a public repo, okay? keep your secrets secret 🌿
+never put a key in `userconfig.js` if your repo is public — use localStorage, or a local `secrets.js` (it's gitignored). keep your secrets secret 🌿
 
-full setup guide: [GEMINI_SETUP.md](GEMINI_SETUP.md)
+by default claude only searches the web when you ask it to (`Alt+4`), which keeps plain questions at fractions of a cent.
+
+full setup guide: [AI_SETUP.md](AI_SETUP.md)
 
 ## ˗ˏˋ ★ weather — reading the sky ˎˊ˗
 
@@ -114,7 +120,7 @@ full guide: [LOCALIZATION.md](LOCALIZATION.md)
 
 ## ˗ˏˋ ★ offline ˎˊ˗
 
-`sw.js` caches the app shell (html/css/js + favicon) on first visit, cache-first after that — so opening a new tab with no connection still works. weather and gemini always hit the network since caching those would just show you stale data.
+`sw.js` caches the app shell (html/css/js + favicon) on first visit, cache-first after that — so opening a new tab with no connection still works. weather and the ai always hit the network since caching those would just show you stale data.
 
 only kicks in when served over `http(s)` (github pages, a local server, etc.) — service workers don't run on `file://`. made a change to a core file and it's not showing up? bump `CACHE_VERSION` in `sw.js` to invalidate the old cache, or unregister it from devtools → application → service workers.
 

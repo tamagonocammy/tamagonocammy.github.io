@@ -36,3 +36,6 @@ Temporary Items
 
 # Project specific
 .claudesync/
+
+# Local API keys (scrambled, but still private)
+secrets.js

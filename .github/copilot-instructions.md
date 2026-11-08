@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Catppuccin Startpage** is a minimalist, aesthetic browser startpage built with vanilla JavaScript Web Components. It features a tabbed interface for organizing bookmarks, integrated weather widget, clock display, and **Google Gemini AI search integration** with dual search mode (DuckDuckGo/Gemini toggle).
+**Catppuccin Startpage** is a minimalist, aesthetic browser startpage built with vanilla JavaScript Web Components. It features a tabbed interface for organizing bookmarks, integrated weather widget, clock display, and **AI search** (Claude first, Gemini as backup) with dual search mode (DuckDuckGo/AI toggle).
 
 ### Core Philosophy
 - **Minimalism**: Clean UI with reduced visual noise
@@ -31,7 +31,7 @@ class Component extends HTMLElement {
 - `<tabs-list>` – Main tab navigation + bookmark container
 - `<weather-forecast>` – Weather widget
 - `<current-time>` – Clock display
-- `<status-bar>` – Search bar with Gemini AI integration
+- `<status-bar>` – Search bar with AI search (Claude, Gemini as backup)
 
 ### Config System (Proxy-Based)
 
@@ -51,9 +51,9 @@ class Component extends HTMLElement {
   - `preferredDarkTheme` (e.g. `mocha`)
   - `palette = initThemeSystem(preferredLightTheme, preferredDarkTheme)`
 
-### Dual Search Engine (Gemini Integration)
+### Dual Search Engine (AI Integration)
 
-[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between DuckDuckGo and Gemini.
+[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between DuckDuckGo and AI search. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys); user-facing strings say Claude.
 
 ### Internationalization (i18n)
 
@@ -71,7 +71,7 @@ window.i18n.setLocale('en') // Switch language
 
 | File | Purpose |
 |------|---------|
-| [userconfig.js](../userconfig.js#L1) | **ONLY config file users edit** – tabs, palette, location, Gemini key, advanced settings |
+| [userconfig.js](../userconfig.js#L1) | **ONLY config file users edit** – tabs, palette, location, advanced settings (never API keys: the repo is public) |
 | [src/common/palette.js](../src/common/palette.js) | Color palette definitions (Catppuccin flavors) |
 | [src/common/theme.js](../src/common/theme.js) | Automatic light/dark theme detection (`prefers-color-scheme`) |
 | [src/common/storage.js](../src/common/storage.js) | localStorage abstraction layer |
@@ -144,22 +144,24 @@ class WeatherForecastClient {
 - Called periodically; cache results to avoid rate limits
 - Return normalized object: `{ temperature, condition, description }`
 
-### Gemini API Integration
+### AI API Integration
 [src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js) implements the AI logic:
 
 ```javascript
-async queryGemini(query, signal, onText) {
-  const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
-  if (!apiKey) return { error: true, message: "setup link" };
-
-  // Settings from `advanced_config.gemini`: model (default gemini-3.8-flash), fallbackModels,
-  // temperature (0.7), maxOutputTokens (2048), thinkingLevel ("low"), systemInstruction
-  // streamGemini() POSTs to .../v1beta/models/${model}:streamGenerateContent?alt=sse
-  // with the key in the x-goog-api-key header; each SSE chunk's text is passed to onText
-  // Busy (429/500/503/504) before any text: retry once after 2s, then try fallbackModels
+async queryAI(query, signal, onText, options = {}) {
+  // aiAttempts(): every provider/model with a key, in advanced_config.assistant.providers order
+  //   (default ["claude", "gemini"]); keys via apiKey(): localStorage CLAUDE_API_KEY / GEMINI_API_KEY,
+  //   then the gitignored secrets.js, then window.CLAUDE_API_KEY / window.GEMINI_API_KEY
+  // streamClaude(): POST https://api.anthropic.com/v1/messages, streamed, with
+  //   anthropic-dangerous-direct-browser-access: true; settings from advanced_config.claude
+  //   (model claude-haiku-5-5, effort, maxTokens, webSearch, maxSearches)
+  // streamGemini(): POST .../v1beta/models/${model}:streamGenerateContent?alt=sse,
+  //   key in x-goog-api-key; settings from advanced_config.gemini
+  // Busy/unreachable before any text: retry once after 2s, then the next model/provider.
+  // Bad key or no credit: skip that provider.
 }
 ```
-- **API Key**: Checks `localStorage` first, then `window.GEMINI_API_KEY` (from `userconfig.js`).
+- **Tools**: quick action `tools` (`urlContext`, `googleSearch`) map to Claude web fetch / web search and Gemini URL context / Google Search. Claude reads links in any question; it searches the web only for the web action unless `claude.webSearch` is true.
 - **Markdown**: Custom `formatMarkdown()` method handles:
     - Code blocks with syntax highlighting style
     - Tables
@@ -169,7 +171,7 @@ async queryGemini(query, signal, onText) {
 
 ### localStorage & Config Persistence
 - Use `Storage` class for namespaced key access: `new Storage("config").get("setting")`
-- Gemini key stored separately: `localStorage.setItem('GEMINI_API_KEY', 'key')`
+- AI keys stored separately: `localStorage.setItem('CLAUDE_API_KEY', 'key')` (and `GEMINI_API_KEY` for the backup)
 - `CONFIG` object auto-saves via Proxy trap—modify `CONFIG.myProperty = value` to persist
 - `overrideStorage: true` forces userconfig values; tabs always override
 
@@ -177,7 +179,9 @@ async queryGemini(query, signal, onText) {
 Implement in `activate()` method after DOM is ready.
 **Current Shortcuts**:
 - **`/`**: Open search overlay, focus input
-- **`Tab`**: Toggle between DuckDuckGo Search and Gemini AI (only when input focused)
+- **`g`**: Open search in AI mode
+- **`Tab`**: Toggle between DuckDuckGo and AI search (only when input focused)
+- **`Alt+1..9`**: Arm an AI quick action
 - **`Escape`**: Close search modal, clear results
 - **`Enter`**: Submit search query
 
@@ -206,13 +210,26 @@ The `advanced_config` object in `userconfig.js` controls system-wide behavior:
 
 ```javascript
 const advanced_config = {
+  assistant: {
+    providers: ["claude", "gemini"], // Tried in order
+    systemInstruction: "...", // Today's date is appended automatically
+    translateTo: "español",
+    quickActions: [/* id, icon, color, prompt ({q}, {lang}), tools */],
+  },
+  claude: {
+    model: "claude-haiku-5-5",
+    fallbackModels: [],
+    effort: "low", // "low" | "medium" | "high"
+    maxTokens: 4096,
+    webSearch: false, // true: search whenever a question needs it (~$0.01 per search)
+    maxSearches: 1,
+  },
   gemini: {
-    model: "gemini-3.8-flash", // Check Google AI docs for latest models
+    model: "gemini-3.8-flash",
     fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy
-    temperature: 0.7, // 0.0 - 1.0 (creative)
+    temperature: 0.7,
     maxOutputTokens: 2048,
     thinkingLevel: "low", // "minimal" | "low" | "medium" | "high" | null
-    systemInstruction: "...",
   },
   weather: {
     apiKey: "...", // Shared demo key; put a personal key in localStorage OWM_API_KEY
@@ -242,7 +259,7 @@ return { error: true, message: "Failed to fetch weather" };
 if (error) return { error: true, message: error.message };
 ```
 - UI checks `response.error` to determine if result or error message
-- Always provide actionable messages: "Get free API key at https://makersuite.google.com/app/apikey"
+- Always provide actionable messages: "Get an API key at https://platform.claude.com/"
 - Log errors to console for debugging: `console.warn("Weather API returned an error:", err)`
 
 ### Config Validation
@@ -267,8 +284,8 @@ if (error) return { error: true, message: error.message };
 
 ### API Calls
 - Weather: Call once per component lifecycle, cache result
-- Gemini: User-initiated; no polling; 60 req/min free tier limit
-- Only one Gemini request runs at a time; closing the overlay aborts it
+- AI: User-initiated; no polling; every Claude request spends the user's API credit, so keep tools opt-in
+- Only one AI request runs at a time; closing the overlay aborts it
 
 ### Config Proxy Overhead
 - Proxy `set` trap fires on every CONFIG property change
@@ -292,10 +309,10 @@ Edit the search overlay's key handlers in `activate()` in [statusbar.component.j
 1. Add color object to [src/common/palette.js](../src/common/palette.js)
 2. Reference in `userconfig.js`: `const palette = your_new_palette;`
 
-### Fix Gemini Integration
-- Verify API key set: `localStorage.getItem('GEMINI_API_KEY')` in browser console
-- Check free tier limits at https://makersuite.google.com/app/apikey
-- Streamed responses: check `streamGemini()`, which reads `candidates[0].content.parts[].text` from each SSE chunk
+### Fix AI Integration
+- Verify keys: `localStorage.getItem('CLAUDE_API_KEY')` / `localStorage.getItem('GEMINI_API_KEY')` in the browser console
+- The error panel's "Technical details" shows the API message (`invalid x-api-key`, credit balance, ...)
+- Streamed responses: `streamClaude()` reads `text_delta` / `citations_delta` events; `streamGemini()` reads `candidates[0].content.parts[].text`
 
 ### Localize UI Strings
 Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js), then use `window.i18n.t('key.path')`
@@ -316,7 +333,7 @@ Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js)
 - **Fonts**: Roboto, Nunito, Raleway, Fira Sans (Google Fonts)
 - **Icons**: Tabler Icons (CDN), Material Icons
 - **CSS**: awoo.min.css (custom utility framework)
-- **APIs**: Google Generative Language (Gemini), OpenWeatherMap
+- **APIs**: Anthropic Messages API (Claude), Google Generative Language (Gemini), OpenWeatherMap
 
 No npm packages or build dependencies—all loaded at runtime.
 
@@ -328,7 +345,7 @@ No npm packages or build dependencies—all loaded at runtime.
 - Test all Catppuccin palettes
 - Ensure i18n strings use `window.i18n.t()` for user-facing text
 - Update `LOCALIZATION.md` if adding i18n keys
-- Document Gemini API changes in `GEMINI_SETUP.md`
+- Document AI API changes in `AI_SETUP.md`
 - Follow existing indentation (2 spaces) and shadow DOM patterns
 
 ---
@@ -348,7 +365,8 @@ Actions.activate('current-time');
 // Test palette change (without reload)
 window.CONFIG.palette = mocha;
 
-// Check API key
+// Check API keys
+localStorage.getItem('CLAUDE_API_KEY');
 localStorage.getItem('GEMINI_API_KEY');
 
 // Get current component references

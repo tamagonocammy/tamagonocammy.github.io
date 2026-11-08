@@ -1019,7 +1019,7 @@ class Statusbar extends Component {
   }
 
   get quickActions() {
-    return advanced_config?.gemini?.quickActions || [];
+    return this.assistantConfig.quickActions || [];
   }
 
   quickActionLabel(action) {
@@ -1067,90 +1067,89 @@ class Statusbar extends Component {
       </div>`;
   }
 
-  // Streams the answer: onText(textSoFar) is called as chunks arrive; resolves to { text, model, fallbackFrom? } or an error object.
-  // When Google says the model is busy (before anything arrived), retries once, then tries advanced_config.gemini.fallbackModels.
-  // options.tools: Gemini tool names from a quick action ("urlContext", "googleSearch"); dropped if the model rejects them.
-  async queryGemini(query, signal, onText, options = {}) {
-    // Get API key from localStorage or userconfig
-    const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
+  // Settings shared by every provider; older configs kept them under advanced_config.gemini
+  get assistantConfig() {
+    return { ...advanced_config?.gemini, ...advanced_config?.assistant };
+  }
 
-    if (!apiKey) {
-      return {
-        error: true,
-        message: window.i18n.t("search.error_no_api_key"),
-      };
+  // API keys: localStorage wins, then secrets.js (gitignored), then a window.* value from userconfig.js
+  apiKey(provider) {
+    if (provider === "claude") {
+      return localStorage.getItem("CLAUDE_API_KEY") || window.startpageSecrets?.claude?.() || window.CLAUDE_API_KEY;
     }
-    // Use advanced_config for Gemini settings with fallbacks
-    const model = advanced_config?.gemini?.model || "gemini-3.8-flash";
-    const fallbackModels = advanced_config?.gemini?.fallbackModels ?? ["gemini-3.5-flash"];
-    const temperature = advanced_config?.gemini?.temperature ?? 0.7;
-    const maxOutputTokens = advanced_config?.gemini?.maxOutputTokens ?? 2048;
-    const thinkingLevel = advanced_config?.gemini?.thinkingLevel ?? "low";
-    const systemInstruction = advanced_config?.gemini?.systemInstruction;
+    return localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
+  }
 
-    const requestBody = {
-      contents: [
-        {
-          parts: [
-            {
-              text: query,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: temperature,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: maxOutputTokens,
-      },
+  // Every provider/model to try, in order, skipping providers without a key
+  aiAttempts() {
+    const providers = advanced_config?.assistant?.providers || ["claude", "gemini"];
+    const defaults = {
+      claude: { model: "claude-haiku-5-5", fallbackModels: [] },
+      gemini: { model: "gemini-3.8-flash", fallbackModels: ["gemini-3.5-flash"] },
     };
+    return providers.flatMap((provider) => {
+      const apiKey = this.apiKey(provider);
+      const settings = { ...defaults[provider], ...advanced_config?.[provider] };
+      if (!apiKey || !defaults[provider]) return [];
+      const models = [settings.model, ...(settings.fallbackModels || []).filter((m) => m && m !== settings.model)];
+      return models.map((model) => ({ provider, model, apiKey }));
+    });
+  }
 
-    if (systemInstruction) {
-      requestBody.systemInstruction = {
-        parts: [{ text: systemInstruction }],
-      };
+  // Streams the answer: onText(textSoFar) is called as chunks arrive; resolves to { text, model, sources, fallbackFrom? } or an error object.
+  // Tries advanced_config.assistant.providers in order (Claude, then Gemini by default). A model that is busy or unreachable
+  // before any text arrives gets one retry after 2s (the first one only), then the next model takes over;
+  // a provider that rejects the key or is out of credit is skipped altogether.
+  // options.tools: tool names from a quick action ("urlContext" reads a link, "googleSearch" searches the web).
+  async queryAI(query, signal, onText, options = {}) {
+    const attempts = this.aiAttempts();
+    if (!attempts.length) {
+      return { error: true, message: window.i18n.t("search.error_no_api_key") };
     }
 
-    // Less silent "thinking" before the first word = faster answers
-    if (thinkingLevel) {
-      requestBody.generationConfig.thinkingConfig = { thinkingLevel };
-    }
-
-    if (options.tools?.length) {
-      requestBody.tools = options.tools.map((tool) => ({ [tool]: {} }));
-    }
-
-    // Overloaded / rate limited / temporary server trouble: worth another try
-    const isBusy = (error) => [429, 500, 503, 504].includes(error.status);
-    const models = [model, ...fallbackModels.filter((m) => m && m !== model)];
+    // Overloaded / rate limited / temporary server trouble / network down: worth another try
+    const isBusy = (error) => [0, 429, 500, 502, 503, 504, 529].includes(error.status);
+    // Bad key, no credit, no access: this provider won't work today, move to the next one
+    const isAccountProblem = (error) =>
+      [401, 402, 403].includes(error.status) || (error.status === 400 && /credit|billing|api key/i.test(error.message));
+    const requests = {};
+    const primary = attempts[0];
+    const skipped = new Set();
 
     try {
       let lastError;
-      for (const [index, currentModel] of models.entries()) {
-        // The main model gets one retry after a short pause; each backup model gets one try
-        const attempts = index === 0 ? 2 : 1;
-        for (let attempt = 0; attempt < attempts; attempt++) {
+      for (const [index, attempt] of attempts.entries()) {
+        if (skipped.has(attempt.provider)) continue;
+        const request = (requests[attempt.provider] ??=
+          attempt.provider === "claude" ? this.claudeRequest(query, options) : this.geminiRequest(query, options));
+        const tries = index === 0 ? 2 : 1;
+        for (let attemptNo = 0; attemptNo < tries; attemptNo++) {
           try {
-            const result = await this.streamGemini(currentModel, requestBody, apiKey, signal, onText);
-            return currentModel === model ? result : { ...result, fallbackFrom: model };
+            const stream = attempt.provider === "claude" ? this.streamClaude : this.streamGemini;
+            const result = await stream.call(this, attempt.model, request, attempt.apiKey, signal, onText);
+            return attempt === primary ? result : { ...result, fallbackFrom: primary.model };
           } catch (error) {
-            // This model doesn't accept the thinking level: ask again with the model's own default
-            if (error.status === 400 && requestBody.generationConfig.thinkingConfig && /thinking/i.test(error.message)) {
-              delete requestBody.generationConfig.thinkingConfig;
-              attempt--;
+            if (signal?.aborted || error.streamed) throw error;
+            // Gemini doesn't accept the thinking level: ask again with the model's own default
+            if (error.status === 400 && request.generationConfig?.thinkingConfig && /thinking/i.test(error.message)) {
+              delete request.generationConfig.thinkingConfig;
+              attemptNo--;
               continue;
             }
             // Same for tools (reading links, web search): answer without them rather than fail
-            if (error.status === 400 && requestBody.tools && /tool|url_?context|google_?search|grounding/i.test(error.message)) {
-              delete requestBody.tools;
-              attempt--;
+            if (error.status === 400 && request.tools && /tool|url_?context|google_?search|grounding|web_(search|fetch)/i.test(error.message)) {
+              delete request.tools;
+              attemptNo--;
               continue;
             }
-            // Give up on anything but "busy", and never switch models once text has been shown
-            if (signal?.aborted || error.streamed || !isBusy(error)) throw error;
             lastError = error;
-            if (attempt < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 2000));
+            if (isAccountProblem(error)) {
+              skipped.add(attempt.provider);
+              break;
+            }
+            // Never switch models for anything but "busy"
+            if (!isBusy(error)) throw error;
+            if (attemptNo < tries - 1) await new Promise((resolve) => setTimeout(resolve, 2000));
           }
         }
       }
@@ -1163,80 +1162,216 @@ class Statusbar extends Component {
     }
   }
 
-  // One streamed request to one model. Throws an Error carrying .status (HTTP or stream error code)
-  // and .streamed (whether any text had already been passed to onText).
-  async streamGemini(model, requestBody, apiKey, signal, onText) {
-    const fail = (message, status, streamed = false) => Object.assign(new Error(message), { status, streamed });
+  // The system prompt, with today's date so "latest" and "this year" mean something
+  systemPrompt() {
+    const today = new Date().toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    return [this.assistantConfig.systemInstruction, `Today is ${today}.`].filter(Boolean).join("\n\n");
+  }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Send the key as a header so it stays out of URLs and request logs
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify(requestBody),
-        signal,
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw fail(
-        errorData.error?.message || `${window.i18n.t("search.error_failed_response")} (HTTP ${response.status})`,
-        response.status,
-      );
+  claudeRequest(query, options) {
+    const settings = advanced_config?.claude || {};
+    const tools = [];
+    const wants = new Set(options.tools || []);
+    // Web search on every question (Claude decides whether to use it), or only for the web quick action
+    if (settings.webSearch !== false || wants.has("googleSearch") || wants.has("webSearch")) {
+      tools.push({ type: "web_search_20250305", name: "web_search", max_uses: settings.maxSearches ?? 3 });
     }
+    // Reading links: for the summarize action, or whenever the question contains one
+    if (wants.has("urlContext") || wants.has("readUrl") || /https?:\/\/\S/.test(query)) {
+      tools.push({ type: "web_fetch_20250910", name: "web_fetch", max_uses: 2 });
+    }
+    return {
+      max_tokens: settings.maxTokens ?? 4096,
+      stream: true,
+      system: this.systemPrompt(),
+      messages: [{ role: "user", content: query }],
+      ...(settings.effort ? { output_config: { effort: settings.effort } } : {}),
+      ...(tools.length ? { tools } : {}),
+    };
+  }
 
-    // Server-sent events: each "data: {...}" line is one chunk of the answer
+  geminiRequest(query, options) {
+    const settings = advanced_config?.gemini || {};
+    const request = {
+      contents: [{ parts: [{ text: query }] }],
+      systemInstruction: { parts: [{ text: this.systemPrompt() }] },
+      generationConfig: {
+        temperature: settings.temperature ?? 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: settings.maxOutputTokens ?? 2048,
+      },
+    };
+    // Less silent "thinking" before the first word = faster answers
+    const thinkingLevel = settings.thinkingLevel ?? "low";
+    if (thinkingLevel) request.generationConfig.thinkingConfig = { thinkingLevel };
+    // Quick action tools, under Gemini's names
+    const names = { googleSearch: "googleSearch", webSearch: "googleSearch", urlContext: "urlContext", readUrl: "urlContext" };
+    const tools = [...new Set((options.tools || []).map((tool) => names[tool]).filter(Boolean))];
+    if (tools.length) request.tools = tools.map((tool) => ({ [tool]: {} }));
+    return request;
+  }
+
+  // Shared by both streams: an Error carrying .status (HTTP or stream error code; 0 = network)
+  // and .streamed (whether any text had already been passed to onText).
+  aiError(message, status, streamed = false) {
+    return Object.assign(new Error(message), { status, streamed });
+  }
+
+  // Reads a server-sent-events body, calling handleData(json) per "data:" line and onText when the text grew
+  async readEvents(response, handleData, getText, onText) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
-    let text = "";
-    let reason;
-    let blockReason;
-    const sources = new Map(); // uri -> title, from web-search grounding
-
     const handleLine = (line) => {
       if (!line.startsWith("data:")) return;
-      const data = JSON.parse(line.slice(5));
-      if (data.error) {
-        throw fail(data.error.message || window.i18n.t("search.error_failed_response"), data.error.code, text !== "");
-      }
-      const candidate = data.candidates?.[0];
-      // A chunk can hold several parts; skip thought summaries
-      for (const part of candidate?.content?.parts || []) {
-        if (part.text && !part.thought) text += part.text;
-      }
-      for (const chunk of candidate?.groundingMetadata?.groundingChunks || []) {
-        if (chunk.web?.uri) sources.set(chunk.web.uri, chunk.web.title || chunk.web.uri);
-      }
-      reason = candidate?.finishReason || reason;
-      blockReason = data.promptFeedback?.blockReason || blockReason;
+      const json = line.slice(5).trim();
+      if (json && json !== "[DONE]") handleData(JSON.parse(json));
     };
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split(/\r?\n/);
       buffer = lines.pop(); // keep a partial line for the next read
-      const before = text;
+      const before = getText();
       lines.forEach(handleLine);
-      if (text !== before) onText?.(text);
+      if (getText() !== before) onText?.(getText());
     }
     handleLine(buffer.trim());
+  }
+
+  async postJson(url, headers, body, signal) {
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify(body),
+        signal,
+      });
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      throw this.aiError(error.message || window.i18n.t("search.error_failed_response"), 0);
+    }
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw this.aiError(
+        errorData.error?.message || `${window.i18n.t("search.error_failed_response")} (HTTP ${response.status})`,
+        response.status,
+      );
+    }
+    return response;
+  }
+
+  // One streamed request to Claude (Messages API, called straight from the browser)
+  async streamClaude(model, requestBody, apiKey, signal, onText) {
+    const response = await this.postJson(
+      "https://api.anthropic.com/v1/messages",
+      {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        // Required for calls made from a web page; the key is the user's own and stays on this machine
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      { ...requestBody, model },
+      signal,
+    );
+
+    let text = "";
+    let reason;
+    const cited = new Map(); // url -> title, from citations in the answer
+    const found = new Map(); // url -> title, everything web search returned
+    const errorStatus = { overloaded_error: 529, rate_limit_error: 429, api_error: 500, timeout_error: 504 };
+
+    await this.readEvents(
+      response,
+      (data) => {
+        if (data.type === "error") {
+          throw this.aiError(
+            data.error?.message || window.i18n.t("search.error_failed_response"),
+            errorStatus[data.error?.type] ?? 500,
+            text !== "",
+          );
+        }
+        if (data.type === "content_block_start") {
+          const block = data.content_block;
+          // Several text blocks can follow each other (one per citation); keep them apart only where the model did
+          if (block.type === "text" && block.text) text += block.text;
+          if (block.type === "web_search_tool_result" && Array.isArray(block.content)) {
+            for (const result of block.content) if (result.url) found.set(result.url, result.title || result.url);
+          }
+          if (block.type === "web_fetch_tool_result" && block.content?.url) {
+            cited.set(block.content.url, block.content.content?.title || block.content.url);
+          }
+        }
+        if (data.type === "content_block_delta") {
+          if (data.delta.type === "text_delta") text += data.delta.text;
+          if (data.delta.type === "citations_delta" && data.delta.citation?.url) {
+            cited.set(data.delta.citation.url, data.delta.citation.title || data.delta.citation.url);
+          }
+        }
+        if (data.type === "message_delta") reason = data.delta?.stop_reason || reason;
+      },
+      () => text,
+      onText,
+    );
+
+    if (reason === "refusal" && !text) throw this.aiError(window.i18n.t("search.error_blocked"));
+    if (!text.trim()) {
+      if (reason === "max_tokens") throw this.aiError(window.i18n.t("search.error_max_tokens"));
+      throw this.aiError(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
+    }
+
+    // The pages the answer cites; failing that, the first few search hits
+    const sources = cited.size ? cited : new Map([...found].slice(0, 5));
+    return { text, model, sources: [...sources].map(([uri, title]) => ({ uri, title })) };
+  }
+
+  // One streamed request to one Gemini model
+  async streamGemini(model, requestBody, apiKey, signal, onText) {
+    const response = await this.postJson(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+      // Send the key as a header so it stays out of URLs and request logs
+      { "x-goog-api-key": apiKey },
+      requestBody,
+      signal,
+    );
+
+    let text = "";
+    let reason;
+    let blockReason;
+    const sources = new Map(); // uri -> title, from web-search grounding
+
+    await this.readEvents(
+      response,
+      (data) => {
+        if (data.error) {
+          throw this.aiError(data.error.message || window.i18n.t("search.error_failed_response"), data.error.code, text !== "");
+        }
+        const candidate = data.candidates?.[0];
+        // A chunk can hold several parts; skip thought summaries
+        for (const part of candidate?.content?.parts || []) {
+          if (part.text && !part.thought) text += part.text;
+        }
+        for (const chunk of candidate?.groundingMetadata?.groundingChunks || []) {
+          if (chunk.web?.uri) sources.set(chunk.web.uri, chunk.web.title || chunk.web.uri);
+        }
+        reason = candidate?.finishReason || reason;
+        blockReason = data.promptFeedback?.blockReason || blockReason;
+      },
+      () => text,
+      onText,
+    );
 
     if (!text) {
       if (blockReason || ["SAFETY", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII"].includes(reason)) {
-        throw fail(window.i18n.t("search.error_blocked"));
+        throw this.aiError(window.i18n.t("search.error_blocked"));
       }
       if (reason === "MAX_TOKENS") {
-        throw fail(window.i18n.t("search.error_max_tokens"));
+        throw this.aiError(window.i18n.t("search.error_max_tokens"));
       }
-      throw fail(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
+      throw this.aiError(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
     }
 
     return { text, model, sources: [...sources].map(([uri, title]) => ({ uri, title })) };
@@ -1674,7 +1809,7 @@ class Statusbar extends Component {
             const action = this.quickActions[this.quickActionIndex];
             const prompt = action
               ? action.prompt
-                  .replace(/\{lang\}/g, advanced_config?.gemini?.translateTo || "English")
+                  .replace(/\{lang\}/g, this.assistantConfig.translateTo || "English")
                   .replace(/\{q\}/g, query)
               : query;
             const baseTitle = window.i18n.t("search.results_title");
@@ -1690,7 +1825,7 @@ class Statusbar extends Component {
               loadingIcon.classList.add("active");
             }, 300);
 
-            // Query Gemini; the answer streams in chunk by chunk
+            // Ask the AI; the answer streams in chunk by chunk
             let streamedText = "";
             let canRender = false; // only draw text once the panel has expanded
             let renderQueued = false;
@@ -1709,13 +1844,13 @@ class Statusbar extends Component {
               });
             };
             const errorHtml = (result) => {
-              const apiKeyNotice = !localStorage.getItem("GEMINI_API_KEY") && !window.GEMINI_API_KEY
+              const apiKeyNotice = !this.aiAttempts().length
                 ? `
                   <p style="margin-top: 15px;">
                     <strong>${window.i18n.t("search.setup_title")}</strong><br>
-                    1. ${window.i18n.t("search.setup_step_1")} <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                    1. ${window.i18n.t("search.setup_step_1")} <a href="https://platform.claude.com/" target="_blank" rel="noopener noreferrer">Claude Console</a><br>
                     2. ${window.i18n.t("search.setup_step_2")}<br>
-                    <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('GEMINI_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
+                    <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('CLAUDE_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
                     3. ${window.i18n.t("search.setup_step_3")}
                   </p>
                 `
@@ -1741,7 +1876,7 @@ class Statusbar extends Component {
 
             let firstChunk;
             const firstChunkArrived = new Promise((resolve) => (firstChunk = resolve));
-            const resultPromise = this.queryGemini(
+            const resultPromise = this.queryAI(
               prompt,
               request.signal,
               (text) => {
@@ -1751,7 +1886,7 @@ class Statusbar extends Component {
               },
               { tools: action?.tools },
             );
-            // Open the panel as soon as Gemini starts answering (or fails)
+            // Open the panel as soon as the answer starts (or fails)
             await Promise.race([firstChunkArrived, resultPromise]);
             // The overlay was closed while waiting: drop the answer
             if (isStale()) return;
@@ -1800,7 +1935,7 @@ class Statusbar extends Component {
                         .replace("{primary}", result.fallbackFrom),
                     )}</div>`
                   : "";
-                // Pages Gemini read while answering with web search
+                // Pages the AI read or cited while answering
                 const sourcesHtml = result.sources?.length
                   ? `<div class="model-note"><strong>${escapeHtml(window.i18n.t("search.sources"))}</strong><br>${result.sources
                       .map(

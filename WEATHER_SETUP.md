@@ -91,9 +91,9 @@ weather: {
 
 - API key is stored in your browser (or committed to `userconfig.js` if you choose Option B)
 - Requests are sent directly to OpenWeatherMap's API
-- This startpage does not run a backend service for weather — like Gemini, any key used here is inherently visible in the browser's network requests
+- This startpage does not run a backend service for weather — like the AI search keys, any key used here is inherently visible in the browser's network requests
 
 ## Related Docs
 
-- [GEMINI_SETUP.md](GEMINI_SETUP.md)
+- [AI_SETUP.md](AI_SETUP.md)
 - [README.md](README.md)

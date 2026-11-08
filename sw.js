@@ -1,5 +1,5 @@
 // Bump this when app-shell files change so old caches get evicted on activate.
-const CACHE_VERSION = "v20";
+const CACHE_VERSION = "v21";
 const CACHE_NAME = `startpage-${CACHE_VERSION}`;
 
 // Core files needed to render the page with no network at all.
@@ -31,7 +31,7 @@ const APP_SHELL = [
 ];
 
 // Live/dynamic APIs must never be served from cache.
-const NEVER_CACHE_HOSTS = ["api.openweathermap.org", "generativelanguage.googleapis.com"];
+const NEVER_CACHE_HOSTS = ["api.openweathermap.org", "generativelanguage.googleapis.com", "api.anthropic.com"];
 const LIVE_PATHS = ["/now", "/artwork", "/health", "/control"];
 
 self.addEventListener("install", (event) => {
@@ -62,6 +62,8 @@ self.addEventListener("fetch", (event) => {
   // and on the same origin when the helper serves the page itself (http://127.0.0.1:47615/)
   const local = ["127.0.0.1", "localhost"].includes(url.hostname);
   if (local && (url.origin !== self.location.origin || LIVE_PATHS.includes(url.pathname))) return;
+  // Local keys: always read fresh (a new key works on the next reload) and never copied into the cache
+  if (url.origin === self.location.origin && url.pathname.endsWith("/secrets.js")) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {

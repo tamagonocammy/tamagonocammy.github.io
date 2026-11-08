@@ -15,16 +15,16 @@
  *  - Changes usually take effect immediately upon saving and refreshing.
  *  - If something breaks, check the browser console for errors.
  *
- *  GEMINI API KEY CONFIGURATION:
- *  To use Gemini AI search, you need to set your API key.
- *  Get a free API key at: https://makersuite.google.com/app/apikey
+ *  AI SEARCH API KEYS:
+ *  AI search asks Claude first and falls back to Gemini (advanced_config.assistant.providers).
+ *  Claude keys: https://platform.claude.com/  ·  Gemini keys: https://aistudio.google.com/apikey
  *
- *  Option 1: Set it here (not recommended for public repos)
- *  window.GEMINI_API_KEY = "your-api-key-here";
- *
- *  Option 2: Set it in browser console (recommended)
- *  Run this in your browser's dev tools console:
+ *  Option 1 (recommended): run this in your browser's dev tools console:
+ *  localStorage.setItem('CLAUDE_API_KEY', 'your-api-key-here');
  *  localStorage.setItem('GEMINI_API_KEY', 'your-api-key-here');
+ *
+ *  Option 2: a local secrets.js next to index.html (gitignored, never published).
+ *  Never put a key in this file: it is public on GitHub.
  * ==================================================================================
  */
 
@@ -33,7 +33,7 @@
 // Define your preferred light and dark themes.
 // The system automatically switches based on your OS/browser settings.
 // Available: latte (light) / frappe / macchiato / mocha (dark)
-// All Gemini AI features work with any palette - colors auto-adapt!
+// AI search works with any palette - colors auto-adapt!
 const preferredLightTheme = latte;
 const preferredDarkTheme = mocha;
 let palette = initThemeSystem(preferredLightTheme, preferredDarkTheme);
@@ -413,20 +413,16 @@ const default_config = {
 // ============================================
 
 const advanced_config = {
-  // Gemini AI Settings
-  gemini: {
-    model: "gemini-3.8-flash", // Model to use (check Google AI docs for latest)
-    fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy ([] to disable)
-    temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
-    maxOutputTokens: 2048, // Maximum response length
-    thinkingLevel: "low", // Thinking before answering: "minimal" (fastest), "low", "medium", "high" (slowest), or null for the model's default
+  // AI search (press g, or Tab in the search box)
+  assistant: {
+    providers: ["claude", "gemini"], // Tried in order: the next one answers when one is down, busy, or out of credit
     systemInstruction:
       "Answer the user's question directly and completely in a single response. You are answering from a startpage search box: each question is sent on its own with no conversation history, so the user cannot reply to you and anything you ask back goes unanswered. Do not ask clarifying questions, do not ask for the user's opinion, and do not request further input. If something is ambiguous, make a reasonable assumption and state it briefly. Never end your response with a follow-up question or an offer to do more.",
 
-    // Quick actions: shown as buttons under the search box in Gemini mode.
+    // Quick actions: shown as buttons under the search box in AI mode.
     // Click one (or press Alt+1..9) to select it; Enter then sends the prompt with {q} replaced by what you typed.
     // `label` is optional: without it the translated name (search.actions.<id>) is used.
-    // `tools` are Gemini tools: urlContext lets it read a link, googleSearch grounds the answer in current results.
+    // `tools`: urlContext lets it read a link, googleSearch searches the web (Claude: web fetch / web search).
     translateTo: "español", // Target language for the translate action
     quickActions: [
       {
@@ -468,6 +464,25 @@ const advanced_config = {
         prompt: "Answer the programming request below as a senior engineer. Be brief and lead with a short code example. If the input names a language or framework, use it.\n\nUser input:\n{q}",
       },
     ],
+  },
+
+  // Claude (https://platform.claude.com/)
+  claude: {
+    model: "claude-haiku-5-5", // Fast and cheap; "claude-sonnet-5-5" is smarter and costs ~20x more
+    fallbackModels: [], // Other Claude models to try when the main one is busy, before Gemini
+    effort: "low", // How hard it thinks before answering: "low" (fastest), "medium", "high"
+    maxTokens: 4096, // Maximum response length, thinking included
+    webSearch: false, // false: search the web only with the web quick action (Alt+4), which keeps credit lasting. true: Claude searches whenever a question seems to need it (~$0.01 per search)
+    maxSearches: 1, // Searches allowed per question (each one costs ~$0.01)
+  },
+
+  // Gemini (backup)
+  gemini: {
+    model: "gemini-3.8-flash", // Model to use (check Google AI docs for latest)
+    fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy ([] to disable)
+    temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
+    maxOutputTokens: 2048, // Maximum response length
+    thinkingLevel: "low", // Thinking before answering: "minimal" (fastest), "low", "medium", "high" (slowest), or null for the model's default
   },
 
   // Weather API Settings

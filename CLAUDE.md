@@ -98,11 +98,11 @@ Scripts in `index.html` load in this order, because each file uses globals defin
 
 **Translation structure** includes: `search.*`, `time.days/months/periods`, `weather.conditions`, `settings.*`
 
-Component-specific notes live next to the code: `src/components/statusbar/CLAUDE.md` (Gemini search, prefixes, shortcuts), `src/components/weather/CLAUDE.md` (weather API) and `src/components/nowplaying/CLAUDE.md` (Apple Music helper).
+Component-specific notes live next to the code: `src/components/statusbar/CLAUDE.md` (AI search with Claude/Gemini, prefixes, shortcuts), `src/components/weather/CLAUDE.md` (weather API) and `src/components/nowplaying/CLAUDE.md` (Apple Music helper).
 
 ### Offline Support
 
-`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for `api.openweathermap.org` and `generativelanguage.googleapis.com` so weather/Gemini stay live.
+`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for `api.openweathermap.org`, `generativelanguage.googleapis.com` and `api.anthropic.com` so weather/AI stay live. The gitignored `secrets.js` (local API keys) is never cached.
 
 - Bump `CACHE_VERSION` in `sw.js` when app-shell files change — old caches are evicted on `activate`
 - Only takes effect over `http(s)`; does nothing when the file is opened directly (`file://`)

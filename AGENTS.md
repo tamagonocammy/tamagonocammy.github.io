@@ -78,15 +78,16 @@ Scripts in `index.html` must load in this exact order:
 - Cache DOM references in `activate()` using `this.refs` proxy, not repeated `querySelector` calls
 - Shadow DOM prevents CSS leakage but also prevents external styles from affecting components
 
-### Gemini AI Integration
+### AI Search (Claude, Gemini as backup)
 
-Implemented in `statusbar.component.js`. Press `/` to open search, `Tab` to toggle between DuckDuckGo and Gemini.
+AI search lives in `statusbar.component.js`. Press `g` (or `/` then `Tab`) for AI mode. It asks **Claude** first and falls back to **Gemini**. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys such as `placeholder_gemini`); the user-facing strings say Claude.
 
-- API key: `localStorage.setItem('GEMINI_API_KEY', 'key')` or `window.GEMINI_API_KEY` in `userconfig.js`
-- Configurable via `advanced_config.gemini` (model, fallbackModels, temperature, maxOutputTokens, thinkingLevel, systemInstruction)
-- `thinkingLevel` (default `"low"`) is sent as `generationConfig.thinkingConfig`; if a model rejects it (HTTP 400 mentioning thinking), the request is resent without it
-- When Google answers "busy" (429/500/503/504) before any text arrives, retries the main model once after 2s, then tries each of `fallbackModels` and notes which model answered
-- Streams the answer (`streamGenerateContent?alt=sse`) and re-renders the markdown as chunks arrive, with code block highlighting
+- Providers: `advanced_config.assistant.providers` (default `["claude", "gemini"]`); per-provider settings in `advanced_config.claude` and `advanced_config.gemini`. Shared settings (`systemInstruction`, `translateTo`, `quickActions`) live in `advanced_config.assistant`
+- Keys (`apiKey()`): `localStorage` `CLAUDE_API_KEY` / `GEMINI_API_KEY` → gitignored `secrets.js` (`window.startpageSecrets.claude()`) → `window.CLAUDE_API_KEY` / `window.GEMINI_API_KEY`. The repo is public: never commit a key
+- `queryAI()` walks `aiAttempts()` (every provider/model with a key). Busy or unreachable (0/429/5xx/529) before any text: one retry after 2s on the first model, then the next model/provider, with a note saying who answered. 401/402/403 or a credit/billing 400 skips that provider
+- Claude (`streamClaude`): Messages API from the browser with `anthropic-dangerous-direct-browser-access: true`, streamed SSE, `output_config.effort`, no `temperature`. Web search (`web_search_20250305`) only for the web quick action unless `claude.webSearch` is true; web fetch (`web_fetch_20250910`) for `urlContext` actions or any question containing a URL. Sources = cited URLs
+- Gemini (`streamGemini`): `streamGenerateContent?alt=sse`, key in the `x-goog-api-key` header, `thinkingLevel` → `generationConfig.thinkingConfig` (dropped if a model rejects it)
+- `systemPrompt()` appends today's date. Full details: `src/components/statusbar/CLAUDE.md` and `AI_SETUP.md`
 
 ### Internationalization
 
@@ -115,11 +116,11 @@ window.i18n.getOrdinal(num)                   // Get ordinal suffix (e.g., "º",
 - Configure location in `userconfig.js` `temperature.location`
 - Language in `advanced_config.weather.language`
 - API key resolution order: `localStorage.getItem('OWM_API_KEY')` → `window.OWM_API_KEY` → `advanced_config.weather.apiKey` → shared demo key committed in `userconfig.js`
-- Prefer `localStorage.setItem('OWM_API_KEY', 'key')` for a personal key so it never lands in a commit (same pattern as the Gemini key)
+- Prefer `localStorage.setItem('OWM_API_KEY', 'key')` for a personal key so it never lands in a commit (same pattern as the AI keys)
 
 ### Offline Support
 
-`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for `api.openweathermap.org` and `generativelanguage.googleapis.com` so weather/Gemini stay live.
+`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for `api.openweathermap.org`, `generativelanguage.googleapis.com` and `api.anthropic.com` so weather/AI stay live. The gitignored `secrets.js` is never cached.
 
 - Bump `CACHE_VERSION` in `sw.js` when app-shell files change — old caches are evicted on `activate`
 - Only takes effect over `http(s)`; does nothing when the file is opened directly (`file://`)
@@ -136,7 +137,7 @@ storage.hasValue("key");
 storage.save(jsonString);
 ```
 
-- Gemini API key stored separately: `localStorage.setItem('GEMINI_API_KEY', 'key')`
+- AI keys stored separately: `localStorage.setItem('CLAUDE_API_KEY', 'key')` (and `GEMINI_API_KEY` for the backup)
 - Language preference: `localStorage.setItem('locale', 'en')`
 
 ### Error Handling
@@ -155,8 +156,9 @@ throw new Error("API failed");
 
 | Key | Action |
 |-----|--------|
+| `g` | Open search in AI mode |
 | `/` | Open search overlay, focus input |
-| `Tab` | Toggle between DuckDuckGo Search and Gemini AI (when input focused) |
+| `Tab` | Toggle between DuckDuckGo and AI search (when input focused) |
 | `Enter` | Execute search / submit query |
 | `Escape` | Close search modal, clear results |
 
@@ -201,7 +203,8 @@ console.log(RenderedComponents);
 // Test weather API
 new WeatherForecastClient("Bogota").getWeather().then(console.log);
 
-// Check Gemini key
+// Check AI keys
+localStorage.getItem('CLAUDE_API_KEY');
 localStorage.getItem('GEMINI_API_KEY');
 
 // Check weather key
