@@ -1,7 +1,8 @@
 /**
  * Weather Component.
  * Displays current weather condition and temperature for a configured location.
- * Click opens a popup with details and the next hours; toggle button inside swaps C/F.
+ * Click (or the `w` shortcut) opens a popup with details, the next hours, a 3-day outlook
+ * and air quality; toggle button inside swaps C/F.
  * Refreshes every 15 minutes, and when the tab becomes visible with stale data.
  *
  * @extends {Component}
@@ -23,7 +24,15 @@ class Weather extends Component {
     sunrise: ".weather-sunrise",
     sunset: ".weather-sunset",
     hourly: ".weather-popup-hourly",
+    daily: ".weather-popup-daily",
+    rain: ".weather-rain",
+    rainDetail: ".weather-detail-rain",
+    air: ".weather-air",
+    airDetail: ".weather-detail-air",
   };
+
+  /** Air quality index (1-5) to palette color. */
+  static AIR_COLORS = { 1: "green", 2: "teal", 3: "yellow", 4: "peach", 5: "red" };
 
   /**
    * Mapping of raw weather conditions (from API) to Tabler icons and palette colors.
@@ -136,7 +145,7 @@ class Weather extends Component {
    * One CSS class per palette color used by the condition icons.
    */
   colorClasses() {
-    const colors = ["yellow", "lavender", "overlay2", "blue", "sky", "peach", "teal", "red", "subtext0"];
+    const colors = ["yellow", "lavender", "overlay2", "blue", "sky", "peach", "teal", "red", "subtext0", "green"];
     return colors.map((c) => `.c-${c} { color: ${CONFIG.palette[c]}; }`).join("\n");
   }
 
@@ -193,7 +202,7 @@ class Weather extends Component {
           border: 1px solid ${CONFIG.palette.surface1};
           border-radius: 8px;
           padding: 16px;
-          width: 230px;
+          width: 250px;
           box-sizing: border-box;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
           z-index: 100;
@@ -225,7 +234,7 @@ class Weather extends Component {
         .weather-popup:not(.hidden) .weather-popup-body > * {
             animation: rise-in .35s var(--ease-out) backwards;
         }
-        ${[...Array(9)].map((_, i) => `.weather-popup:not(.hidden) .weather-popup-body > :nth-child(${i + 1}) { animation-delay: ${40 + i * 30}ms; }`).join("\n")}
+        ${[...Array(10)].map((_, i) => `.weather-popup:not(.hidden) .weather-popup-body > :nth-child(${i + 1}) { animation-delay: ${40 + i * 30}ms; }`).join("\n")}
 
         .weather-popup:not(.hidden) .weather-popup-icon {
             animation: icon-pop .5s var(--ease-spring) 40ms backwards;
@@ -344,6 +353,64 @@ class Weather extends Component {
           font-weight: 700;
       }
 
+      .weather-popup-daily {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          width: 100%;
+          border-top: 1px solid ${CONFIG.palette.surface1};
+          padding-top: 8px;
+      }
+
+      .weather-popup-daily:empty {
+          display: none;
+      }
+
+      .weather-day {
+          display: grid;
+          grid-template-columns: 3.2em 18px 1fr auto;
+          align-items: center;
+          gap: 8px;
+          font: 400 8pt 'Lato', sans-serif;
+          color: ${CONFIG.palette.text};
+      }
+
+      .weather-day-name {
+          color: ${CONFIG.palette.subtext0};
+          text-transform: capitalize;
+      }
+
+      .weather-day .ti {
+          font-size: 15px;
+      }
+
+      .weather-day-rain {
+          font-size: 7.5pt;
+          color: ${CONFIG.palette.blue};
+      }
+
+      .weather-day-temps {
+          white-space: nowrap;
+      }
+
+      .weather-day-min {
+          color: ${CONFIG.palette.subtext0};
+          margin-left: 4px;
+      }
+
+      .weather-air-dot {
+          display: inline-block;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: currentColor;
+          margin-right: 1px;
+      }
+
+      .weather-detail[hidden] {
+          display: none;
+      }
+
       .weather-popup-meta {
           display: flex;
           flex-direction: column;
@@ -414,8 +481,11 @@ class Weather extends Component {
               <span class="weather-detail" title="${t('weather.popup.wind', 'Wind')}"><i class="ti ti-wind"></i><span class="weather-wind"></span></span>
               <span class="weather-detail" title="${t('weather.popup.sunrise', 'Sunrise')}"><i class="ti ti-sunrise"></i><span class="weather-sunrise"></span></span>
               <span class="weather-detail" title="${t('weather.popup.sunset', 'Sunset')}"><i class="ti ti-sunset"></i><span class="weather-sunset"></span></span>
+              <span class="weather-detail weather-detail-rain" title="${t('weather.popup.rain_chance', 'Chance of rain')}" hidden><i class="ti ti-umbrella"></i><span class="weather-rain"></span></span>
+              <span class="weather-detail weather-detail-air" title="${t('weather.popup.air_quality', 'Air quality')}" hidden><i class="ti ti-leaf"></i><span class="weather-air"></span></span>
             </div>
             <div class="weather-popup-hourly"></div>
+            <div class="weather-popup-daily"></div>
             <div class="weather-popup-meta">
               <span class="weather-popup-location-label">${t('weather.popup.location', 'Location')}</span>
               <span class="weather-popup-location-value">${this.location}</span>
@@ -507,6 +577,7 @@ class Weather extends Component {
     this.refs.popupFeels.textContent = error.message || "";
     this.refs.popupDetails.hidden = true;
     this.refs.hourly.innerHTML = "";
+    this.refs.daily.innerHTML = "";
   }
 
   /**
@@ -559,6 +630,42 @@ class Weather extends Component {
             <span class="weather-hour-time">${this.formatTime(slot.time)}</span>
             <i class="ti ${forecast.icon} c-${forecast.color}"></i>
             <span class="weather-hour-temp">${deg(slot.temperature)}</span>
+          </div>`;
+      })
+      .join("");
+
+    this._updateExtras(deg);
+  }
+
+  /** Rain chance, air quality and the 3-day outlook; each is skipped when its data is missing. */
+  _updateExtras(deg) {
+    const w = this.weather;
+    const t = (key, fallback) => window.i18n?.t(key) || fallback;
+
+    const hasRain = w.rainChance !== null && w.rainChance !== undefined;
+    this.refs.rainDetail.hidden = !hasRain;
+    if (hasRain) this.refs.rain.textContent = `${w.rainChance}%`;
+
+    this.refs.airDetail.hidden = !w.airQuality;
+    if (w.airQuality) {
+      const { index, pm25 } = w.airQuality;
+      const color = Weather.AIR_COLORS[index] || "subtext0";
+      const label = t(`weather.air.${index}`, `AQI ${index}`);
+      this.refs.air.innerHTML = `<span class="weather-air-dot c-${color}"></span> ${label}`;
+      this.refs.airDetail.title = `${t('weather.popup.air_quality', 'Air quality')}: ${label} (AQI ${index}/5 · PM2.5 ${pm25} µg/m³)`;
+    }
+
+    const days = window.i18n?.getDays(true) || ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    this.refs.daily.innerHTML = (w.daily || [])
+      .map((day) => {
+        const forecast = this.getForecast(day.condition, true);
+        const rain = day.rainChance >= 20 ? `${day.rainChance}%` : "";
+        return `
+          <div class="weather-day">
+            <span class="weather-day-name">${days[day.weekday]}</span>
+            <i class="ti ${forecast.icon} c-${forecast.color}"></i>
+            <span class="weather-day-rain">${rain}</span>
+            <span class="weather-day-temps"><strong>${deg(day.tempMax)}</strong><span class="weather-day-min">${deg(day.tempMin)}</span></span>
           </div>`;
       })
       .join("");

@@ -1,21 +1,25 @@
 /**
- * OpenWeatherMap client: current conditions plus the next few 3-hour forecast slots.
+ * OpenWeatherMap client: current conditions, the next few 3-hour forecast slots,
+ * a 3-day outlook and air quality.
  * Results are cached in localStorage so new tabs render instantly and the shared
  * demo key isn't hit on every page load.
  */
 class WeatherForecastClient {
   static CACHE_TTL_MS = 10 * 60 * 1000;
   static HOURLY_SLOTS = 5;
+  static DAILY_DAYS = 3;
 
   constructor(location) {
     this.location = location;
     this.appId = localStorage.getItem("OWM_API_KEY") || window.OWM_API_KEY || advanced_config?.weather?.apiKey || "50a34e070dd5c09a99554b57ab7ea7e2";
     this.language = advanced_config?.weather?.language || "eo";
-    this.cacheKey = `weatherCache:${location}:${this.language}`;
+    // v2: entries carry daily/rainChance/airQuality
+    this.cacheKey = `weatherCache:v2:${location}:${this.language}`;
 
     const params = `q=${encodeURIComponent(location)}&units=metric&lang=${this.language}&appid=${this.appId}`;
     this.currentUrl = `https://api.openweathermap.org/data/2.5/weather?${params}`;
-    this.forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?${params}&cnt=${WeatherForecastClient.HOURLY_SLOTS}`;
+    // The full 5-day / 3-hour list: the first slots feed the hourly row, the rest the daily outlook
+    this.forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?${params}`;
   }
 
   /**
@@ -35,10 +39,20 @@ class WeatherForecastClient {
       return current;
     }
 
+    // Air quality needs coordinates, which only the current-weather answer gives us
+    const air = current.coord
+      ? await this.fetchJson(
+          `https://api.openweathermap.org/data/2.5/air_pollution?lat=${current.coord.lat}&lon=${current.coord.lon}&appid=${this.appId}`,
+        )
+      : { error: true };
+
     const weather = {
       ...this.parseCurrent(current),
-      // A failed forecast shouldn't hide the current weather; the popup just skips the row.
+      // A failed forecast or air-quality call shouldn't hide the current weather; the popup just skips those rows.
       hourly: forecast.error ? [] : this.parseForecast(forecast, current),
+      daily: forecast.error ? [] : this.parseDaily(forecast, current),
+      rainChance: forecast.error ? null : this.parseRainChance(forecast),
+      airQuality: air.error ? null : this.parseAirQuality(air),
       fetchedAt: Date.now(),
     };
 
@@ -90,13 +104,57 @@ class WeatherForecastClient {
   }
 
   parseForecast(data, current) {
-    return (data.list || []).map((slot) => ({
+    return (data.list || []).slice(0, WeatherForecastClient.HOURLY_SLOTS).map((slot) => ({
       time: slot.dt * 1000,
       temperature: Math.round(slot.main.temp),
       condition: slot.weather[0].main.toLowerCase(),
       // OWM marks each slot "d"/"n"; fall back to the current sunrise/sunset window.
       isDay: slot.sys?.pod ? slot.sys.pod === "d" : this.isDaytime(slot.dt * 1000, current),
     }));
+  }
+
+  /**
+   * Groups the 3-hour slots by the city's local day and summarizes the next few days
+   * (today is skipped: the popup already shows it). The icon comes from the slot closest to midday.
+   */
+  parseDaily(data, current) {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const offset = current.timezone * 1000;
+    const dayOf = (ms) => Math.floor((ms + offset) / dayMs);
+    const today = dayOf(current.dt * 1000);
+
+    const days = new Map();
+    for (const slot of data.list || []) {
+      const day = dayOf(slot.dt * 1000);
+      if (day <= today) continue;
+      if (!days.has(day)) days.set(day, []);
+      days.get(day).push(slot);
+    }
+
+    return [...days.entries()].slice(0, WeatherForecastClient.DAILY_DAYS).map(([day, slots]) => {
+      const hourOf = (slot) => (((slot.dt * 1000 + offset) % dayMs) / 3600000);
+      const midday = slots.reduce((best, slot) => (Math.abs(hourOf(slot) - 12) < Math.abs(hourOf(best) - 12) ? slot : best));
+      return {
+        weekday: new Date(day * dayMs).getUTCDay(),
+        tempMin: Math.round(Math.min(...slots.map((s) => s.main.temp_min))),
+        tempMax: Math.round(Math.max(...slots.map((s) => s.main.temp_max))),
+        condition: midday.weather[0].main.toLowerCase(),
+        rainChance: Math.round(Math.max(...slots.map((s) => s.pop || 0)) * 100),
+      };
+    });
+  }
+
+  /** Chance of rain over the next 3 hours, in percent. */
+  parseRainChance(data) {
+    const next = data.list?.[0];
+    return next ? Math.round((next.pop || 0) * 100) : null;
+  }
+
+  /** OWM air quality index: 1 (good) to 5 (very poor), plus the fine-particle reading. */
+  parseAirQuality(data) {
+    const entry = data.list?.[0];
+    if (!entry?.main?.aqi) return null;
+    return { index: entry.main.aqi, pm25: Math.round(entry.components?.pm2_5 ?? 0) };
   }
 
   isDaytime(ms, current) {

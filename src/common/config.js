@@ -24,10 +24,14 @@ class Config {
     },
     disabled: [],
     openLastVisitedTab: false,
+    searchPrefixes: {},
     tabs: [],
   };
 
   config;
+
+  /** Settings that are only ever edited in userconfig.js, so the file always wins over localStorage. */
+  static FILE_ONLY = ["tabs", "searchPrefixes"];
 
   /**
    * @param {Object} config - Initial user configuration object.
@@ -89,13 +93,13 @@ class Config {
    * Determines whether the localStorage value should be overridden by the UserConfig.
    * Logic:
    * - If the setting exists in UserConfig AND
-   * - (overrideStorage is true OR the setting is 'tabs' (tabs always sync from file))
+   * - (overrideStorage is true OR the setting is in FILE_ONLY (always synced from file))
    *
    * @param {string} setting - The setting key to check.
    * @returns {boolean}
    */
   canOverrideStorage(setting) {
-    return setting in this.config && (this.config.overrideStorage || setting === "tabs");
+    return setting in this.config && (this.config.overrideStorage || Config.FILE_ONLY.includes(setting));
   }
 
   /**
@@ -119,7 +123,8 @@ class Config {
     document.onkeypress = ({ key }) => {
       if (document.activeElement !== document.body) return;
 
-      if (Object.keys(this.config.keybindings).includes(key)) Actions.activate(this.config.keybindings[key]);
+      const keybindings = this.config.keybindings ?? {};
+      if (Object.keys(keybindings).includes(key)) Actions.activate(keybindings[key]);
     };
   }
 

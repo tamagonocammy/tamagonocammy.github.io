@@ -10,6 +10,7 @@ class Statusbar extends Component {
 
   currentTabIndex = 0;
   searchEngine = "duckduckgo"; // "duckduckgo" or "gemini"
+  quickActionIndex = null; // armed Gemini quick action, if any
 
   constructor() {
     super();
@@ -383,9 +384,14 @@ class Statusbar extends Component {
             box-shadow: 0 0 0 4px ${CONFIG.palette.green}26;
         }
 
+        /* Icons are centered on the input itself, not the whole header (which grows with hint and actions) */
+        .search-field {
+            position: relative;
+        }
+
         .search-icon {
             position: absolute;
-            right: 35px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             color: ${CONFIG.palette.overlay0};
@@ -394,7 +400,7 @@ class Statusbar extends Component {
 
         .search-engine-icon {
             position: absolute;
-            left: 35px;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
             font-size: 20px;
@@ -414,6 +420,19 @@ class Statusbar extends Component {
 
         @keyframes engine-pop-a {
             from { opacity: 0; transform: translateY(-50%) scale(.4) rotate(-90deg); }
+        }
+
+        .search-engine-icon.prefix {
+            animation: engine-pop-a .4s var(--ease-spring);
+        }
+
+        .model-note a {
+            color: ${CONFIG.palette.blue};
+            text-decoration: none;
+        }
+
+        .model-note a:hover {
+            text-decoration: underline;
         }
 
         @keyframes engine-pop-b {
@@ -740,6 +759,196 @@ class Statusbar extends Component {
             transform: scale(0);
             border-radius: 50% !important;
         }
+
+        /* Line under the input: where a !prefix will send you, or which quick action is armed */
+        .search-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 18px;
+            margin-top: 10px;
+            font: 400 12px 'Lato', sans-serif;
+            color: ${CONFIG.palette.subtext0};
+            overflow: hidden;
+            transition: opacity .2s var(--ease-out), transform .2s var(--ease-out), height .25s var(--ease-out), margin-top .25s var(--ease-out);
+        }
+
+        .search-hint.hidden {
+            opacity: 0;
+            height: 0;
+            margin-top: 0;
+            transform: translateY(-4px);
+        }
+
+        .search-hint strong {
+            color: var(--hint-color, ${CONFIG.palette.text});
+        }
+
+        .search-hint kbd,
+        .quick-action kbd,
+        .shortcut-keys kbd {
+            font: 600 10px 'Lato', sans-serif;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: ${CONFIG.palette.surface0};
+            color: ${CONFIG.palette.subtext1};
+            box-shadow: 0 1px 0 ${CONFIG.palette.surface2};
+        }
+
+        /* Gemini quick actions: styled like the link buttons on the tabs */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-height: 120px;
+            margin-top: 12px;
+            transition: opacity .25s var(--ease-out), max-height .3s var(--ease-out), margin-top .3s var(--ease-out);
+        }
+
+        .quick-actions.hidden {
+            opacity: 0;
+            max-height: 0;
+            margin-top: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .15s ease, max-height .25s var(--ease-out), margin-top .25s var(--ease-out), visibility 0s linear .25s;
+        }
+
+        .quick-actions:not(.hidden) .quick-action {
+            animation: action-in .35s var(--ease-spring) backwards;
+            animation-delay: calc(var(--i) * 35ms);
+        }
+
+        @keyframes action-in {
+            from { opacity: 0; transform: translateY(8px) scale(.9); }
+        }
+
+        .quick-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: .4em .7em;
+            border: 0;
+            border-radius: 2px;
+            background: ${CONFIG.palette.mantle};
+            color: ${CONFIG.palette.text};
+            font: 700 14px 'Lato', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px ${CONFIG.palette.crust}, 0 5px 10px rgb(0 0 0 / 20%);
+            margin-bottom: 4px;
+            transition:
+                transform .2s var(--ease-out),
+                box-shadow .2s var(--ease-out),
+                color .2s ease,
+                background-color .2s ease;
+        }
+
+        .quick-action .ti {
+            font-size: 18px;
+            color: var(--action-color);
+            transition: transform .3s var(--ease-spring);
+        }
+
+        .quick-action:hover,
+        .quick-action:focus-visible {
+            transform: translate(0, 4px);
+            box-shadow: 0 0 rgba(0, 0, 0, .25), 0 -0px 5px rgba(0, 0, 0, .1);
+            color: var(--action-color);
+            outline: none;
+        }
+
+        .quick-action:hover .ti,
+        .quick-action:focus-visible .ti {
+            transform: scale(1.12) rotate(-6deg);
+        }
+
+        .quick-action:active {
+            transform: translate(0, 5px) scale(.97);
+            transition-duration: .06s;
+        }
+
+        /* Armed: pressed in, outlined in its own color */
+        .quick-action[aria-pressed="true"] {
+            transform: translate(0, 4px);
+            box-shadow: inset 0 0 0 2px var(--action-color);
+            color: var(--action-color);
+        }
+
+        /* Keyboard shortcuts cheat sheet (press ?) */
+        .shortcuts-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10002;
+            background: ${CONFIG.palette.crust}4D;
+            backdrop-filter: blur(10px);
+            transition: opacity .25s var(--ease-out), visibility 0s;
+        }
+
+        .shortcuts-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .15s ease, visibility 0s linear .15s;
+        }
+
+        .shortcuts-card {
+            width: 420px;
+            max-width: 90vw;
+            padding: 22px 24px;
+            border-radius: 12px;
+            background: ${CONFIG.palette.base};
+            border: 1px solid ${CONFIG.palette.surface1};
+            box-shadow: 0 10px 30px ${CONFIG.palette.crust}66;
+            font-family: 'Lato', sans-serif;
+            color: ${CONFIG.palette.text};
+            transition: transform .3s var(--ease-spring);
+        }
+
+        .shortcuts-overlay.hidden .shortcuts-card {
+            transform: translateY(8px) scale(.96);
+        }
+
+        .shortcuts-card h2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            font-size: 15px;
+            color: var(--accent);
+        }
+
+        .shortcuts-card h3 {
+            margin: 14px 0 6px;
+            font: 600 10px 'Lato', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: ${CONFIG.palette.overlay1};
+        }
+
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .shortcut-keys kbd {
+            font-size: 11px;
+            padding: 2px 7px;
+        }
     `;
   }
 
@@ -765,9 +974,13 @@ class Statusbar extends Component {
                     <i class="ti ti-sparkles"></i>
                 </div>
                 <div class="search-header">
-                    <i class="ti ti-world search-engine-icon duckduckgo"></i>
-                    <input type="text" class="search-input" placeholder="${window.i18n.t("search.placeholder_duckduckgo")}"/>
-                    <i class="ti ti-search search-icon"></i>
+                    <div class="search-field">
+                        <i class="ti ti-world search-engine-icon duckduckgo"></i>
+                        <input type="text" class="search-input" placeholder="${window.i18n.t("search.placeholder_duckduckgo")}"/>
+                        <i class="ti ti-search search-icon"></i>
+                    </div>
+                    <div class="search-hint hidden"></div>
+                    <div class="quick-actions hidden">${this.quickActionsHtml()}</div>
                 </div>
                 <div class="search-results">
                     <div class="results-header">
@@ -784,12 +997,64 @@ class Statusbar extends Component {
                     </div>
                 </div>
             </div>
-        </div>`;
+        </div>
+
+        <!-- Keyboard shortcuts cheat sheet -->
+        <div class="shortcuts-overlay hidden">${this.shortcutsHtml()}</div>`;
+  }
+
+  get quickActions() {
+    return advanced_config?.gemini?.quickActions || [];
+  }
+
+  quickActionLabel(action) {
+    const key = `search.actions.${action.id}`;
+    const translated = window.i18n.t(key);
+    return action.label || (translated !== key ? translated : action.id);
+  }
+
+  quickActionsHtml() {
+    return this.quickActions
+      .map(
+        (action, index) => `
+          <button class="quick-action" type="button" data-action="${index}" aria-pressed="false"
+                  style="--i: ${index}; --action-color: ${action.color || CONFIG.palette.mauve}"
+                  title="Alt+${index + 1}">
+            <i class="ti ti-${action.icon || "sparkles"}"></i>
+            <span>${this.quickActionLabel(action)}</span>
+            ${index < 9 ? `<kbd>${index + 1}</kbd>` : ""}
+          </button>`,
+      )
+      .join("");
+  }
+
+  shortcutsHtml() {
+    const t = (key) => window.i18n.t(`search.shortcuts.${key}`);
+    const keys = (...list) => `<span class="shortcut-keys">${list.map((k) => `<kbd>${k}</kbd>`).join("")}</span>`;
+    const row = (label, ...list) => `<div class="shortcut"><span>${label}</span>${keys(...list)}</div>`;
+    const tabCount = CONFIG.tabs.length;
+    return `
+      <div class="shortcuts-card" role="dialog" aria-label="${t("title")}">
+        <h2><i class="ti ti-keyboard"></i>${t("title")}</h2>
+        <h3>${t("page")}</h3>
+        ${row(t("tabs"), tabCount > 1 ? `1–${tabCount}` : "1")}
+        ${row(t("prev_next"), "←", "→")}
+        ${row(t("search"), "/")}
+        ${row(t("gemini"), "g")}
+        ${row(t("weather"), "w")}
+        ${row(t("help"), "?")}
+        <h3>${t("in_search")}</h3>
+        ${row(t("engine"), "Tab")}
+        ${row(t("prefix"), "!yt …")}
+        ${row(t("actions"), "Alt", "1–9")}
+        ${row(t("close"), "Esc")}
+      </div>`;
   }
 
   // Streams the answer: onText(textSoFar) is called as chunks arrive; resolves to { text, model, fallbackFrom? } or an error object.
   // When Google says the model is busy (before anything arrived), retries once, then tries advanced_config.gemini.fallbackModels.
-  async queryGemini(query, signal, onText) {
+  // options.tools: Gemini tool names from a quick action ("urlContext", "googleSearch"); dropped if the model rejects them.
+  async queryGemini(query, signal, onText, options = {}) {
     // Get API key from localStorage or userconfig
     const apiKey = localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
 
@@ -836,6 +1101,10 @@ class Statusbar extends Component {
       requestBody.generationConfig.thinkingConfig = { thinkingLevel };
     }
 
+    if (options.tools?.length) {
+      requestBody.tools = options.tools.map((tool) => ({ [tool]: {} }));
+    }
+
     // Overloaded / rate limited / temporary server trouble: worth another try
     const isBusy = (error) => [429, 500, 503, 504].includes(error.status);
     const models = [model, ...fallbackModels.filter((m) => m && m !== model)];
@@ -853,6 +1122,12 @@ class Statusbar extends Component {
             // This model doesn't accept the thinking level: ask again with the model's own default
             if (error.status === 400 && requestBody.generationConfig.thinkingConfig && /thinking/i.test(error.message)) {
               delete requestBody.generationConfig.thinkingConfig;
+              attempt--;
+              continue;
+            }
+            // Same for tools (reading links, web search): answer without them rather than fail
+            if (error.status === 400 && requestBody.tools && /tool|url_?context|google_?search|grounding/i.test(error.message)) {
+              delete requestBody.tools;
               attempt--;
               continue;
             }
@@ -906,6 +1181,7 @@ class Statusbar extends Component {
     let text = "";
     let reason;
     let blockReason;
+    const sources = new Map(); // uri -> title, from web-search grounding
 
     const handleLine = (line) => {
       if (!line.startsWith("data:")) return;
@@ -917,6 +1193,9 @@ class Statusbar extends Component {
       // A chunk can hold several parts; skip thought summaries
       for (const part of candidate?.content?.parts || []) {
         if (part.text && !part.thought) text += part.text;
+      }
+      for (const chunk of candidate?.groundingMetadata?.groundingChunks || []) {
+        if (chunk.web?.uri) sources.set(chunk.web.uri, chunk.web.title || chunk.web.uri);
       }
       reason = candidate?.finishReason || reason;
       blockReason = data.promptFeedback?.blockReason || blockReason;
@@ -944,7 +1223,7 @@ class Statusbar extends Component {
       throw fail(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
     }
 
-    return { text, model };
+    return { text, model, sources: [...sources].map(([uri, title]) => ({ uri, title })) };
   }
 
   formatMarkdown(text) {
@@ -1133,6 +1412,11 @@ class Statusbar extends Component {
     const resultsContent = this.shadow.querySelector(".results-content");
     const searchHeader = this.shadow.querySelector(".search-header");
     const loadingIcon = this.shadow.querySelector(".loading-icon");
+    const searchHint = this.shadow.querySelector(".search-hint");
+    const quickActionsRow = this.shadow.querySelector(".quick-actions");
+    const quickActionButtons = this.shadow.querySelectorAll(".quick-action");
+    const resultsTitle = this.shadow.querySelector(".gemini-results-title");
+    this.shortcutsOverlay = this.shadow.querySelector(".shortcuts-overlay");
     const escapeHtml = (str) =>
       String(str ?? "")
         .replace(/&/g, "&amp;")
@@ -1150,21 +1434,98 @@ class Statusbar extends Component {
     const isShowingResults = () =>
       searchResults.classList.contains("active") || searchModal.classList.contains("expanded");
 
-    // Update placeholder and icon based on current engine
-    const updateSearchEngine = () => {
-      if (this.searchEngine === "duckduckgo") {
-        searchInput.placeholder = window.i18n.t("search.placeholder_duckduckgo");
-        engineIcon.className = "ti ti-world search-engine-icon duckduckgo";
+    // Only touch the icon when it actually changes, so its pop animation doesn't replay on every keystroke
+    const setEngineIcon = (className, color = "") => {
+      if (engineIcon.className !== className) engineIcon.className = className;
+      engineIcon.style.color = color;
+    };
+    const engineIconClass = () =>
+      this.searchEngine === "duckduckgo"
+        ? "ti ti-world search-engine-icon duckduckgo"
+        : "ti ti-sparkles search-engine-icon gemini";
+
+    // The line under the input: a recognized !prefix wins, then an armed quick action
+    const updateHint = () => {
+      const prefix = this.parsePrefix(searchInput.value.trim());
+      const action = this.searchEngine === "gemini" ? this.quickActions[this.quickActionIndex] : null;
+
+      if (prefix) {
+        const { entry, rest } = prefix;
+        setEngineIcon(`ti ti-${entry.icon || "arrow-right"} search-engine-icon prefix`, entry.color || "");
+        const target = rest
+          ? `<strong>${escapeHtml(entry.name)}</strong> · ${escapeHtml(rest)}`
+          : escapeHtml(window.i18n.t("search.prefix_open").replace("{name}", entry.name)).replace(
+              escapeHtml(entry.name),
+              `<strong>${escapeHtml(entry.name)}</strong>`,
+            );
+        searchHint.style.setProperty("--hint-color", entry.color || CONFIG.palette.text);
+        searchHint.innerHTML = `<i class="ti ti-arrow-right"></i> ${target} <kbd>↵</kbd>`;
+        searchHint.classList.remove("hidden");
+        return;
+      }
+
+      setEngineIcon(engineIconClass());
+      if (action) {
+        searchHint.style.setProperty("--hint-color", action.color || CONFIG.palette.mauve);
+        searchHint.innerHTML = `<i class="ti ti-${action.icon || "sparkles"}" style="color: ${action.color}"></i> <strong>${escapeHtml(
+          this.quickActionLabel(action),
+        )}</strong> <kbd>↵</kbd>`;
+        searchHint.classList.remove("hidden");
       } else {
-        searchInput.placeholder = window.i18n.t("search.placeholder_gemini");
-        engineIcon.className = "ti ti-sparkles search-engine-icon gemini";
+        searchHint.classList.add("hidden");
       }
     };
 
-    // Open search overlay when icon is clicked
-    searchTrigger.onclick = () => {
+    // Arm (or disarm) a quick action; null disarms all
+    const selectQuickAction = (index) => {
+      this.quickActionIndex = index === this.quickActionIndex ? null : index;
+      quickActionButtons.forEach((button, i) => button.setAttribute("aria-pressed", String(i === this.quickActionIndex)));
+      updateHint();
+    };
+
+    // Update placeholder and icon based on current engine
+    const updateSearchEngine = () => {
+      const gemini = this.searchEngine === "gemini";
+      searchInput.placeholder = window.i18n.t(gemini ? "search.placeholder_gemini" : "search.placeholder_duckduckgo");
+      quickActionsRow.classList.toggle("hidden", !gemini || this.quickActions.length === 0);
+      updateHint();
+    };
+
+    // Open the search overlay, optionally switching engine first (used by the / and g shortcuts)
+    this.openSearch = (engine) => {
+      if (engine && engine !== this.searchEngine) {
+        this.searchEngine = engine;
+        updateSearchEngine();
+      }
       searchOverlay.classList.add("active");
       searchInput.focus();
+    };
+
+    // Open search overlay when icon is clicked
+    searchTrigger.onclick = () => this.openSearch();
+
+    // Clicking a quick action arms it; with something already typed it runs right away
+    quickActionButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.action);
+        if (!searchInput.value.trim()) {
+          // Nothing typed yet: toggle it and go back to typing
+          selectQuickAction(index);
+          searchInput.focus();
+          return;
+        }
+        if (this.quickActionIndex !== index) selectQuickAction(index);
+        submitSearch();
+      });
+    });
+
+    searchInput.addEventListener("input", updateHint);
+
+    // Forget the armed action and hint once the overlay is gone
+    const resetSearchState = () => {
+      this.quickActionIndex = null;
+      quickActionButtons.forEach((button) => button.setAttribute("aria-pressed", "false"));
+      updateHint();
     };
 
     // Function to close with animation
@@ -1196,6 +1557,7 @@ class Statusbar extends Component {
         searchHeader.classList.remove("hidden");
         loadingIcon.classList.remove("active");
         searchInput.value = "";
+        resetSearchState();
       }, 800);
     };
 
@@ -1215,6 +1577,7 @@ class Statusbar extends Component {
         loadingIcon.classList.remove("active");
         searchHeader.classList.remove("hidden");
         searchInput.value = "";
+        resetSearchState();
       }, 500);
     };
 
@@ -1246,19 +1609,39 @@ class Statusbar extends Component {
       }
     });
 
-    // Handle Tab key to toggle search engine
+    // Tab toggles the search engine; Alt+1..9 arms a Gemini quick action
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Tab") {
         e.preventDefault();
         this.searchEngine = this.searchEngine === "duckduckgo" ? "gemini" : "duckduckgo";
         updateSearchEngine();
+        return;
+      }
+      // e.code, because on macOS Alt+digit types a symbol (¡, ™, £...)
+      const digit = e.altKey && !e.metaKey && !e.ctrlKey && /^Digit([1-9])$/.exec(e.code);
+      if (digit && Number(digit[1]) <= this.quickActions.length) {
+        e.preventDefault();
+        if (this.searchEngine !== "gemini") {
+          this.searchEngine = "gemini";
+          updateSearchEngine();
+        }
+        selectQuickAction(Number(digit[1]) - 1);
       }
     });
 
     // Handle search
-    searchInput.addEventListener("keypress", async (e) => {
-      if (e.key === "Enter") {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") submitSearch();
+    });
+
+    const submitSearch = async () => {
         const query = searchInput.value.trim();
+        const prefix = this.parsePrefix(query);
+        if (prefix) {
+          // A known !prefix goes straight to its site, whichever engine is selected
+          window.location.href = this.prefixUrl(prefix);
+          return;
+        }
         if (query) {
           if (this.searchEngine === "duckduckgo") {
             window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
@@ -1270,6 +1653,16 @@ class Statusbar extends Component {
             const isStale = () => currentRequest !== request;
             const startedAt = performance.now();
             resultsContent.innerHTML = loadingHtml;
+
+            // An armed quick action wraps the query in its prompt and may bring tools along
+            const action = this.quickActions[this.quickActionIndex];
+            const prompt = action
+              ? action.prompt
+                  .replace(/\{lang\}/g, advanced_config?.gemini?.translateTo || "English")
+                  .replace(/\{q\}/g, query)
+              : query;
+            const baseTitle = window.i18n.t("search.results_title");
+            resultsTitle.textContent = action ? `${baseTitle} · ${this.quickActionLabel(action)}` : baseTitle;
 
             // Step 1: Hide search header
             searchHeader.classList.add("hidden");
@@ -1332,11 +1725,16 @@ class Statusbar extends Component {
 
             let firstChunk;
             const firstChunkArrived = new Promise((resolve) => (firstChunk = resolve));
-            const resultPromise = this.queryGemini(query, request.signal, (text) => {
-              streamedText = text;
-              firstChunk();
-              renderStream();
-            });
+            const resultPromise = this.queryGemini(
+              prompt,
+              request.signal,
+              (text) => {
+                streamedText = text;
+                firstChunk();
+                renderStream();
+              },
+              { tools: action?.tools },
+            );
             // Open the panel as soon as Gemini starts answering (or fails)
             await Promise.race([firstChunkArrived, resultPromise]);
             // The overlay was closed while waiting: drop the answer
@@ -1386,24 +1784,30 @@ class Statusbar extends Component {
                         .replace("{primary}", result.fallbackFrom),
                     )}</div>`
                   : "";
-                resultsContent.innerHTML = responseHtml(result.text) + fallbackNote;
+                // Pages Gemini read while answering with web search
+                const sourcesHtml = result.sources?.length
+                  ? `<div class="model-note"><strong>${escapeHtml(window.i18n.t("search.sources"))}</strong><br>${result.sources
+                      .map(
+                        ({ uri, title }) =>
+                          `<a href="${/^https?:\/\//i.test(uri) ? escapeHtml(uri) : "#"}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>`,
+                      )
+                      .join(" · ")}</div>`
+                  : "";
+                resultsContent.innerHTML = responseHtml(result.text) + sourcesHtml + fallbackNote;
               }
             }, expandDelay + 150);
 
             // Clear search input
             searchInput.value = "";
+            updateHint();
           }
         }
-      }
-    });
+    };
 
-    // Optional: Keyboard shortcut to open search (press '/')
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "/" && !searchOverlay.classList.contains("active")) {
-        e.preventDefault();
-        searchOverlay.classList.add("active");
-        searchInput.focus();
-      }
+    this.isSearchOpen = () => searchOverlay.classList.contains("active");
+
+    this.shortcutsOverlay.addEventListener("click", (e) => {
+      if (e.target === this.shortcutsOverlay) this.toggleShortcuts(false);
     });
 
     // Keep your last visited tab logic
@@ -1470,16 +1874,86 @@ class Statusbar extends Component {
     }
   }
 
+  // "!yt lofi" -> { key: "yt", entry, rest: "lofi" } when "yt" is in CONFIG.searchPrefixes, else null
+  parsePrefix(query) {
+    const match = /^!(\S+)(?:\s+([\s\S]*))?$/.exec(query);
+    if (!match) return null;
+    const key = match[1].toLowerCase();
+    const entry = CONFIG.searchPrefixes?.[key];
+    if (!entry?.url) return null;
+    return { key, entry: { name: key, ...entry }, rest: (match[2] || "").trim() };
+  }
+
+  prefixUrl({ entry, rest }) {
+    if (rest) return entry.url.replace("%s", encodeURIComponent(rest));
+    if (entry.home) return entry.home;
+    try {
+      return new URL(entry.url.replace("%s", "")).origin;
+    } catch {
+      return entry.url.replace("%s", "");
+    }
+  }
+
+  toggleShortcuts(open = this.shortcutsOverlay.classList.contains("hidden")) {
+    this.shortcutsOverlay.classList.toggle("hidden", !open);
+  }
+
+  // True while the user is typing somewhere (search box or any field inside the components)
+  isTyping() {
+    let element = document.activeElement;
+    for (let inner; (inner = element?.shadowRoot?.activeElement || element?.shadow?.activeElement); ) element = inner;
+    return !!element && (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName));
+  }
+
   handleKeyPress(event) {
     if (!event) return;
+    const { key } = event;
 
-    let { target, key } = event;
+    // Leave browser/OS shortcuts (Cmd+L, Ctrl+T...) and typing alone
+    if (event.metaKey || event.ctrlKey || event.altKey || this.isTyping()) return;
+    if (this.isSearchOpen?.()) return;
 
-    if (target.shadow && target.shadow.activeElement) return;
-
-    if (Number.isInteger(parseInt(key)) && key <= this.externalRefs.categories.length) {
-      this.activateByKey(key - 1);
+    const shortcutsOpen = !this.shortcutsOverlay.classList.contains("hidden");
+    if (shortcutsOpen) {
+      if (key === "Escape" || key === "?") {
+        event.preventDefault();
+        this.toggleShortcuts(false);
+      }
+      return;
     }
+
+    const tabCount = this.externalRefs.categories.length;
+    const step = (delta) => this.activateByKey((this.currentTabIndex + delta + tabCount) % tabCount);
+
+    switch (key) {
+      case "ArrowRight":
+      case "l":
+        step(1);
+        break;
+      case "ArrowLeft":
+      case "h":
+        step(-1);
+        break;
+      case "/":
+        this.openSearch();
+        break;
+      case "g":
+        this.openSearch("gemini");
+        break;
+      case "w":
+        this.shadow.querySelector("weather-forecast")?.togglePopup?.();
+        break;
+      case "?":
+        this.toggleShortcuts(true);
+        break;
+      default:
+        if (/^[1-9]$/.test(key) && Number(key) <= tabCount) {
+          this.activateByKey(Number(key) - 1);
+          break;
+        }
+        return; // not ours: let the browser have it
+    }
+    event.preventDefault();
   }
 
   activateByKey(key) {

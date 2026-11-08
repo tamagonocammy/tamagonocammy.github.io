@@ -77,6 +77,22 @@ const default_config = {
   // Tab Behavior
   openLastVisitedTab: true,
 
+  // Search Prefixes
+  // Start a search with "!key" to send it straight to that site, e.g. "!yt lofi" or "!rk kaltxì".
+  // "%s" is replaced by the rest of the query; a prefix with nothing after it opens `home`.
+  // Unknown prefixes go to DuckDuckGo, which understands its own !bangs too.
+  searchPrefixes: {
+    g: { name: "Google", url: "https://www.google.com/search?q=%s", icon: "brand-google", color: palette.blue },
+    yt: { name: "YouTube", url: "https://www.youtube.com/results?search_query=%s", home: "https://youtube.com", icon: "brand-youtube", color: palette.red },
+    w: { name: "Wikipedia", url: "https://es.wikipedia.org/w/index.php?search=%s", icon: "brand-wikipedia", color: palette.blue },
+    wk: { name: "Wiktionary", url: "https://en.wiktionary.org/wiki/Special:Search?search=%s", icon: "vocabulary", color: palette.peach },
+    rk: { name: "Reykunyu", url: "https://reykunyu.lu/?q=%s", home: "https://reykunyu.lu/", icon: "book-2", color: palette.lavender },
+    dl: { name: "DeepL", url: "https://www.deepl.com/translator#auto/es/%s", icon: "language", color: palette.sapphire },
+    gh: { name: "GitHub", url: "https://github.com/search?q=%s", home: "https://github.com", icon: "brand-github", color: palette.green },
+    mdn: { name: "MDN", url: "https://developer.mozilla.org/search?q=%s", icon: "books", color: palette.blue },
+    lb: { name: "Letterboxd", url: "https://letterboxd.com/search/%s/", home: "https://letterboxd.com", icon: "movie", color: palette.green },
+  },
+
   // --------------------------------------------------------------------------------
   // TABS & LINKS
   // --------------------------------------------------------------------------------
@@ -406,6 +422,52 @@ const advanced_config = {
     thinkingLevel: "low", // Thinking before answering: "minimal" (fastest), "low", "medium", "high" (slowest), or null for the model's default
     systemInstruction:
       "Answer the user's question directly and completely in a single response. You are answering from a startpage search box: each question is sent on its own with no conversation history, so the user cannot reply to you and anything you ask back goes unanswered. Do not ask clarifying questions, do not ask for the user's opinion, and do not request further input. If something is ambiguous, make a reasonable assumption and state it briefly. Never end your response with a follow-up question or an offer to do more.",
+
+    // Quick actions: shown as buttons under the search box in Gemini mode.
+    // Click one (or press Alt+1..9) to select it; Enter then sends the prompt with {q} replaced by what you typed.
+    // `label` is optional: without it the translated name (search.actions.<id>) is used.
+    // `tools` are Gemini tools: urlContext lets it read a link, googleSearch grounds the answer in current results.
+    translateTo: "español", // Target language for the translate action
+    quickActions: [
+      {
+        id: "translate",
+        icon: "language",
+        color: palette.sapphire,
+        prompt: "Translate the following into {lang}. If it is already in {lang}, translate it into English instead. Give the translation first, then one short line on any nuance worth knowing.\n\n{q}",
+      },
+      {
+        id: "define",
+        icon: "vocabulary",
+        color: palette.peach,
+        prompt: "Define \"{q}\": part of speech, pronunciation (IPA), meaning(s), a one-sentence etymology, and two example sentences.",
+      },
+      {
+        id: "summarize",
+        icon: "file-text",
+        color: palette.teal,
+        prompt: "Summarize the page at this URL in five bullet points, then one line on why it matters:\n{q}",
+        tools: ["urlContext"],
+      },
+      {
+        id: "web",
+        icon: "world-search",
+        color: palette.green,
+        prompt: "Using current web results, answer: {q}",
+        tools: ["googleSearch"],
+      },
+      {
+        id: "eli5",
+        icon: "mood-kid",
+        color: palette.yellow,
+        prompt: "Explain this simply, as you would to a curious ten-year-old, with one everyday analogy: {q}",
+      },
+      {
+        id: "code",
+        icon: "code",
+        color: palette.mauve,
+        prompt: "Answer as a senior engineer. Be brief and lead with a short code example: {q}",
+      },
+    ],
   },
 
   // Weather API Settings
