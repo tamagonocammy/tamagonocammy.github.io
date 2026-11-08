@@ -2,7 +2,7 @@
 
 `nowplaying.component.js` (`<now-playing>`, in the status bar before the clock) + the local helper in `tools/nowplaying/`.
 
-- A page can't see Music.app, so `tools/nowplaying/nowplaying.py` (stdlib Python, runs on macOS's `/usr/bin/python3`) asks it via `osascript` and serves `http://127.0.0.1:47615`: `GET /now`, `GET /artwork?id=`, `POST /control` with a text body `playpause|next|previous`
+- A page can't see Music.app, so `tools/nowplaying/nowplaying.py` (stdlib Python, runs on macOS's `/usr/bin/python3`) asks it via `osascript` and serves `http://127.0.0.1:47615`: `GET /now`, `GET /artwork?id=`, `POST /control` with a text body `playpause|next|previous`, `POST /love` with `love|unlove`
 - `install.sh` sets it up as a LaunchAgent (`com.startpage.nowplaying`, log in `~/Library/Logs/startpage-nowplaying.log`); `uninstall.sh` removes it. First run triggers the macOS "python3 wants to control Music" prompt
 - The helper never launches Music (`Application("Music").running()` / `application "Music" is running`); when Music is closed it reports `stopped`
 - Music's `playpause` command is a silent no-op on this macOS, so the helper checks `player state` and sends `pause` or `play`
@@ -11,5 +11,8 @@
 - The widget polls every `advanced_config.nowPlaying.pollSeconds` (default 3) while visible, every 30s while the helper is unreachable, and not at all in background tabs. The progress bar extrapolates from the helper's `at` timestamp between polls
 - Hidden (no `active` attribute) when the helper is down or nothing plays. The hide rule lives in the status bar's CSS, because its `+` layout class outranks the component's `:host` rule
 - The helper also serves this checkout as a website at `http://127.0.0.1:47615/` (for browsers that block an https page from reaching a local http server, e.g. Safari). It refuses dotfiles/dot-folders, `tools/`, and anything outside the repo; files are sent with `Cache-Control: no-cache`, so it serves whatever is in the working tree
-- `sw.js` never caches the helper's live data: 127.0.0.1/localhost on other ports, or `/now`, `/artwork`, `/health`, `/control` when the page is served by the helper itself
+- `sw.js` never caches the helper's live data: 127.0.0.1/localhost on other ports, or `/now`, `/artwork`, `/health`, `/control`, `/love` when the page is served by the helper itself
 - `m` toggles the popup (see the status bar shortcuts)
+- Last.fm love (♥, left of the playback buttons): `track.love`/`track.unlove` need a signed call (API key + shared secret + session key), so the page never sees any of it. The helper reads `~/.config/startpage-nowplaying/lastfm.json` (mode 600, outside the repo; re-read when it changes, no restart) written by `tools/nowplaying/lastfm_auth.py`, which the user runs herself (`/usr/bin/python3 tools/nowplaying/lastfm_auth.py`: paste the key/secret from last.fm/api/account/create, approve in the browser). `POST /love` has the same Origin rule as `/control` and always acts on the track Music is playing now, never one the page names
+- With credentials, `/now` carries `"lastfm": {"loved": true|false|null}` (`null` = not known yet). `track.getInfo` with `username` fills a cache in a background thread (5 min per track), so `/now` never waits on Last.fm. Without credentials there's no `lastfm` key and the button is `visibility: hidden` (keeps the row centred). The heart is an inline SVG because the bundled Tabler font has no filled icons
+- Genius (right of the playback buttons): a plain link to `https://genius.com/search?q=<artist title>` in a new tab, `rel="noopener noreferrer"`. Logo is the Simple Icons (CC0) Genius path inline, since Tabler has no Genius brand icon

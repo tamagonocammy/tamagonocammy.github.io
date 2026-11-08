@@ -8,6 +8,7 @@ Music.app (through osascript) and answers the startpage on http://127.0.0.1:4761
   GET  /now               current track as JSON ({"state": "stopped"} when nothing plays)
   GET  /artwork?id=<id>   album art of the current track (exported from Music.app)
   POST /control           body "playpause" | "next" | "previous"
+  POST /love              body "love" | "unlove": (un)loves the current track on Last.fm
   GET  /                  the startpage itself, served from this checkout
 
 Serving the page from here too gives browsers that refuse to let an https page
@@ -18,10 +19,15 @@ Only the origins in ALLOWED_ORIGINS may read it or control playback, so other
 websites you visit can't see what you listen to or pause your music.
 It never launches Music.app by itself: when Music isn't open, it reports "stopped".
 
+Last.fm is optional: with credentials in ~/.config/startpage-nowplaying/lastfm.json
+(made by lastfm_auth.py, never inside this repo) /now also says whether the current
+track is loved ("lastfm": {"loved": true|false|null}), and /love toggles it.
+
 Standard library only, so it runs on the Python that ships with macOS.
 Install as a login item with install.sh; remove with uninstall.sh.
 """
 
+import hashlib
 import json
 import mimetypes
 import os
@@ -29,6 +35,7 @@ import subprocess
 import tempfile
 import threading
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -119,6 +126,10 @@ CONTROL_SCRIPTS = {
     "previous": 'if application "Music" is running then tell application "Music" to previous track',
 }
 
+LASTFM_API = "https://ws.audioscrobbler.com/2.0/"
+LASTFM_FILE = os.path.join(os.path.expanduser("~/.config"), "startpage-nowplaying", "lastfm.json")
+LASTFM_TTL = 300  # seconds before the loved state of a track is asked again (it may change on last.fm)
+
 _lock = threading.Lock()
 _state = {"at": 0.0, "data": {"state": "stopped"}}
 _artwork = {}  # track id -> {"path": local file} or {"url": remote url} or {} (none found)
@@ -197,7 +208,136 @@ def artwork_for(track):
     return entry.get("url")
 
 
+# --- Last.fm -------------------------------------------------------------------------
+
+_lastfm = {"mtime": None, "creds": None}
+_loved = {}  # "artist\ntitle" -> {"at": time, "loved": bool | None}
+_loved_lock = threading.Lock()
+
+
+def lastfm_creds():
+    """Credentials from LASTFM_FILE, re-read when the file changes. None when not set up."""
+    try:
+        mtime = os.path.getmtime(LASTFM_FILE)
+    except OSError:
+        _lastfm.update(mtime=None, creds=None)
+        return None
+    if mtime != _lastfm["mtime"]:
+        try:
+            with open(LASTFM_FILE) as f:
+                creds = json.load(f)
+            ok = all(creds.get(k) for k in ("api_key", "api_secret", "session_key", "username"))
+        except (OSError, ValueError, AttributeError):
+            ok = False
+        _lastfm.update(mtime=mtime, creds=creds if ok else None)
+        with _loved_lock:
+            _loved.clear()
+    return _lastfm["creds"]
+
+
+def lastfm_sign(params, secret):
+    """Last.fm's api_sig: md5 of the sorted name+value pairs, then the shared secret."""
+    raw = "".join(k + str(params[k]) for k in sorted(params) if k not in ("format", "callback"))
+    return hashlib.md5((raw + secret).encode("utf-8")).hexdigest()
+
+
+def lastfm_call(params, creds=None, post=False):
+    """Calls the Last.fm API. Signed (with the session key) when creds are given.
+    Returns the JSON reply, or an error object."""
+    params = dict(params)
+    if creds:
+        params.update(api_key=creds["api_key"], sk=creds["session_key"])
+        params["api_sig"] = lastfm_sign(params, creds["api_secret"])
+    params["format"] = "json"
+    data = urllib.parse.urlencode(params)
+    try:
+        if post:
+            request = urllib.request.Request(LASTFM_API, data=data.encode(), method="POST")
+        else:
+            request = urllib.request.Request(f"{LASTFM_API}?{data}")
+        request.add_header("User-Agent", "startpage-nowplaying/1")
+        with urllib.request.urlopen(request, timeout=5) as response:
+            reply = json.load(response)
+    except urllib.error.HTTPError as e:
+        try:
+            reply = json.load(e)
+        except ValueError:
+            return {"error": True, "message": f"HTTP {e.code}"}
+    except Exception as e:
+        return {"error": True, "message": str(e)}
+    if isinstance(reply, dict) and "error" in reply:
+        return {"error": True, "message": reply.get("message", "Last.fm error"), "code": reply["error"]}
+    return reply
+
+
+def track_key(track):
+    return f"{track.get('artist') or ''}\n{track.get('title') or ''}"
+
+
+def fetch_loved(creds, track):
+    reply = lastfm_call({
+        "method": "track.getInfo",
+        "api_key": creds["api_key"],
+        "artist": track["artist"],
+        "track": track["title"],
+        "username": creds["username"],
+    })
+    loved = None
+    if not reply.get("error"):
+        loved = str(reply.get("track", {}).get("userloved", "0")) == "1"
+    with _loved_lock:
+        _loved[track_key(track)] = {"at": time.time(), "loved": loved}
+
+
+def lastfm_state(track):
+    """{"loved": bool | None} for /now, or None when Last.fm isn't set up.
+    Never waits on Last.fm: the answer comes from a cache that a background thread fills."""
+    creds = lastfm_creds()
+    if not creds:
+        return None
+    if not (track.get("artist") and track.get("title")):
+        return {"loved": None}
+    key = track_key(track)
+    with _loved_lock:
+        entry = _loved.get(key)
+        stale = not entry or time.time() - entry["at"] > LASTFM_TTL
+        loved = entry["loved"] if entry else None
+        if stale:
+            # Mark as being fetched so parallel polls don't start more threads
+            _loved[key] = {"at": time.time(), "loved": loved}
+    if stale:
+        threading.Thread(target=fetch_loved, args=(creds, dict(track)), daemon=True).start()
+    return {"loved": loved}
+
+
+def lastfm_love(action):
+    """Loves or unloves the track playing right now. Returns the new /now, or an error object."""
+    creds = lastfm_creds()
+    if not creds:
+        return {"error": True, "message": "Last.fm not set up"}
+    track = now_playing()
+    if not (track.get("artist") and track.get("title")):
+        return {"error": True, "message": "Nothing to love"}
+    reply = lastfm_call(
+        {"method": f"track.{action}", "artist": track["artist"], "track": track["title"]},
+        creds=creds,
+        post=True,
+    )
+    if reply.get("error"):
+        return reply
+    with _loved_lock:
+        _loved[track_key(track)] = {"at": time.time(), "loved": action == "love"}
+    return dict(track, lastfm={"loved": action == "love"})
+
+
 def now_playing():
+    data = read_music()
+    # Outside the 1s cache: the loved state may arrive between two osascript reads
+    lastfm = lastfm_state(data) if data.get("state") != "stopped" else None
+    return dict(data, lastfm=lastfm) if lastfm else data
+
+
+def read_music():
     with _lock:
         if time.time() - _state["at"] < STATE_TTL:
             return _state["data"]
@@ -304,15 +444,23 @@ class Handler(BaseHTTPRequestHandler):
         if not self.host_ok():
             self.send_json(403, {"error": True, "message": "Bad host"})
             return
-        if urllib.parse.urlparse(self.path).path != "/control":
+        path = urllib.parse.urlparse(self.path).path
+        if path not in ("/control", "/love"):
             self.send_json(404, {"error": True, "message": "Not found"})
             return
-        # Control is only for the startpage itself, never for arbitrary sites or file:// pages
+        # Control (and Last.fm) is only for the startpage itself, never for arbitrary sites or file:// pages
         if self.origin() not in ALLOWED_ORIGINS:
             self.send_json(403, {"error": True, "message": "Origin not allowed"})
             return
         length = min(int(self.headers.get("Content-Length") or 0), 64)
         action = self.rfile.read(length).decode(errors="ignore").strip()
+        if path == "/love":
+            if action not in ("love", "unlove"):
+                self.send_json(400, {"error": True, "message": "Unknown action"}, write=True)
+                return
+            result = lastfm_love(action)
+            self.send_json(502 if result.get("error") else 200, result, write=True)
+            return
         script = CONTROL_SCRIPTS.get(action)
         if not script:
             self.send_json(400, {"error": True, "message": "Unknown action"}, write=True)

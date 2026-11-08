@@ -62,6 +62,9 @@ const translations = {
       pause: "Pausa",
       next: "Siguiente",
       previous: "Anterior",
+      love: "Marcar como favorita en Last.fm",
+      unlove: "Quitar de favoritas en Last.fm",
+      lyrics: "Ver la letra en Genius",
     },
 
     // Date and time
@@ -229,6 +232,9 @@ const translations = {
       pause: "Pause",
       next: "Next",
       previous: "Previous",
+      love: "Love on Last.fm",
+      unlove: "Unlove on Last.fm",
+      lyrics: "Lyrics on Genius",
     },
 
     // Date and time
@@ -399,6 +405,9 @@ const translations = {
       pause: "Paŭzi",
       next: "Sekva",
       previous: "Antaŭa",
+      love: "Ŝati en Last.fm",
+      unlove: "Ne plu ŝati en Last.fm",
+      lyrics: "Kantoteksto en Genius",
     },
 
     // Date and time

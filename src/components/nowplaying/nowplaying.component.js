@@ -2,7 +2,8 @@
  * Now Playing Component.
  * Shows the track playing in Apple Music, read from the local helper in tools/nowplaying
  * (a browser page can't see Music.app on its own). Click (or the `m` shortcut) opens a popup
- * with artwork, progress and playback controls.
+ * with artwork, progress and playback controls, a Last.fm love button (when the helper has
+ * Last.fm credentials) and a link to the song's lyrics on Genius.
  * Hidden whenever the helper isn't running or nothing is playing.
  *
  * @extends {Component}
@@ -20,7 +21,14 @@ class NowPlaying extends Component {
     elapsed: ".np-elapsed",
     duration: ".np-duration",
     playPause: ".np-playpause",
+    love: ".np-love",
+    genius: ".np-genius",
   };
+
+  // Tabler's heart outline; filled in CSS when loved (the bundled Tabler font has no filled icons)
+  static HEART_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>`;
+  // Genius brand mark (Simple Icons, CC0); Tabler has no Genius icon
+  static GENIUS_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M0 6.827c0 2.164.79 4.133 2.167 5.51.393.393.786.59 1.18.983h.195c.197 0 .196-.196.196-.196-.393-.787-.588-1.77-.588-2.754 0-2.164.982-4.329 2.36-5.706V1.518c0-.197-.197-.196-.197-.196h-2.95C.789 2.896 0 4.664 0 6.827zm2.559 12.59c2.36 2.164 5.31 3.343 8.851 3.343 7.082 0 12.59-5.702 12.59-12.586 0-3.344-1.378-6.492-3.542-8.656h-.196c0-.197-.196 0-.196 0 .59 1.574.983 3.147.983 4.918 0 7.278-5.902 13.373-13.377 13.373-1.77 0-3.344-.393-4.917-.983-.197 0-.196.199-.196.395zm5.9-11.998c0 .59.395 1.178.788 1.571h.392c3.54 1.18 4.722-.193 4.722-1.767V5.056c0-.196.196-.196.196-.196h.787c.197 0 .196-.196.196-.196-.196-1.18-.784-2.358-1.571-3.342h-2.363c0-.197-.196 0-.196.196v2.95c0 1.574-1.18 2.754-2.754 2.951 0-.197-.196 0-.196 0z"/></svg>`;
 
   static OFFLINE_POLL_MS = 30 * 1000; // helper not running: check back now and then
 
@@ -247,11 +255,12 @@ class NowPlaying extends Component {
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 14px;
+          gap: 10px;
           margin-top: 8px;
       }
 
-      .np-controls button {
+      .np-controls button,
+      .np-controls a {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -267,14 +276,78 @@ class NowPlaying extends Component {
       }
 
       .np-controls button:hover,
-      .np-controls button:focus-visible {
+      .np-controls button:focus-visible,
+      .np-controls a:hover,
+      .np-controls a:focus-visible {
           background: ${CONFIG.palette.surface0};
           color: ${CONFIG.palette.pink};
           outline: none;
       }
 
-      .np-controls button:active {
+      .np-controls button:active,
+      .np-controls a:active {
           transform: scale(.88);
+      }
+
+      /* Love and Genius flank the playback buttons, a little smaller and quieter */
+      .np-controls .np-love,
+      .np-controls .np-genius {
+          width: 30px;
+          height: 30px;
+          color: ${CONFIG.palette.subtext0};
+          text-decoration: none;
+      }
+
+      .np-controls svg {
+          width: 17px;
+          height: 17px;
+      }
+
+      .np-genius svg {
+          width: 15px;
+          height: 15px;
+          fill: currentColor;
+      }
+
+      .np-genius:hover,
+      .np-genius:focus-visible {
+          color: ${CONFIG.palette.yellow} !important;
+      }
+
+      .np-love svg {
+          fill: transparent;
+          stroke: currentColor;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          transition: fill .2s ease;
+      }
+
+      /* Keeps its place (so the row stays centred) while Last.fm isn't set up */
+      .np-love[hidden] {
+          display: flex;
+          visibility: hidden;
+      }
+
+      .np-controls .np-love.loved {
+          color: ${CONFIG.palette.red};
+      }
+
+      .np-love.loved svg {
+          fill: currentColor;
+      }
+
+      .np-love.pop svg {
+          animation: np-pop .45s var(--ease-spring);
+      }
+
+      @keyframes np-pop {
+          40% { transform: scale(1.3); }
+      }
+
+      .np-love.busy {
+          opacity: .6;
+          pointer-events: none;
       }
 
       .np-controls .np-playpause {
@@ -312,9 +385,11 @@ class NowPlaying extends Component {
           <div class="np-progress"><div class="np-progress-fill"></div></div>
           <div class="np-times"><span class="np-elapsed">0:00</span><span class="np-duration">0:00</span></div>
           <div class="np-controls">
+            <button class="np-love" hidden aria-pressed="false" title="${this.t("love", "Love on Last.fm")}" aria-label="${this.t("love", "Love on Last.fm")}">${NowPlaying.HEART_SVG}</button>
             <button class="np-prev" data-action="previous" title="${this.t("previous", "Previous")}"><i class="ti ti-player-skip-back"></i></button>
             <button class="np-playpause" data-action="playpause" title="${this.t("pause", "Pause")}"><i class="ti ti-player-pause"></i></button>
             <button class="np-next" data-action="next" title="${this.t("next", "Next")}"><i class="ti ti-player-skip-forward"></i></button>
+            <a class="np-genius" target="_blank" rel="noopener noreferrer" title="${this.t("lyrics", "Lyrics on Genius")}" aria-label="${this.t("lyrics", "Lyrics on Genius")}">${NowPlaying.GENIUS_SVG}</a>
           </div>
         </div>
       </div>`;
@@ -336,6 +411,7 @@ class NowPlaying extends Component {
       e.stopPropagation();
       const button = e.target.closest("button[data-action]");
       if (button) this.control(button.dataset.action);
+      if (e.target.closest(".np-love")) this.toggleLove();
     });
     this.refs.art.addEventListener("load", () => (this.refs.art.hidden = false));
     this.refs.art.addEventListener("error", () => (this.refs.art.hidden = true));
@@ -403,6 +479,44 @@ class NowPlaying extends Component {
     setTimeout(() => this.poll(), 600);
   }
 
+  /** Loves or unloves the current track on Last.fm, through the helper (which holds the keys). */
+  async toggleLove() {
+    const loved = this.track?.lastfm?.loved;
+    if (!this.track?.lastfm) return;
+    const love = this.refs.love;
+    love.classList.add("busy");
+    // Show the change right away; put it back if Last.fm says no
+    this.showLoved(!loved);
+    if (!loved) {
+      love.classList.remove("pop");
+      void love.offsetWidth;
+      love.classList.add("pop");
+    }
+    const result = await this.sendLove(loved ? "unlove" : "love");
+    love.classList.remove("busy");
+    if (result.error) this.showLoved(loved);
+    else this.update(result);
+  }
+
+  async sendLove(action) {
+    try {
+      const response = await fetch(`${this.baseUrl}/love`, { method: "POST", body: action });
+      const reply = await response.json();
+      return response.ok ? reply : { error: true, message: reply?.message || `HTTP ${response.status}` };
+    } catch (error) {
+      return { error: true, message: error?.message || String(error) };
+    }
+  }
+
+  showLoved(loved) {
+    const love = this.refs.love;
+    love.classList.toggle("loved", !!loved);
+    love.setAttribute("aria-pressed", String(!!loved));
+    const label = loved ? this.t("unlove", "Unlove on Last.fm") : this.t("love", "Love on Last.fm");
+    love.title = label;
+    love.setAttribute("aria-label", label);
+  }
+
   /** Current position in seconds, moved forward by the time since the helper answered. */
   position() {
     const track = this.track;
@@ -467,6 +581,14 @@ class NowPlaying extends Component {
     this.refs.playPause.title = playing ? this.t("pause", "Pause") : this.t("play", "Play");
     this.refs.duration.textContent = this.formatTime(track.duration);
     this.tick();
+
+    // Last.fm love: only when the helper has credentials; null = not known yet
+    this.refs.love.hidden = !track.lastfm;
+    if (track.lastfm && !this.refs.love.classList.contains("busy")) this.showLoved(track.lastfm.loved);
+
+    // Genius search for this song (no API needed)
+    const query = [track.artist, track.title].filter(Boolean).join(" ");
+    this.refs.genius.href = `https://genius.com/search?q=${encodeURIComponent(query)}`;
 
     // Keep the progress bar moving between polls
     if (playing && !this._tickTimer) this._tickTimer = setInterval(() => this.tick(), 1000);

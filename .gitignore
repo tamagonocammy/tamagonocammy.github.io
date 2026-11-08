@@ -39,3 +39,6 @@ Temporary Items
 
 # Local API keys (scrambled, but still private)
 secrets.js
+
+# Python bytecode (lastfm_auth.py imports the helper)
+__pycache__/
