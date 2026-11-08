@@ -759,7 +759,7 @@ class Statusbar extends Component {
             overflow: hidden;
         }
 
-        /* Results fill the full panel height */
+        /* Results fill the window, which fitPanel() sizes to the answer (capped at the panel height) */
         .search-modal.panel-mode .search-results.active {
             max-height: none;
             flex: 1;
@@ -1471,12 +1471,14 @@ class Statusbar extends Component {
       return '<table class="gemini-table">' + thead + tbody + "</table>";
     });
 
-    // Paragraphs: preserve single line breaks as <br>, and don't wrap already-HTML blocks
+    // Paragraphs: preserve single line breaks as <br>, and don't wrap block HTML (headings, lists, tables...).
+    // Inline tags still get wrapped, so a paragraph starting with **bold** or *italic* stays its own paragraph
+    const blockStart = /^<(h[1-6]|ul|ol|li|pre|table|blockquote|hr|div|p)\b/i;
     html = html
       .split("\n\n")
       .map((para) => {
         const trimmed = para.trim();
-        if (!trimmed.startsWith("<") && !/^%%CODE_\d+%%$/.test(trimmed) && trimmed !== "") {
+        if (!blockStart.test(trimmed) && !/^%%CODE_\d+%%$/.test(trimmed) && trimmed !== "") {
           return "<p>" + trimmed.replace(/\n/g, "<br>") + "</p>";
         }
         return trimmed;
@@ -1567,6 +1569,20 @@ class Statusbar extends Component {
     const quickActionsRow = this.shadow.querySelector(".quick-actions");
     const quickActionButtons = this.shadow.querySelectorAll(".quick-action");
     const resultsTitle = this.shadow.querySelector(".gemini-results-title");
+    const resultsHeader = this.shadow.querySelector(".results-header");
+
+    // The answer window is as tall as its content, up to the main panel's height (then it scrolls)
+    let panelMaxHeight = 0;
+    const fitPanel = () => {
+      if (!searchModal.classList.contains("panel-mode") || searchModal.classList.contains("collapsing")) return;
+      const chrome = [...searchModal.children]
+        .filter((child) => child !== searchResults)
+        .reduce((sum, child) => sum + child.offsetHeight, 0);
+      const wanted = Math.ceil(chrome + resultsHeader.offsetHeight + resultsContent.offsetHeight);
+      searchModal.style.height = `${Math.min(panelMaxHeight, wanted)}px`;
+    };
+    // Follows the answer as it streams in
+    new ResizeObserver(fitPanel).observe(resultsContent);
     this.shortcutsOverlay = this.shadow.querySelector(".shortcuts-overlay");
     const escapeHtml = (str) =>
       String(str ?? "")
@@ -1906,7 +1922,8 @@ class Statusbar extends Component {
               searchModal.style.top = `${panelsRect.top}px`;
               searchModal.style.left = `${panelsRect.left}px`;
               searchModal.style.width = `${panelsRect.width}px`;
-              searchModal.style.height = `${panelsRect.height}px`;
+              panelMaxHeight = panelsRect.height;
+              fitPanel();
 
               // Small delay for smooth expansion
               setTimeout(() => {
