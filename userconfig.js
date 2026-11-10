@@ -479,8 +479,8 @@ const advanced_config = {
   // Gemini (backup)
   gemini: {
     model: "gemini-3.8-flash", // Model to use (check Google AI docs for latest)
-    fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy ([] to disable)
-    temperature: 0.7, // Randomness: 0.0 (deterministic) to 1.0 (creative)
+    fallbackModels: ["gemini-3.5-flash-lite"], // Tried in order when the main model is busy ([] to disable)
+    temperature: null, // null = the model's default (Google recommends keeping Gemini 3 at 1.0; lower can cause loops)
     maxOutputTokens: 2048, // Maximum response length
     thinkingLevel: "low", // Thinking before answering: "minimal" (fastest), "low", "medium", "high" (slowest), or null for the model's default
   },

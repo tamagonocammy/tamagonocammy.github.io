@@ -1085,7 +1085,7 @@ class Statusbar extends Component {
     const providers = advanced_config?.assistant?.providers || ["claude", "gemini"];
     const defaults = {
       claude: { model: "claude-haiku-5-5", fallbackModels: [] },
-      gemini: { model: "gemini-3.8-flash", fallbackModels: ["gemini-3.5-flash"] },
+      gemini: { model: "gemini-3.8-flash", fallbackModels: ["gemini-3.5-flash-lite"] },
     };
     return providers.flatMap((provider) => {
       const apiKey = this.apiKey(provider);
@@ -1196,12 +1196,12 @@ class Statusbar extends Component {
       contents: [{ parts: [{ text: query }] }],
       systemInstruction: { parts: [{ text: this.systemPrompt() }] },
       generationConfig: {
-        temperature: settings.temperature ?? 0.7,
-        topK: 40,
-        topP: 0.95,
         maxOutputTokens: settings.maxOutputTokens ?? 2048,
       },
     };
+    // Gemini 3 models are tuned for their default temperature (1.0); lower values can loop or degrade answers.
+    // Only sent when userconfig.js sets one on purpose.
+    if (settings.temperature != null) request.generationConfig.temperature = settings.temperature;
     // Less silent "thinking" before the first word = faster answers
     const thinkingLevel = settings.thinkingLevel ?? "low";
     if (thinkingLevel) request.generationConfig.thinkingConfig = { thinkingLevel };
