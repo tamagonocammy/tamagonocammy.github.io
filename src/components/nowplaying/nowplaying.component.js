@@ -248,18 +248,19 @@ class NowPlaying extends Component {
       .np-title {
           font: 700 11pt 'Lato', sans-serif;
           color: ${CONFIG.palette.text};
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          /* Full text here, wrapping as needed; the status bar label is the short version */
+          white-space: normal;
+          overflow-wrap: anywhere;
+          line-height: 1.3;
       }
 
       .np-artist {
           margin-top: 2px;
           font: 400 8.5pt 'Lato', sans-serif;
           color: ${CONFIG.palette.subtext0};
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          line-height: 1.35;
       }
 
       .np-progress {
