@@ -118,6 +118,42 @@ class NowPlaying extends Component {
           text-overflow: ellipsis;
       }
 
+      /* Too long to fit: scroll it as a seamless loop (two copies side by side), with soft edges */
+      .np-label.scrolling {
+          text-overflow: clip;
+          mask-image: linear-gradient(to right, transparent, #000 10px, #000 calc(100% - 14px), transparent);
+      }
+
+      .np-marquee {
+          display: inline-block;
+      }
+
+      .np-label.scrolling .np-marquee {
+          animation: np-marquee var(--np-marquee-dur, 12s) linear infinite;
+      }
+
+      .np-marquee-copy + .np-marquee-copy {
+          padding-left: var(--np-marquee-gap);
+      }
+
+      /* Hold still at the start for a moment, then glide one copy's width to the left */
+      @keyframes np-marquee {
+          0%, 18% { transform: translateX(0); }
+          100% { transform: translateX(calc(-1 * var(--np-marquee-shift))); }
+      }
+
+      /* Easier to read on hover, and it rests with the music */
+      .np-label.scrolling:hover .np-marquee,
+      .np-wrapper.paused .np-label.scrolling .np-marquee {
+          animation-play-state: paused;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+          .np-label.scrolling { mask-image: none; text-overflow: ellipsis; }
+          .np-label.scrolling .np-marquee { animation: none; }
+          .np-marquee-copy + .np-marquee-copy { display: none; }
+      }
+
       .np-label strong {
           font-weight: 700;
       }
@@ -557,9 +593,14 @@ class NowPlaying extends Component {
     // Inline label; slides in when the song changes
     const label = this.refs.label;
     const changed = previous?.id !== track.id || previous?.title !== track.title;
-    label.innerHTML = `<strong>${this.escape(track.title)}</strong>${
+    const text = `<strong>${this.escape(track.title)}</strong>${
       track.artist ? ` <span class="np-label-artist">· ${this.escape(track.artist)}</span>` : ""
     }`;
+    // Only rebuild when the text changes, so each poll doesn't restart the scroll
+    if (text !== this._labelText) {
+      this._labelText = text;
+      this.setLabel(text);
+    }
     label.title = [track.title, track.artist, track.album].filter(Boolean).join(" — ");
     if (changed && previous) {
       label.classList.remove("changed");
@@ -596,6 +637,26 @@ class NowPlaying extends Component {
       clearInterval(this._tickTimer);
       this._tickTimer = null;
     }
+  }
+
+  /** Fills the inline label; when it overflows, turns it into a looping marquee. */
+  setLabel(html) {
+    const label = this.refs.label;
+    label.classList.remove("scrolling");
+    label.innerHTML = `<span class="np-marquee"><span class="np-marquee-copy">${html}</span></span>`;
+    const copy = label.querySelector(".np-marquee-copy");
+    const width = copy.getBoundingClientRect().width;
+    if (width <= label.clientWidth + 1) return;
+
+    const gap = 32;
+    const marquee = label.firstElementChild;
+    marquee.insertAdjacentHTML("beforeend", `<span class="np-marquee-copy" aria-hidden="true">${html}</span>`);
+    const shift = width + gap;
+    marquee.style.setProperty("--np-marquee-gap", `${gap}px`);
+    marquee.style.setProperty("--np-marquee-shift", `${shift}px`);
+    // ~30px/s while moving, plus the pause at the start (18% of the cycle)
+    marquee.style.setProperty("--np-marquee-dur", `${(shift / 30 / 0.82).toFixed(1)}s`);
+    label.classList.add("scrolling");
   }
 
   tick() {
