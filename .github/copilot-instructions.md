@@ -226,8 +226,8 @@ const advanced_config = {
     maxSearches: 1,
   },
   gemini: {
-    model: "gemini-3.8-flash",
-    fallbackModels: ["gemini-3.5-flash-lite"], // Tried in order when the main model is busy
+    model: "gemini-4-hydrogen",
+    fallbackModels: ["gemini-3.8-flash", "gemini-3.5-flash-lite"], // Tried in order when the main model is busy
     temperature: 0.7,
     maxOutputTokens: 2048,
     thinkingLevel: "low", // "minimal" | "low" | "medium" | "high" | null

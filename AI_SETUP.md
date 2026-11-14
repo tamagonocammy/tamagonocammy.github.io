@@ -62,8 +62,8 @@ claude: {
   maxSearches: 1,                  // Searches per question
 },
 gemini: {
-  model: "gemini-3.8-flash",
-  fallbackModels: ["gemini-3.5-flash-lite"],
+  model: "gemini-4-hydrogen",
+  fallbackModels: ["gemini-3.8-flash", "gemini-3.5-flash-lite"],
   temperature: 0.7,
   maxOutputTokens: 2048,
   thinkingLevel: "low",

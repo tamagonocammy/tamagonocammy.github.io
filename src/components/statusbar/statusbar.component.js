@@ -1085,7 +1085,7 @@ class Statusbar extends Component {
     const providers = advanced_config?.assistant?.providers || ["claude", "gemini"];
     const defaults = {
       claude: { model: "claude-haiku-5-5", fallbackModels: [] },
-      gemini: { model: "gemini-3.8-flash", fallbackModels: ["gemini-3.5-flash-lite"] },
+      gemini: { model: "gemini-4-hydrogen", fallbackModels: ["gemini-3.8-flash", "gemini-3.5-flash-lite"] },
     };
     return providers.flatMap((provider) => {
       const apiKey = this.apiKey(provider);
