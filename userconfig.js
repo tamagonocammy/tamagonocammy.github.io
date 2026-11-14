@@ -417,7 +417,7 @@ const advanced_config = {
   assistant: {
     providers: ["claude", "gemini"], // Tried in order: the next one answers when one is down, busy, or out of credit
     systemInstruction:
-      "Answer the user's question directly and completely in a single response. You are answering from a startpage search box: each question is sent on its own with no conversation history, so the user cannot reply to you and anything you ask back goes unanswered. Do not ask clarifying questions, do not ask for the user's opinion, and do not request further input. If something is ambiguous, make a reasonable assumption and state it briefly. Never end your response with a follow-up question or an offer to do more.",
+      "Answer the user's question directly and completely in a single response. You are answering from a startpage search box: each question is sent on its own with no conversation history, so the user cannot reply to you and anything you ask back goes unanswered. If something is ambiguous, make a reasonable assumption and state it briefly. End when the answer is complete, without follow-up questions or offers to do more.",
 
     // Quick actions: shown as buttons under the search box in AI mode.
     // Click one (or press Alt+1..9) to select it; Enter then sends the prompt with {q} replaced by what you typed.

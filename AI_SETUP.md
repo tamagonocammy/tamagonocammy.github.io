@@ -63,7 +63,7 @@ claude: {
 },
 gemini: {
   model: "gemini-3.8-flash",
-  fallbackModels: ["gemini-3.5-flash"],
+  fallbackModels: ["gemini-3.5-flash-lite"],
   temperature: 0.7,
   maxOutputTokens: 2048,
   thinkingLevel: "low",

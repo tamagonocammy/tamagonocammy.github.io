@@ -31,6 +31,7 @@ class Component extends HTMLElement {
 - `<tabs-list>` – Main tab navigation + bookmark container
 - `<weather-forecast>` – Weather widget
 - `<current-time>` – Clock display
+- `<now-playing>` – Apple Music track and controls (local helper in `tools/nowplaying/`)
 - `<status-bar>` – Search bar with AI search (Claude, Gemini as backup)
 
 ### Config System (Proxy-Based)
@@ -161,7 +162,7 @@ async queryAI(query, signal, onText, options = {}) {
   // Bad key or no credit: skip that provider.
 }
 ```
-- **Tools**: quick action `tools` (`urlContext`, `googleSearch`) map to Claude web fetch / web search and Gemini URL context / Google Search. Claude reads links in any question; it searches the web only for the web action unless `claude.webSearch` is true.
+- **Tools**: quick action `tools` (`urlContext`, `googleSearch`) map to Claude web fetch / web search and Gemini URL context / Google Search. Claude reads links in any question; it searches the web on every question unless `claude.webSearch` is false (the shipped config sets it to false, so only the web action searches).
 - **Markdown**: Custom `formatMarkdown()` method handles:
     - Code blocks with syntax highlighting style
     - Tables
@@ -226,7 +227,7 @@ const advanced_config = {
   },
   gemini: {
     model: "gemini-3.8-flash",
-    fallbackModels: ["gemini-3.5-flash"], // Tried in order when the main model is busy
+    fallbackModels: ["gemini-3.5-flash-lite"], // Tried in order when the main model is busy
     temperature: 0.7,
     maxOutputTokens: 2048,
     thinkingLevel: "low", // "minimal" | "low" | "medium" | "high" | null

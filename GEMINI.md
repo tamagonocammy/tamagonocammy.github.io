@@ -92,7 +92,7 @@ AI search lives in `statusbar.component.js`. Press `g` (or `/` then `Tab`) for A
 - Providers: `advanced_config.assistant.providers` (default `["claude", "gemini"]`); per-provider settings in `advanced_config.claude` and `advanced_config.gemini`. Shared settings (`systemInstruction`, `translateTo`, `quickActions`) live in `advanced_config.assistant`
 - Keys (`apiKey()`): `localStorage` `CLAUDE_API_KEY` / `GEMINI_API_KEY` → gitignored `secrets.js` (`window.startpageSecrets.claude()`) → `window.CLAUDE_API_KEY` / `window.GEMINI_API_KEY`. The repo is public: never commit a key
 - `queryAI()` walks `aiAttempts()` (every provider/model with a key). Busy or unreachable (0/429/5xx/529) before any text: one retry after 2s on the first model, then the next model/provider, with a note saying who answered. 401/402/403 or a credit/billing 400 skips that provider
-- Claude (`streamClaude`): Messages API from the browser with `anthropic-dangerous-direct-browser-access: true`, streamed SSE, `output_config.effort`, no `temperature`. Web search (`web_search_20250305`) only for the web quick action unless `claude.webSearch` is true; web fetch (`web_fetch_20250910`) for `urlContext` actions or any question containing a URL. Sources = cited URLs
+- Claude (`streamClaude`): Messages API from the browser with `anthropic-dangerous-direct-browser-access: true`, streamed SSE, `output_config.effort`, no `temperature`. Web search (`web_search_20250305`) is attached to every question unless `claude.webSearch` is false (`userconfig.js` ships `false`, so only the web quick action searches); web fetch (`web_fetch_20250910`) for `urlContext` actions or any question containing a URL. Sources = cited URLs
 - Gemini (`streamGemini`): `streamGenerateContent?alt=sse`, key in the `x-goog-api-key` header, `thinkingLevel` → `generationConfig.thinkingConfig` (dropped if a model rejects it)
 - `systemPrompt()` appends today's date. Full details: `src/components/statusbar/CLAUDE.md` and `AI_SETUP.md`
 
@@ -148,7 +148,7 @@ UI side (`weather.component.js`) shows friendly fallback text plus optional tech
 `sw.js` registration happens inline at the bottom of `index.html`, guarded to only run over `http(s)` (service workers don't run on `file://`).
 
 - Install: precaches the app shell (core html/css/js + favicon)
-- Fetch: cache-first for same-origin/static requests, network passthrough (never cached) for `api.openweathermap.org` and `generativelanguage.googleapis.com`
+- Fetch: cache-first for same-origin/static requests, network passthrough (never cached) for `api.openweathermap.org`, `generativelanguage.googleapis.com` and `api.anthropic.com`
 - Activate: deletes caches that don't match the current `CACHE_VERSION`
 
 ## Clock Behavior
