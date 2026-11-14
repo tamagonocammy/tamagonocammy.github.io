@@ -1115,6 +1115,7 @@ class Statusbar extends Component {
     const requests = {};
     const primary = attempts[0];
     const skipped = new Set();
+    let fallbackReason = "busy";
 
     try {
       let lastError;
@@ -1127,7 +1128,7 @@ class Statusbar extends Component {
           try {
             const stream = attempt.provider === "claude" ? this.streamClaude : this.streamGemini;
             const result = await stream.call(this, attempt.model, request, attempt.apiKey, signal, onText);
-            return attempt === primary ? result : { ...result, fallbackFrom: primary.model };
+            return attempt === primary ? result : { ...result, fallbackFrom: primary.model, fallbackReason };
           } catch (error) {
             if (signal?.aborted || error.streamed) throw error;
             // Gemini doesn't accept the thinking level: ask again with the model's own default
@@ -1143,6 +1144,12 @@ class Statusbar extends Component {
               continue;
             }
             lastError = error;
+            // Claude declined: its other models would likely decline too, so go straight to the next provider
+            if (error.refused) {
+              fallbackReason = "refused";
+              skipped.add(attempt.provider);
+              break;
+            }
             if (isAccountProblem(error)) {
               skipped.add(attempt.provider);
               break;
@@ -1317,7 +1324,12 @@ class Statusbar extends Component {
       onText,
     );
 
-    if (reason === "refusal" && !text) throw this.aiError(window.i18n.t("search.error_blocked"));
+    // Claude's safety classifiers declined (now and then a false positive on a harmless question).
+    // Drop any partial answer and let queryAI hand the question to the next provider.
+    if (reason === "refusal") {
+      if (text) onText?.("");
+      throw Object.assign(this.aiError(window.i18n.t("search.error_blocked")), { refused: true });
+    }
     if (!text.trim()) {
       if (reason === "max_tokens") throw this.aiError(window.i18n.t("search.error_max_tokens"));
       throw this.aiError(window.i18n.t("search.error_no_response") + (reason ? ` (${reason})` : ""));
@@ -1947,7 +1959,7 @@ class Statusbar extends Component {
                 const fallbackNote = result.fallbackFrom
                   ? `<div class="model-note"><i class="ti ti-info-circle"></i> ${escapeHtml(
                       window.i18n
-                        .t("search.fallback_note")
+                        .t(result.fallbackReason === "refused" ? "search.fallback_note_refused" : "search.fallback_note")
                         .replace("{model}", result.model)
                         .replace("{primary}", result.fallbackFrom),
                     )}</div>`
