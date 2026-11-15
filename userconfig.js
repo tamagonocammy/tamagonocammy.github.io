@@ -111,12 +111,6 @@ const default_config = {
           name: "principal",
           links: [
             {
-              name: "chatgpt",
-              url: "https://chatgpt.com",
-              icon: "brand-openai",
-              icon_color: palette.green,
-            },
-            {
               name: "wikipedia",
               url: "https://es.wikipedia.org/wiki/Wikipedia:Portada",
               icon: "brand-wikipedia",
@@ -143,31 +137,37 @@ const default_config = {
           ],
         },
         {
-          name: "trabajo",
+          name: "ia",
           links: [
             {
-              name: "gmail",
-              url: "https://mail.google.com",
-              icon: "brand-gmail",
+              name: "claude",
+              url: "https://claude.ai",
+              icon: "message-chatbot",
+              icon_color: palette.peach,
+            },
+            {
+              name: "chatgpt",
+              url: "https://chatgpt.com",
+              icon: "brand-openai",
               icon_color: palette.green,
             },
             {
-              name: "deepl",
-              url: "https://www.deepl.com/translator",
-              icon: "language",
-              icon_color: palette.sapphire,
-            },
-            {
-              name: "drive",
-              url: "https://drive.google.com/drive/home",
-              icon: "brand-google-drive",
+              name: "gemini",
+              url: "https://gemini.google.com",
+              icon: "sparkles",
               icon_color: palette.blue,
             },
             {
-              name: "docs",
-              url: "https://docs.google.com",
-              icon: "file-text",
+              name: "perplexity",
+              url: "https://www.perplexity.ai",
+              icon: "world-search",
               icon_color: palette.teal,
+            },
+            {
+              name: "notebooklm",
+              url: "https://notebooklm.google.com",
+              icon: "notebook",
+              icon_color: palette.yellow,
             },
           ],
         },
