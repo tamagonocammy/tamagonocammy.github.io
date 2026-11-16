@@ -54,7 +54,7 @@ class Component extends HTMLElement {
 
 ### Dual Search Engine (AI Integration)
 
-[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between DuckDuckGo and AI search. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys); user-facing strings say Claude.
+[src/components/statusbar/statusbar.component.js](../src/components/statusbar/statusbar.component.js#L12) implements toggle between DuckDuckGo and AI search. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys); user-facing strings say Claude, except the results title and loading text, which name the provider answering.
 
 ### Internationalization (i18n)
 
@@ -150,7 +150,8 @@ class WeatherForecastClient {
 
 ```javascript
 async queryAI(query, signal, onText, options = {}) {
-  // aiAttempts(): every provider/model with a key, in advanced_config.assistant.providers order
+  // aiAttempts(preferred): every provider/model with a key, in advanced_config.assistant.providers order
+  //   (options.provider, from @g / @c or the "Ask Gemini/Claude" button, moves that provider to the front)
   //   (default ["claude", "gemini"]); keys via apiKey(): localStorage CLAUDE_API_KEY / GEMINI_API_KEY,
   //   then the gitignored secrets.js, then window.CLAUDE_API_KEY / window.GEMINI_API_KEY
   // streamClaude(): POST https://api.anthropic.com/v1/messages, streamed, with
@@ -183,6 +184,7 @@ Implement in `activate()` method after DOM is ready.
 - **`g`**: Open search in AI mode
 - **`Tab`**: Toggle between DuckDuckGo and AI search (only when input focused)
 - **`Alt+1..9`**: Arm an AI quick action
+- **`@g …` / `@c …`**: Ask Gemini / Claude first (typed before a question, either mode)
 - **`Escape`**: Close search modal, clear results
 - **`Enter`**: Submit search query
 

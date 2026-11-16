@@ -20,6 +20,7 @@ Optional backup: get a Gemini key at [Google AI Studio](https://aistudio.google.
 - Quick actions under the input: translate, define, summarize a link, web search, explain simply, code (`Alt+1..9`)
 - Sources listed under answers that used the web
 - Automatic fallback to the next model/provider, with a note saying who answered
+- Pick who answers: start a question with `@g` (Gemini) or `@c` (Claude), or click **Ask Gemini** / **Ask Claude** under an answer to ask the other one the same question
 - Localized interface (es/en/eo)
 
 ## Where the Key Can Live
@@ -80,6 +81,7 @@ Quick action `tools`: `urlContext` reads a link (Claude web fetch / Gemini URL c
 | `/` | Open search |
 | `Tab` | Toggle DuckDuckGo <-> AI (input focused) |
 | `Alt+1..9` | Arm a quick action |
+| `@g …` / `@c …` | Ask Gemini / Claude first (works from either mode) |
 | `Enter` | Search / ask |
 | `Escape` | Close overlay |
 

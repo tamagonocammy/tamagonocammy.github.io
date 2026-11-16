@@ -80,11 +80,12 @@ Scripts in `index.html` must load in this exact order:
 
 ### AI Search (Claude, Gemini as backup)
 
-AI search lives in `statusbar.component.js`. Press `g` (or `/` then `Tab`) for AI mode. It asks **Claude** first and falls back to **Gemini**. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys such as `placeholder_gemini`); the user-facing strings say Claude.
+AI search lives in `statusbar.component.js`. Press `g` (or `/` then `Tab`) for AI mode. It asks **Claude** first and falls back to **Gemini**. Internal names still say `gemini` (`searchEngine`, CSS classes, i18n keys such as `placeholder_gemini`); the user-facing strings say Claude, except the results title and loading text, which name the provider answering.
 
 - Providers: `advanced_config.assistant.providers` (default `["claude", "gemini"]`); per-provider settings in `advanced_config.claude` and `advanced_config.gemini`. Shared settings (`systemInstruction`, `translateTo`, `quickActions`) live in `advanced_config.assistant`
 - Keys (`apiKey()`): `localStorage` `CLAUDE_API_KEY` / `GEMINI_API_KEY` → gitignored `secrets.js` (`window.startpageSecrets.claude()`) → `window.CLAUDE_API_KEY` / `window.GEMINI_API_KEY`. The repo is public: never commit a key
 - `queryAI()` walks `aiAttempts()` (every provider/model with a key). Busy or unreachable (0/429/5xx/529) before any text: one retry after 2s on the first model, then the next model/provider, with a note saying who answered. 401/402/403 or a credit/billing 400 skips that provider; so does a Claude refusal (note: `fallback_note_refused`)
+- Picking a provider: `@g` / `@c` (also `@gemini` / `@claude`) sends one question to that provider first, from either engine (`parseAiPrefix()`). The **Ask Gemini / Ask Claude** button under an answer re-runs the same prompt on the other provider inside the open panel (`askAI({ inPlace: true })`). Both pass `options.provider` to `queryAI()`; `aiAttempts(preferred)` moves it to the front, so the other stays as backup
 - Claude (`streamClaude`): Messages API from the browser with `anthropic-dangerous-direct-browser-access: true`, streamed SSE, `output_config.effort`, no `temperature`. Web search (`web_search_20250305`) is attached to every question unless `claude.webSearch` is false (`userconfig.js` ships `false`, so only the web quick action searches); web fetch (`web_fetch_20250910`) for `urlContext` actions or any question containing a URL. Sources = cited URLs
 - Gemini (`streamGemini`): `streamGenerateContent?alt=sse`, key in the `x-goog-api-key` header, `thinkingLevel` → `generationConfig.thinkingConfig` (dropped if a model rejects it)
 - `systemPrompt()` appends today's date. Full details: `src/components/statusbar/CLAUDE.md` and `AI_SETUP.md`
@@ -159,6 +160,7 @@ throw new Error("API failed");
 | `g` | Open search in AI mode |
 | `/` | Open search overlay, focus input |
 | `Tab` | Toggle between DuckDuckGo and AI search (when input focused) |
+| `@g …` / `@c …` | Ask Gemini / Claude first (typed before a question) |
 | `Enter` | Execute search / submit query |
 | `Escape` | Close search modal, clear results |
 

@@ -62,6 +62,8 @@ that's genuinely it.
 
 dual-mode search is built in — duckduckgo for when you know what you're looking for, claude for when you want to ask something actually interesting. if claude is down or out of credit, gemini picks up the ball (if you gave it a key too), so the crystal ball never goes dark.
 
+want a second opinion? start with `@g` to ask gemini (or `@c` for claude), or hit **ask gemini** / **ask claude** under any answer and the other one takes the same question, right there in the panel.
+
 ### shortcuts
 
 | key | what it does |
@@ -70,6 +72,7 @@ dual-mode search is built in — duckduckgo for when you know what you're lookin
 | `/` | open search |
 | `Tab` | toggle duckduckgo ↔ ai |
 | `Alt+1..9` | quick actions: translate, define, summarize a link, web search, eli5, code |
+| `@g …` / `@c …` | ask gemini / claude first |
 | `Enter` | cast the spell |
 | `Esc` | close the modal |
 

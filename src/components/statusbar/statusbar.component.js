@@ -449,6 +449,26 @@ class Statusbar extends Component {
             text-decoration: underline;
         }
 
+        /* "Ask Gemini" / "Ask Claude" under an answer: looks like the note's links */
+        .ask-other {
+            all: unset;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--ask-color);
+        }
+
+        .ask-other:hover {
+            text-decoration: underline;
+        }
+
+        .ask-other:focus-visible {
+            outline: 2px solid var(--ask-color);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
         @keyframes engine-pop-b {
             from { opacity: 0; transform: translateY(-50%) scale(.4) rotate(90deg); }
         }
@@ -1062,6 +1082,7 @@ class Statusbar extends Component {
         <h3>${t("in_search")}</h3>
         ${row(t("engine"), "Tab")}
         ${row(t("prefix"), "!yt …")}
+        ${row(t("ai_prefix"), "@g …", "@c …")}
         ${row(t("actions"), "Alt", "1–9")}
         ${row(t("close"), "Esc")}
       </div>`;
@@ -1080,9 +1101,11 @@ class Statusbar extends Component {
     return localStorage.getItem("GEMINI_API_KEY") || window.GEMINI_API_KEY;
   }
 
-  // Every provider/model to try, in order, skipping providers without a key
-  aiAttempts() {
-    const providers = advanced_config?.assistant?.providers || ["claude", "gemini"];
+  // Every provider/model to try, in order, skipping providers without a key.
+  // preferred ("claude" / "gemini", from @c / @g or the "ask the other one" button) goes first; the rest stay as backup.
+  aiAttempts(preferred) {
+    const configured = advanced_config?.assistant?.providers || ["claude", "gemini"];
+    const providers = configured.includes(preferred) ? [preferred, ...configured.filter((p) => p !== preferred)] : configured;
     const defaults = {
       claude: { model: "claude-haiku-5-5", fallbackModels: [] },
       gemini: { model: "gemini-4-hydrogen", fallbackModels: ["gemini-3.8-flash", "gemini-3.5-flash-lite"] },
@@ -1101,8 +1124,9 @@ class Statusbar extends Component {
   // before any text arrives gets one retry after 2s (the first one only), then the next model takes over;
   // a provider that rejects the key or is out of credit is skipped altogether.
   // options.tools: tool names from a quick action ("urlContext" reads a link, "googleSearch" searches the web).
+  // options.provider: ask this provider first.
   async queryAI(query, signal, onText, options = {}) {
-    const attempts = this.aiAttempts();
+    const attempts = this.aiAttempts(options.provider);
     if (!attempts.length) {
       return { error: true, message: window.i18n.t("search.error_no_api_key") };
     }
@@ -1127,7 +1151,8 @@ class Statusbar extends Component {
         for (let attemptNo = 0; attemptNo < tries; attemptNo++) {
           try {
             const stream = attempt.provider === "claude" ? this.streamClaude : this.streamGemini;
-            const result = await stream.call(this, attempt.model, request, attempt.apiKey, signal, onText);
+            const answer = await stream.call(this, attempt.model, request, attempt.apiKey, signal, onText);
+            const result = { ...answer, provider: attempt.provider };
             return attempt === primary ? result : { ...result, fallbackFrom: primary.model, fallbackReason };
           } catch (error) {
             if (signal?.aborted || error.streamed) throw error;
@@ -1623,7 +1648,11 @@ class Statusbar extends Component {
         ? "ti ti-world search-engine-icon duckduckgo"
         : "ti ti-sparkles search-engine-icon gemini";
 
-    // The line under the input: a recognized !prefix wins, then an armed quick action
+    // "Ask Gemini" / "Ask Claude", tinted per provider (hint line and the button under an answer)
+    const providerColor = (provider) => (provider === "gemini" ? CONFIG.palette.blue : CONFIG.palette.peach);
+    const askLabel = (provider) => window.i18n.t("search.ask_provider").replace("{name}", this.providerName(provider));
+
+    // The line under the input: a recognized !prefix wins, then @g / @c, then an armed quick action
     const updateHint = () => {
       const prefix = this.parsePrefix(searchInput.value.trim());
       const action = this.searchEngine === "gemini" ? this.quickActions[this.quickActionIndex] : null;
@@ -1639,6 +1668,22 @@ class Statusbar extends Component {
             );
         searchHint.style.setProperty("--hint-color", entry.color || CONFIG.palette.text);
         searchHint.innerHTML = `<i class="ti ti-arrow-right"></i> ${target} <kbd>↵</kbd>`;
+        searchHint.classList.remove("hidden");
+        return;
+      }
+
+      // @g / @c: this question goes to that AI, whichever engine is selected
+      const aiPrefix = this.parseAiPrefix(searchInput.value.trim());
+      if (aiPrefix) {
+        const color = providerColor(aiPrefix.provider);
+        setEngineIcon("ti ti-sparkles search-engine-icon gemini", color);
+        const ask = escapeHtml(askLabel(aiPrefix.provider)).replace(
+          escapeHtml(this.providerName(aiPrefix.provider)),
+          `<strong>${escapeHtml(this.providerName(aiPrefix.provider))}</strong>`,
+        );
+        const actionLabel = action ? ` · ${escapeHtml(this.quickActionLabel(action))}` : "";
+        searchHint.style.setProperty("--hint-color", color);
+        searchHint.innerHTML = `<i class="ti ti-sparkles" style="color: ${color}"></i> ${ask}${actionLabel} <kbd>↵</kbd>`;
         searchHint.classList.remove("hidden");
         return;
       }
@@ -1813,175 +1858,225 @@ class Statusbar extends Component {
       if (e.key === "Enter") submitSearch();
     });
 
+    // Answer HTML, shared by a new question and the "ask the other one" button
+    const responseHtml = (text) => {
+      // Close a code block that is still streaming so it renders as code meanwhile
+      const fences = (text.match(/```/g) || []).length;
+      return `<div class="gemini-response">${this.formatMarkdown(fences % 2 ? text + "\n```" : text)}</div>`;
+    };
+    const errorHtml = (result) => {
+      const apiKeyNotice = !this.aiAttempts().length
+        ? `
+          <p style="margin-top: 15px;">
+            <strong>${window.i18n.t("search.setup_title")}</strong><br>
+            1. ${window.i18n.t("search.setup_step_1")} <a href="https://platform.claude.com/" target="_blank" rel="noopener noreferrer">Claude Console</a><br>
+            2. ${window.i18n.t("search.setup_step_2")}<br>
+            <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('CLAUDE_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
+            3. ${window.i18n.t("search.setup_step_3")}
+          </p>
+        `
+        : "";
+      const technicalMessage = result.message ? escapeHtml(result.message) : "";
+      const technicalDetails = technicalMessage
+        ? `
+          <details style="margin-top: 12px;">
+            <summary>${window.i18n.t("search.error_details_summary")}</summary>
+            <pre style="margin-top: 8px; white-space: pre-wrap;">${technicalMessage}</pre>
+          </details>
+        `
+        : "";
+      return `
+      <div class="error-message">
+        <h3>${window.i18n.t("search.error_title_friendly")}</h3>
+        <p>${window.i18n.t("search.error_body_friendly")}</p>
+        ${technicalDetails}
+        ${apiKeyNotice}
+      </div>
+    `;
+    };
+    // The finished answer: text, sources, fallback note, then a button to ask the other provider
+    const answerHtml = (result) => {
+      const fallbackNote = result.fallbackFrom
+        ? `<div class="model-note"><i class="ti ti-info-circle"></i> ${escapeHtml(
+            window.i18n
+              .t(result.fallbackReason === "refused" ? "search.fallback_note_refused" : "search.fallback_note")
+              .replace("{model}", result.model)
+              .replace("{primary}", result.fallbackFrom),
+          )}</div>`
+        : "";
+      // Pages the AI read or cited while answering
+      const sourcesHtml = result.sources?.length
+        ? `<div class="model-note"><strong>${escapeHtml(window.i18n.t("search.sources"))}</strong><br>${result.sources
+            .map(
+              ({ uri, title }) =>
+                `<a href="${/^https?:\/\//i.test(uri) ? escapeHtml(uri) : "#"}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>`,
+            )
+            .join(" · ")}</div>`
+        : "";
+      // Only when the other provider has a key, and not after it already declined this question
+      const other = result.provider === "gemini" ? "claude" : "gemini";
+      const askOther =
+        this.aiAttempts(other)[0]?.provider === other && result.fallbackReason !== "refused"
+          ? `<div class="model-note"><button type="button" class="ask-other" data-provider="${other}" style="--ask-color: ${providerColor(
+              other,
+            )}"><i class="ti ti-arrows-exchange"></i> ${escapeHtml(askLabel(other))}</button></div>`
+          : "";
+      return responseHtml(result.text) + sourcesHtml + fallbackNote + askOther;
+    };
+    const titleFor = (provider, action) => {
+      const base = window.i18n.t("search.results_title_provider").replace("{name}", this.providerName(provider));
+      return action ? `${base} · ${this.quickActionLabel(action)}` : base;
+    };
+    const showLoading = (provider) => {
+      resultsContent.innerHTML = loadingHtml;
+      const text = resultsContent.querySelector(".loading-text");
+      if (text) text.textContent = window.i18n.t("search.loading_provider").replace("{name}", this.providerName(provider));
+    };
+
+    // Ask the AI and stream the answer into the results panel.
+    // provider: ask this one first (@g / @c, or the button). inPlace: the panel is already open, so skip the open animation.
+    let lastAsk = null;
+    const askAI = async ({ prompt, action, provider, inPlace = false }) => {
+      const request = new AbortController();
+      currentRequest = request;
+      lastAsk = { prompt, action };
+      const isStale = () => currentRequest !== request;
+      const startedAt = performance.now();
+      // Who should answer, as far as we know before asking (a fallback can still change it)
+      const expected = this.aiAttempts(provider)[0]?.provider || "claude";
+      showLoading(expected);
+      resultsTitle.textContent = titleFor(expected, action);
+
+      let streamedText = "";
+      let canRender = inPlace; // only draw text once the panel has expanded
+      let renderQueued = false;
+      const renderStream = () => {
+        if (!canRender || renderQueued || isStale()) return;
+        renderQueued = true;
+        // At most one re-render per frame, however fast chunks arrive
+        requestAnimationFrame(() => {
+          renderQueued = false;
+          if (!isStale()) resultsContent.innerHTML = responseHtml(streamedText);
+        });
+      };
+
+      let firstChunk;
+      const firstChunkArrived = new Promise((resolve) => (firstChunk = resolve));
+      const resultPromise = this.queryAI(
+        prompt,
+        request.signal,
+        (text) => {
+          streamedText = text;
+          firstChunk();
+          renderStream();
+        },
+        { tools: action?.tools, provider },
+      );
+
+      // Draw what has streamed so far, then the finished answer (or the error)
+      const finish = async () => {
+        canRender = true;
+        if (streamedText) resultsContent.innerHTML = responseHtml(streamedText);
+
+        const result = await resultPromise;
+        if (isStale()) return;
+        currentRequest = null;
+        if (result.error) {
+          // Keep whatever already arrived, with the error below it
+          resultsContent.innerHTML = (streamedText ? responseHtml(streamedText) : "") + errorHtml(result);
+        } else {
+          resultsTitle.textContent = titleFor(result.provider, action);
+          resultsContent.innerHTML = answerHtml(result);
+        }
+      };
+
+      if (inPlace) {
+        searchResults.scrollTop = 0;
+        finish();
+        return;
+      }
+
+      // Step 1: Hide search header
+      searchHeader.classList.add("hidden");
+
+      // Step 2: After header fades, compress to loading icon
+      setTimeout(() => {
+        if (isStale()) return;
+        searchModal.classList.add("loading");
+        loadingIcon.classList.add("active");
+      }, 300);
+
+      // Open the panel as soon as the answer starts (or fails)
+      await Promise.race([firstChunkArrived, resultPromise]);
+      // The overlay was closed while waiting: drop the answer
+      if (isStale()) return;
+
+      // Step 3: Expand to full results window, as soon as the loading animation has played
+      const expandDelay = Math.max(0, 800 - (performance.now() - startedAt));
+      setTimeout(() => {
+        if (isStale()) return;
+        loadingIcon.classList.remove("active");
+        searchModal.classList.remove("loading");
+        searchModal.classList.add("expanded");
+        searchOverlay.classList.add("results-showing");
+
+        // Snap modal to main panel dimensions
+        const panelsRect = this.parentElement.getBoundingClientRect();
+        searchModal.classList.add("panel-mode");
+        searchModal.style.top = `${panelsRect.top}px`;
+        searchModal.style.left = `${panelsRect.left}px`;
+        searchModal.style.width = `${panelsRect.width}px`;
+        panelMaxHeight = panelsRect.height;
+        fitPanel();
+
+        // Small delay for smooth expansion
+        setTimeout(() => {
+          searchResults.classList.add("active");
+        }, 100);
+      }, expandDelay);
+
+      // Start drawing once the panel is opening, then keep up with the stream
+      setTimeout(() => {
+        if (!isStale()) finish();
+      }, expandDelay + 150);
+    };
+
+    // "Ask Gemini" / "Ask Claude" under an answer: same question, same quick action, the other provider
+    resultsContent.addEventListener("click", (e) => {
+      const button = e.target.closest(".ask-other");
+      if (!button || !lastAsk || currentRequest) return;
+      askAI({ ...lastAsk, provider: button.dataset.provider, inPlace: true });
+    });
+
     const submitSearch = async () => {
-        const query = searchInput.value.trim();
-        const prefix = this.parsePrefix(query);
-        if (prefix) {
-          // A known !prefix goes straight to its site, whichever engine is selected
-          window.location.href = this.prefixUrl(prefix);
-          return;
-        }
-        if (query) {
-          if (this.searchEngine === "duckduckgo") {
-            window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-          } else {
-            // Ignore repeated Enter presses while a query is in flight
-            if (currentRequest) return;
-            const request = new AbortController();
-            currentRequest = request;
-            const isStale = () => currentRequest !== request;
-            const startedAt = performance.now();
-            resultsContent.innerHTML = loadingHtml;
+      const query = searchInput.value.trim();
+      const prefix = this.parsePrefix(query);
+      if (prefix) {
+        // A known !prefix goes straight to its site, whichever engine is selected
+        window.location.href = this.prefixUrl(prefix);
+        return;
+      }
+      // @g / @c sends this one question to that AI, whichever engine is selected
+      const aiPrefix = this.parseAiPrefix(query);
+      const question = aiPrefix ? aiPrefix.rest : query;
+      if (!question) return;
+      if (this.searchEngine === "duckduckgo" && !aiPrefix) {
+        window.location.href = `https://duckduckgo.com/?q=${encodeURIComponent(question)}`;
+        return;
+      }
+      // Ignore repeated Enter presses while a query is in flight
+      if (currentRequest) return;
 
-            // An armed quick action wraps the query in its prompt and may bring tools along
-            const action = this.quickActions[this.quickActionIndex];
-            const prompt = action
-              ? action.prompt
-                  .replace(/\{lang\}/g, this.assistantConfig.translateTo || "English")
-                  .replace(/\{q\}/g, query)
-              : query;
-            const baseTitle = window.i18n.t("search.results_title");
-            resultsTitle.textContent = action ? `${baseTitle} · ${this.quickActionLabel(action)}` : baseTitle;
+      // An armed quick action wraps the question in its prompt and may bring tools along
+      const action = this.searchEngine === "gemini" ? this.quickActions[this.quickActionIndex] : null;
+      const prompt = action
+        ? action.prompt.replace(/\{lang\}/g, this.assistantConfig.translateTo || "English").replace(/\{q\}/g, question)
+        : question;
+      await askAI({ prompt, action, provider: aiPrefix?.provider });
 
-            // Step 1: Hide search header
-            searchHeader.classList.add("hidden");
-
-            // Step 2: After header fades, compress to loading icon
-            setTimeout(() => {
-              if (isStale()) return;
-              searchModal.classList.add("loading");
-              loadingIcon.classList.add("active");
-            }, 300);
-
-            // Ask the AI; the answer streams in chunk by chunk
-            let streamedText = "";
-            let canRender = false; // only draw text once the panel has expanded
-            let renderQueued = false;
-            const responseHtml = (text) => {
-              // Close a code block that is still streaming so it renders as code meanwhile
-              const fences = (text.match(/```/g) || []).length;
-              return `<div class="gemini-response">${this.formatMarkdown(fences % 2 ? text + "\n```" : text)}</div>`;
-            };
-            const renderStream = () => {
-              if (!canRender || renderQueued || isStale()) return;
-              renderQueued = true;
-              // At most one re-render per frame, however fast chunks arrive
-              requestAnimationFrame(() => {
-                renderQueued = false;
-                if (!isStale()) resultsContent.innerHTML = responseHtml(streamedText);
-              });
-            };
-            const errorHtml = (result) => {
-              const apiKeyNotice = !this.aiAttempts().length
-                ? `
-                  <p style="margin-top: 15px;">
-                    <strong>${window.i18n.t("search.setup_title")}</strong><br>
-                    1. ${window.i18n.t("search.setup_step_1")} <a href="https://platform.claude.com/" target="_blank" rel="noopener noreferrer">Claude Console</a><br>
-                    2. ${window.i18n.t("search.setup_step_2")}<br>
-                    <code style="display: block; margin-top: 5px; padding: 10px; background: ${CONFIG.palette.mantle};">localStorage.setItem('CLAUDE_API_KEY', '${window.i18n.t("search.setup_key_placeholder")}');</code><br>
-                    3. ${window.i18n.t("search.setup_step_3")}
-                  </p>
-                `
-                : "";
-              const technicalMessage = result.message ? escapeHtml(result.message) : "";
-              const technicalDetails = technicalMessage
-                ? `
-                  <details style="margin-top: 12px;">
-                    <summary>${window.i18n.t("search.error_details_summary")}</summary>
-                    <pre style="margin-top: 8px; white-space: pre-wrap;">${technicalMessage}</pre>
-                  </details>
-                `
-                : "";
-              return `
-              <div class="error-message">
-                <h3>${window.i18n.t("search.error_title_friendly")}</h3>
-                <p>${window.i18n.t("search.error_body_friendly")}</p>
-                ${technicalDetails}
-                ${apiKeyNotice}
-              </div>
-            `;
-            };
-
-            let firstChunk;
-            const firstChunkArrived = new Promise((resolve) => (firstChunk = resolve));
-            const resultPromise = this.queryAI(
-              prompt,
-              request.signal,
-              (text) => {
-                streamedText = text;
-                firstChunk();
-                renderStream();
-              },
-              { tools: action?.tools },
-            );
-            // Open the panel as soon as the answer starts (or fails)
-            await Promise.race([firstChunkArrived, resultPromise]);
-            // The overlay was closed while waiting: drop the answer
-            if (isStale()) return;
-
-            // Step 3: Expand to full results window, as soon as the loading animation has played
-            const expandDelay = Math.max(0, 800 - (performance.now() - startedAt));
-            setTimeout(() => {
-              if (isStale()) return;
-              loadingIcon.classList.remove("active");
-              searchModal.classList.remove("loading");
-              searchModal.classList.add("expanded");
-              searchOverlay.classList.add("results-showing");
-
-              // Snap modal to main panel dimensions
-              const panelsRect = this.parentElement.getBoundingClientRect();
-              searchModal.classList.add("panel-mode");
-              searchModal.style.top = `${panelsRect.top}px`;
-              searchModal.style.left = `${panelsRect.left}px`;
-              searchModal.style.width = `${panelsRect.width}px`;
-              panelMaxHeight = panelsRect.height;
-              fitPanel();
-
-              // Small delay for smooth expansion
-              setTimeout(() => {
-                searchResults.classList.add("active");
-              }, 100);
-            }, expandDelay);
-
-            // Start drawing once the panel is opening, then keep up with the stream
-            setTimeout(async () => {
-              if (isStale()) return;
-              canRender = true;
-              if (streamedText) resultsContent.innerHTML = responseHtml(streamedText);
-
-              const result = await resultPromise;
-              if (isStale()) return;
-              currentRequest = null;
-              if (result.error) {
-                // Keep whatever already arrived, with the error below it
-                resultsContent.innerHTML = (streamedText ? responseHtml(streamedText) : "") + errorHtml(result);
-              } else {
-                const fallbackNote = result.fallbackFrom
-                  ? `<div class="model-note"><i class="ti ti-info-circle"></i> ${escapeHtml(
-                      window.i18n
-                        .t(result.fallbackReason === "refused" ? "search.fallback_note_refused" : "search.fallback_note")
-                        .replace("{model}", result.model)
-                        .replace("{primary}", result.fallbackFrom),
-                    )}</div>`
-                  : "";
-                // Pages the AI read or cited while answering
-                const sourcesHtml = result.sources?.length
-                  ? `<div class="model-note"><strong>${escapeHtml(window.i18n.t("search.sources"))}</strong><br>${result.sources
-                      .map(
-                        ({ uri, title }) =>
-                          `<a href="${/^https?:\/\//i.test(uri) ? escapeHtml(uri) : "#"}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>`,
-                      )
-                      .join(" · ")}</div>`
-                  : "";
-                resultsContent.innerHTML = responseHtml(result.text) + sourcesHtml + fallbackNote;
-              }
-            }, expandDelay + 150);
-
-            // Clear search input
-            searchInput.value = "";
-            updateHint();
-          }
-        }
+      // Clear search input
+      searchInput.value = "";
+      updateHint();
     };
 
     this.isSearchOpen = () => searchOverlay.classList.contains("active");
@@ -2062,6 +2157,19 @@ class Statusbar extends Component {
     const entry = CONFIG.searchPrefixes?.[key];
     if (!entry?.url) return null;
     return { key, entry: { name: key, ...entry }, rest: (match[2] || "").trim() };
+  }
+
+  // "@g why is the sky blue" -> { provider: "gemini", rest: "why is the sky blue" }; also @c, @claude, @gemini. Else null
+  parseAiPrefix(query) {
+    const match = /^@(\S+)(?:\s+([\s\S]*))?$/.exec(query);
+    if (!match) return null;
+    const provider = { c: "claude", claude: "claude", g: "gemini", gemini: "gemini" }[match[1].toLowerCase()];
+    return provider ? { provider, rest: (match[2] || "").trim() } : null;
+  }
+
+  // Display name for a provider id
+  providerName(provider) {
+    return provider === "gemini" ? "Gemini" : "Claude";
   }
 
   prefixUrl({ entry, rest }) {
