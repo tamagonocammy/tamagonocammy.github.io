@@ -130,18 +130,9 @@ class MyComponent extends Component {
 
 ### Weather API Integration
 [src/components/weather/weather.api.js](../src/components/weather/weather.api.js) pattern:
-```javascript
-class WeatherForecastClient {
-  constructor(location) {
-    // Key: localStorage OWM_API_KEY -> window.OWM_API_KEY -> advanced_config.weather.apiKey -> shared demo key
-    this.appId = localStorage.getItem("OWM_API_KEY") || window.OWM_API_KEY || advanced_config?.weather?.apiKey || "<demo key>";
-    const language = advanced_config?.weather?.language || "eo";
-    this.url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURI(location)}&units=metric&lang=${language}&appid=${this.appId}`;
-  }
-  async getWeather() { /* fetch and parse */ }
-}
-```
-- Free tier limits: 60 calls/minute; stores temp/condition/description
+- Uses [Open-Meteo](https://open-meteo.com): free, no API key
+- Geocodes the location once (`"City"` or `"City, CC"`) and keeps the coordinates in localStorage
+- Fetches current/hourly/daily forecast and air quality, maps WMO weather codes to condition names
 - Called periodically; cache results to avoid rate limits
 - Return normalized object: `{ temperature, condition, description }`
 
@@ -233,10 +224,6 @@ const advanced_config = {
     temperature: 0.7,
     maxOutputTokens: 2048,
     thinkingLevel: "low", // "minimal" | "low" | "medium" | "high" | null
-  },
-  weather: {
-    apiKey: "...", // Shared demo key; put a personal key in localStorage OWM_API_KEY
-    language: "eo", // "eo", "es", "en", "fr", etc.
   },
   i18n: {
     defaultLocale: "eo", // "eo", "es" or "en"
@@ -336,7 +323,7 @@ Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js)
 - **Fonts**: Roboto, Nunito, Raleway, Fira Sans (Google Fonts)
 - **Icons**: Tabler Icons (CDN), Material Icons
 - **CSS**: awoo.min.css (custom utility framework)
-- **APIs**: Anthropic Messages API (Claude), Google Generative Language (Gemini), OpenWeatherMap
+- **APIs**: Anthropic Messages API (Claude), Google Generative Language (Gemini), Open-Meteo (weather)
 
 No npm packages or build dependencies—all loaded at runtime.
 

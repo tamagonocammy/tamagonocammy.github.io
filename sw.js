@@ -1,5 +1,5 @@
 // Bump this when app-shell files change so old caches get evicted on activate.
-const CACHE_VERSION = "v31";
+const CACHE_VERSION = "v32";
 const CACHE_NAME = `startpage-${CACHE_VERSION}`;
 
 // Core files needed to render the page with no network at all.
@@ -31,7 +31,7 @@ const APP_SHELL = [
 ];
 
 // Live/dynamic APIs must never be served from cache.
-const NEVER_CACHE_HOSTS = ["api.openweathermap.org", "generativelanguage.googleapis.com", "api.anthropic.com"];
+const NEVER_CACHE_HOSTS = ["api.open-meteo.com", "air-quality-api.open-meteo.com", "geocoding-api.open-meteo.com", "generativelanguage.googleapis.com", "api.anthropic.com"];
 const LIVE_PATHS = ["/now", "/artwork", "/health", "/control", "/love"];
 
 self.addEventListener("install", (event) => {

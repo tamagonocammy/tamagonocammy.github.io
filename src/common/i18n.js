@@ -127,7 +127,6 @@ const translations = {
       },
       air: { 1: "Buena", 2: "Aceptable", 3: "Moderada", 4: "Mala", 5: "Muy mala" },
       errors: {
-        invalid_key: "Clave de API no válida",
         city_not_found: "Ciudad no encontrada",
         rate_limited: "Demasiadas solicitudes, intenta más tarde",
       },
@@ -305,7 +304,6 @@ const translations = {
       },
       air: { 1: "Good", 2: "Fair", 3: "Moderate", 4: "Poor", 5: "Very poor" },
       errors: {
-        invalid_key: "Invalid API key",
         city_not_found: "City not found",
         rate_limited: "Too many requests, try again later",
       },
@@ -480,7 +478,6 @@ const translations = {
       },
       air: { 1: "Bona", 2: "Akceptebla", 3: "Modera", 4: "Malbona", 5: "Tre malbona" },
       errors: {
-        invalid_key: "Nevalida API-ŝlosilo",
         city_not_found: "Urbo ne trovita",
         rate_limited: "Tro da petoj, reprovu poste",
       },

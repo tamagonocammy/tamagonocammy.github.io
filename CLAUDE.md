@@ -102,7 +102,7 @@ Component-specific notes live next to the code: `src/components/statusbar/CLAUDE
 
 ### Offline Support
 
-`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for `api.openweathermap.org`, `generativelanguage.googleapis.com` and `api.anthropic.com` so weather/AI stay live. The gitignored `secrets.js` (local API keys) is never cached.
+`sw.js` is a service worker registered from `index.html` (guarded to skip `file://`). Cache-first for the app shell (local html/css/js), falls back to network for anything uncached, and explicitly bypasses caching for the Open-Meteo APIs, `generativelanguage.googleapis.com` and `api.anthropic.com` so weather/AI stay live. The gitignored `secrets.js` (local API keys) is never cached.
 
 - Bump `CACHE_VERSION` in `sw.js` when app-shell files change — old caches are evicted on `activate`
 - Only takes effect over `http(s)`; does nothing when the file is opened directly (`file://`)

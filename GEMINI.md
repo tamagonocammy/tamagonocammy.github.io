@@ -9,7 +9,7 @@ Catppuccin Startpage is a vanilla JS Web Components startpage (no npm/build step
 Main features:
 
 - Config-driven tabs/categories/links (`userconfig.js`)
-- Weather widget (OpenWeatherMap)
+- Weather widget (Open-Meteo)
 - Clock with localized short/extended formats
 - AI (Claude, Gemini as backup) + DuckDuckGo dual search mode in the status bar
 - Internationalization (`es`, `en`, `eo`)
@@ -63,7 +63,6 @@ Notes:
 - `assistant`: provider order, systemInstruction, translateTo, quickActions
 - `claude`: model, fallbackModels, effort, maxTokens, webSearch, maxSearches
 - `gemini`: model, fallbackModels, temperature, maxOutputTokens, thinkingLevel
-- `weather`: fallback API key and language (personal key should go in `localStorage.OWM_API_KEY` instead)
 - `i18n`: default locale
 - `storage`: localStorage key prefix
 
@@ -120,21 +119,10 @@ Implementation escapes unsafe HTML first, then restores formatted output.
 
 ## Weather Integration
 
-`WeatherForecastClient` reads:
-
-- Key source priority:
-  1. `localStorage.getItem('OWM_API_KEY')`
-  2. `window.OWM_API_KEY`
-  3. `advanced_config.weather.apiKey`
-  4. shared demo key committed in `userconfig.js` (public, rate-limited)
-- `advanced_config.weather.language`
-
-Same pattern as the AI keys: prefer `localStorage` for a personal key so it never lands in a commit.
-
-Fetches from OpenWeatherMap and returns normalized result:
+`WeatherForecastClient` uses [Open-Meteo](https://open-meteo.com) (free, no API key). It geocodes `CONFIG.temperature.location` once (`"City"` or `"City, CC"`), keeps the coordinates in localStorage, then fetches the forecast and air quality and returns a normalized result:
 
 ```javascript
-{ temperature, condition, description }
+{ temperature, condition, description, hourly, daily, rainChance, airQuality, ... }
 ```
 
 On failures, returns:
@@ -150,7 +138,7 @@ UI side (`weather.component.js`) shows friendly fallback text plus optional tech
 `sw.js` registration happens inline at the bottom of `index.html`, guarded to only run over `http(s)` (service workers don't run on `file://`).
 
 - Install: precaches the app shell (core html/css/js + favicon)
-- Fetch: cache-first for same-origin/static requests, network passthrough (never cached) for `api.openweathermap.org`, `generativelanguage.googleapis.com` and `api.anthropic.com`
+- Fetch: cache-first for same-origin/static requests, network passthrough (never cached) for the Open-Meteo APIs, `generativelanguage.googleapis.com` and `api.anthropic.com`
 - Activate: deletes caches that don't match the current `CACHE_VERSION`
 
 ## Clock Behavior
@@ -197,7 +185,6 @@ window.i18n.t('search.placeholder_duckduckgo');
 window.i18n.setLocale('en');
 localStorage.getItem('CLAUDE_API_KEY');
 localStorage.getItem('GEMINI_API_KEY');
-localStorage.getItem('OWM_API_KEY');
 new WeatherForecastClient('Bogota').getWeather().then(console.log);
 ```
 

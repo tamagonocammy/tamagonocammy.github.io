@@ -529,7 +529,7 @@ class Weather extends Component {
   }
 
   /**
-   * Formats a timestamp as HH:MM in the city's own timezone (OWM gives its UTC offset in seconds).
+   * Formats a timestamp as HH:MM in the city's own timezone (the API gives its UTC offset in seconds).
    */
   formatTime(ms) {
     const d = new Date(ms + (this.weather.timezone || 0) * 1000);

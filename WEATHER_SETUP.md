@@ -1,97 +1,57 @@
 # Weather Integration Setup Guide
 
-This startpage includes a **weather widget** powered by OpenWeatherMap, shown in the status bar.
+This startpage includes a **weather widget** powered by [Open-Meteo](https://open-meteo.com), shown in the status bar.
 
 ## What You Get
 
-- Current temperature, condition, and description for a configured location
+- Current temperature and condition for a configured location
+- A popup with feels-like, humidity, wind, sunrise/sunset, the next hours, a 3-day outlook, chance of rain and air quality
 - Localized condition strings (es/en/eo)
 - Friendly fallback text if the API call fails, with technical details tucked away
 
-## 1) Zero-Config Default
+## Setup
 
-The repo ships with a shared, public, rate-limited OpenWeatherMap free-tier key in `userconfig.js` (`advanced_config.weather.apiKey`). It works out of the box — no setup required to see weather on first run.
-
-Because it's shared across every fork of this repo, it's more likely to hit its rate limit (60 calls/minute across all users). Get your own key if you want reliable results.
-
-## 2) Get Your Own API Key (Recommended)
-
-1. Go to [OpenWeatherMap](https://openweathermap.org/api)
-2. Create a free account and generate an API key
-3. Copy it
-
-## 3) Configure the API Key
-
-### Option A (Recommended): Browser localStorage
-
-Run in browser console (`F12`):
-
-```javascript
-localStorage.setItem('OWM_API_KEY', 'your-api-key-here');
-```
-
-Reload the page. This persists across browser restarts and takes priority over `userconfig.js`, so your key never ends up in a commit.
-
-### Option B: `userconfig.js`
-
-If this repo/config is private, you can set:
-
-```javascript
-window.OWM_API_KEY = "your-api-key-here";
-```
-
-in `userconfig.js`, or edit `advanced_config.weather.apiKey` directly. Don't push either of those to a public repo.
-
-## 4) Set Your Location
-
-In `userconfig.js`:
+There's no API key and no signup: Open-Meteo is free for non-commercial use. Just set your location in `userconfig.js`:
 
 ```javascript
 temperature: {
   location: "Bogota",
-  scale: "celsius", // or "fahrenheit"
+  scale: "C", // or "F"
 }
 ```
 
-## Key Resolution Order
+If your city shares its name with another place, add the ISO country code: `"Bogota, CO"`, `"Paris, FR"`. Without one, the most populated match wins.
 
-`WeatherForecastClient` checks, in order:
+## How It Works
 
-1. `localStorage.getItem('OWM_API_KEY')`
-2. `window.OWM_API_KEY`
-3. `advanced_config.weather.apiKey`
-4. the shared demo key committed in `userconfig.js`
+1. The location is geocoded once and the coordinates are saved in localStorage (`weatherPlace:v1:<location>`)
+2. The forecast and air quality are fetched in parallel and cached for 10 minutes (`weatherCache:v3:<location>`)
+3. The widget refreshes every 15 minutes, and when a tab becomes visible with stale data
 
 ## Troubleshooting
 
-### Friendly fallback / "Weather API returned an error"
+### Weather for the wrong place
 
-- Confirm your location string resolves on [OpenWeatherMap](https://openweathermap.org/) directly
-- Check browser console for the underlying error (`weather.api_error`)
-- Verify key validity — new keys can take a few minutes to activate
-- If using the shared demo key, you may be rate-limited; set your own key instead
+Add the country code to the location, or clear the saved coordinates and reload:
+
+```javascript
+Object.keys(localStorage).filter((k) => k.startsWith("weatherPlace")).forEach((k) => localStorage.removeItem(k));
+```
+
+### "City not found"
+
+- Check the spelling, or try the city's name in English
+- If you added a country code, make sure it's the two-letter ISO code (`CO`, not `COL`)
 
 ### No weather shown at all
 
-- Confirm the `weather-forecast` component isn't in `CONFIG.disabled`
-- Check `advanced_config.weather.language` is a supported code (`es`, `en`, `eo`, etc. per OpenWeatherMap's language list)
-
-## Advanced Configuration
-
-In `userconfig.js` -> `advanced_config.weather`:
-
-```javascript
-weather: {
-  apiKey: "your-api-key-here", // fallback only; prefer localStorage
-  language: "eo",
-}
-```
+- Confirm `weather` isn't in `CONFIG.disabled`
+- Check the browser console for the underlying error (`weather.api_error`)
 
 ## Privacy Notes
 
-- API key is stored in your browser (or committed to `userconfig.js` if you choose Option B)
-- Requests are sent directly to OpenWeatherMap's API
-- This startpage does not run a backend service for weather — like the AI search keys, any key used here is inherently visible in the browser's network requests
+- Requests go directly from your browser to Open-Meteo's API, with your location's coordinates
+- This startpage does not run a backend service for weather
 
 ## Related Docs
 

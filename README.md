@@ -94,13 +94,7 @@ full setup guide: [AI_SETUP.md](AI_SETUP.md)
 
 ## ˗ˏˋ ★ weather — reading the sky ˎˊ˗
 
-weather ships with a shared free-tier [openweathermap](https://openweathermap.org/api) key out of the box, so it just works — no setup required. it's public and rate-limited, so if you want your own key, grab one for free and run this in your browser console:
-
-```javascript
-localStorage.setItem('OWM_API_KEY', 'your-api-key-here');
-```
-
-this persists across sessions and takes priority over `userconfig.js`, so your key never ends up in a commit. you can also set `window.OWM_API_KEY` or `advanced_config.weather.apiKey` directly in `userconfig.js` — just don't push that to a public repo, okay? keep your secrets secret 🌿
+weather comes from [open-meteo](https://open-meteo.com) — free, no api key, no signup, it just works ☀️ set your city in `userconfig.js` (`temperature.location`). if your city shares a name with somewhere else, add the country code, like `"Bogota, CO"` — otherwise the biggest one wins.
 
 full setup guide: [WEATHER_SETUP.md](WEATHER_SETUP.md)
 
