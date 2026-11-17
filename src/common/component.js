@@ -27,7 +27,6 @@ class Component extends HTMLElement {
       material:
         '<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">',
       materialLocal: '<link rel="stylesheet" href="src/fonts/material-icons-local.css">',
-      cryptofont: '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/monzanifabio/cryptofont/cryptofont.css">',
       tabler: '<link rel="stylesheet" href="src/css/tabler-icons.min.css">',
     },
     /** CSS libraries and frameworks */

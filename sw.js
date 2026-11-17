@@ -1,5 +1,5 @@
 // Bump this when app-shell files change so old caches get evicted on activate.
-const CACHE_VERSION = "v32";
+const CACHE_VERSION = "v33";
 const CACHE_NAME = `startpage-${CACHE_VERSION}`;
 
 // Core files needed to render the page with no network at all.
@@ -9,7 +9,12 @@ const APP_SHELL = [
   "./index.html",
   "./userconfig.js",
   "./src/css/style.css",
-  "./src/css/awoo.min.css",
+  "./src/css/awoo-local.min.css",
+  "./src/css/tabler-icons.min.css",
+  "./src/fonts/lato-local.css",
+  "./src/fonts/nunito-local.css",
+  "./src/fonts/raleway-local.css",
+  "./src/fonts/material-icons-local.css",
   "./src/common/palette.js",
   "./src/common/theme.js",
   "./src/common/utils.js",

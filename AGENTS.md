@@ -178,7 +178,6 @@ Components import resources via `imports()` method:
 **Icons**:
 - `this.resources.icons.material` / `materialLocal`
 - `this.resources.icons.tabler` (Tabler Icons)
-- `this.resources.icons.cryptofont`
 
 **Libraries**:
 - `this.resources.libs.awoo` / `awooLocal` (CSS utility framework)
