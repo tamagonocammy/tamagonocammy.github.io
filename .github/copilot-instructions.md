@@ -124,7 +124,7 @@ class MyComponent extends Component {
 - Use **shadow DOM** (`this.attachShadow({ mode: "open" })`)
 - Return CSS as string from `style()` method
 - Reference `CONFIG.palette.*` colors (e.g., `${CONFIG.palette.base}`)
-- Icons from: Material Icons, Tabler Icons, or CryptoFont
+- Icons from: Material Icons or Tabler Icons (served locally)
 - **Performance**: Avoid frequent DOM queries; cache refs in `refs` object and populate in `activate()`
 - Shadow DOM **prevents CSS leakage** but also prevents external styles from affecting component
 
@@ -318,10 +318,10 @@ Add keys to `translations` object in [src/common/i18n.js](../src/common/i18n.js)
 
 ---
 
-## External Dependencies (CDN-Only)
+## Dependencies (served locally)
 
-- **Fonts**: Roboto, Nunito, Raleway, Fira Sans (Google Fonts)
-- **Icons**: Tabler Icons (CDN), Material Icons
+- **Fonts**: Lato, Nunito, Raleway, Roboto (local copies in `src/fonts/`; Google Fonts only when `localFonts` is false)
+- **Icons**: Tabler Icons, Material Icons (local copies in `src/fonts/` and `src/css/`)
 - **CSS**: awoo.min.css (custom utility framework)
 - **APIs**: Anthropic Messages API (Claude), Google Generative Language (Gemini), Open-Meteo (weather)
 
