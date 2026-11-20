@@ -39,7 +39,7 @@ window.i18n.setLocale('eo');
 - Weather conditions + weather error/fallback copy
 - Day/month names, AM/PM terms, ordinals
 - Time format strings (short and extended)
-- Tab category labels (`principal`, `trabajo`, etc.)
+- Tab category labels (`principal`, `ia`, etc.)
 
 ## i18n API
 
@@ -146,7 +146,7 @@ window.i18n.getOrdinal(1);
   tabs: {
     categories: {
       principal: string,
-      trabajo: string,
+      ia: string,
       streaming: string,
       recursos: string,
       desafios: string,

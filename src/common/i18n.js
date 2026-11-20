@@ -161,14 +161,14 @@ const translations = {
     tabs: {
       categories: {
         principal: "Principal",
-        trabajo: "Trabajo",
+        ia: "IA",
         streaming: "Streaming",
         recursos: "Recursos",
         desafios: "Desafíos",
         blogs: "Blogs",
         redes_sociales: "Redes sociales",
         juegos: "Juegos",
-        video: "Vídeo",
+        video: "Video",
         lenguas: "Lenguas",
       },
     },
@@ -338,7 +338,7 @@ const translations = {
     tabs: {
       categories: {
         principal: "Main",
-        trabajo: "Work",
+        ia: "AI",
         streaming: "Streaming",
         recursos: "Resources",
         desafios: "Challenges",
@@ -362,7 +362,7 @@ const translations = {
       placeholder_duckduckgo: "Serĉi per DuckDuckGo...",
       placeholder_gemini: "Demandu al Claude...",
       results_title: "Respondo de Claude",
-      loading: "Demandas al Claude...",
+      loading: "Demandante al Claude...",
       error_title_friendly: "Ni ne povis plenumi la peton",
       error_body_friendly: "Bonvolu reprovi post kelkaj sekundoj.",
       error_details_summary: "Teknikaj detaloj",
@@ -382,7 +382,7 @@ const translations = {
       prefix_open: "Malfermi {name}",
       ask_provider: "Demandi al {name}",
       results_title_provider: "Respondo de {name}",
-      loading_provider: "Demandas al {name}...",
+      loading_provider: "Demandante al {name}...",
       sources: "Fontoj",
       actions: {
         translate: "Traduki",
@@ -468,12 +468,12 @@ const translations = {
       popup: {
         location: "Loko",
         toggle_scale: "Ŝanĝi skalon",
-        feels_like: "Sentiĝas kiel",
+        feels_like: "Sentata",
         humidity: "Humideco",
         wind: "Vento",
         sunrise: "Sunleviĝo",
         sunset: "Sunsubiro",
-        rain_chance: "Pluvŝanco",
+        rain_chance: "Pluvprobablo",
         air_quality: "Aerkvalito",
       },
       air: { 1: "Bona", 2: "Akceptebla", 3: "Modera", 4: "Malbona", 5: "Tre malbona" },
@@ -482,9 +482,9 @@ const translations = {
         rate_limited: "Tro da petoj, reprovu poste",
       },
       conditions: {
-        clouds: "Nubeta",
+        clouds: "Nuba",
         mist: "Nebulo",
-        fog: "Nebulo densa",
+        fog: "Densa nebulo",
         haze: "Brumeto",
         smoke: "Fumo",
         dust: "Polvo",
@@ -512,7 +512,7 @@ const translations = {
     tabs: {
       categories: {
         principal: "Ĉefa",
-        trabajo: "Laboro",
+        ia: "AI-oj",
         streaming: "Fluado",
         recursos: "Rimedoj",
         desafios: "Defioj",
