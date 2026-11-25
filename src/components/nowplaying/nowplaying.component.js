@@ -128,8 +128,10 @@ class NowPlaying extends Component {
           display: inline-block;
       }
 
+      /* padding-left matches the mask's 10px fade so the first letter isn't faded out while it rests */
       .np-label.scrolling .np-marquee {
-          animation: np-marquee var(--np-marquee-dur, 12s) linear infinite;
+          padding-left: 10px;
+          animation:np-marquee var(--np-marquee-dur, 12s) linear infinite;
       }
 
       .np-marquee-copy + .np-marquee-copy {
@@ -150,7 +152,7 @@ class NowPlaying extends Component {
 
       @media (prefers-reduced-motion: reduce) {
           .np-label.scrolling { mask-image: none; text-overflow: ellipsis; }
-          .np-label.scrolling .np-marquee { animation: none; }
+          .np-label.scrolling .np-marquee { animation: none; padding-left: 0; }
           .np-marquee-copy + .np-marquee-copy { display: none; }
       }
 
